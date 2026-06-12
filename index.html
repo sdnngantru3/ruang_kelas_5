@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Kelas Virtual - SD Negeri 3 Ngantru</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS (XLSX) untuk membaca file Excel di Frontend -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --teal-dark: #0f766e;
+            --teal-medium: #14b8a6;
+            --teal-light: #f0fdfa;
+            --teal-hover: #115e59;
+            --orange-accent: #f97316;
+            --orange-light: #fff7ed;
+            --dark-card: #1e293b;
+            --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            overflow-x: hidden;
+        }
+
+        /* --- STYLING UNTUK PASSWORD LOCKSCREEN --- */
+        #passwordOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, var(--teal-medium), var(--teal-dark)); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: var(--transition-smooth);
+        }
+        .lockscreen-card {
+            background: white;
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(15, 118, 110, 0.4);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        /* Menyembunyikan konten utama sebelum password benar */
+        #mainContent {
+            display: none;
+        }
+        /* ----------------------------------------- */
+
+        /* Teal & Orange Theme Custom Classes */
+        .bg-teal-dark {
+            background-color: var(--teal-dark) !important;
+        }
+        .bg-teal-light {
+            background-color: var(--teal-light) !important;
+        }
+        .text-teal {
+            color: var(--teal-dark) !important;
+        }
+        .text-orange {
+            color: var(--orange-accent) !important;
+        }
+        .bg-orange-light {
+            background-color: var(--orange-light) !important;
+        }
+        .border-teal-light {
+            border-color: var(--teal-light) !important;
+        }
+
+        /* Buttons styling */
+        .btn-teal {
+            background-color: var(--teal-dark);
+            color: white;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+        .btn-teal:hover {
+            background-color: var(--teal-hover);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .btn-outline-teal {
+            border: 2px solid var(--teal-dark);
+            color: var(--teal-dark);
+            background: transparent;
+            transition: var(--transition-smooth);
+        }
+        .btn-outline-teal:hover {
+            background-color: var(--teal-dark);
+            color: white;
+        }
+        .btn-orange {
+            background-color: var(--orange-accent);
+            color: white;
+            border: none;
+            transition: var(--transition-smooth);
+        }
+        .btn-orange:hover {
+            background-color: #ea580c;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+        }
+
+        /* Custom Cards */
+        .custom-card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(15, 118, 110, 0.05);
+            background-color: #ffffff;
+            transition: var(--transition-smooth);
+        }
+        .custom-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(15, 118, 110, 0.08);
+        }
+
+        /* Interactive Menu Cards */
+        .interactive-menu-card {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition-smooth);
+            overflow: hidden;
+            position: relative;
+        }
+        .interactive-menu-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: transparent;
+            transition: var(--transition-smooth);
+        }
+        .interactive-menu-card.menu-materi:hover {
+            border-color: var(--teal-medium);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(20, 184, 166, 0.15);
+        }
+        .interactive-menu-card.menu-materi::after {
+            background: var(--teal-medium);
+        }
+        .interactive-menu-card.menu-tugas:hover {
+            border-color: var(--orange-accent);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(249, 115, 22, 0.15);
+        }
+        .interactive-menu-card.menu-tugas::after {
+            background: var(--orange-accent);
+        }
+
+        /* Class Banner */
+        .class-banner {
+            background: linear-gradient(135deg, var(--teal-dark) 0%, #115e59 100%);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(15, 118, 110, 0.15);
+        }
+        .class-banner::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: rgba(20, 184, 166, 0.12);
+        }
+
+        /* Chat/Forum styling */
+        .chat-container {
+            border-radius: 14px;
+            background-color: #f8fafc;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .chat-bubble {
+            border-radius: 16px;
+            padding: 12px 16px;
+            background-color: #e2e8f0;
+            max-width: 85%;
+            font-size: 0.9rem;
+        }
+        .chat-bubble.teacher {
+            background-color: var(--teal-light);
+            border-left: 4px solid var(--teal-medium);
+        }
+        .chat-bubble.me {
+            background-color: var(--orange-light);
+            border-right: 4px solid var(--orange-accent);
+        }
+
+        /* Quiz UI Styles */
+        .option-container {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .option-container:hover {
+            background-color: var(--teal-light);
+            border-color: var(--teal-medium);
+        }
+        .option-container.selected {
+            background-color: var(--teal-light);
+            border-color: var(--teal-dark);
+            font-weight: 600;
+        }
+
+        /* Drive Iframe Container */
+        .drive-iframe-wrapper {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(15, 118, 110, 0.1);
+        }
+        .drive-iframe-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* View transition animations */
+        .fade-in-view {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Spinner */
+        .spinner-overlay {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            vertical-align: text-bottom;
+            border: .25em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border .75s linear infinite;
+        }
+
+        /* Skeleton Loading */
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 10px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 1. LAYAR POPUP PASSWORD -->
+<div id="passwordOverlay">
+    <div class="lockscreen-card">
+        <div class="text-teal mb-3">
+            <i class="bi bi-shield-lock-fill" style="font-size: 3.5rem;"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
+        <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
+        
+        <form onsubmit="checkPassword(event)">
+            <div class="mb-3">
+                <input type="password" id="inputPassword" class="form-control text-center py-2.5 rounded-3 border-teal-light" placeholder="Masukkan Password" required>
+                <div id="passwordError" class="text-danger small mt-2 d-none">Password salah, silakan coba lagi!</div>
+            </div>
+            <button type="submit" class="btn btn-teal w-100 py-2.5 fw-bold rounded-3 shadow-sm">Masuk Kelas</button>
+        </form>
+    </div>
+</div>
+
+<!-- 2. MAIN CONTENT AREA -->
+<div id="mainContent" class="container py-4">
+    
+    <!-- SUBVIEW: DASHBOARD / TAMPILAN AWAL -->
+    <div id="view-dashboard" class="fade-in-view">
+        <!-- Header & Breadcrumb -->
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-house-door-fill text-teal me-2"></i>Dashboard Kelas
+            </h5>
+            <span class="badge bg-teal-light text-teal border border-teal-light py-2 px-3 rounded-pill fw-bold">
+                <i class="bi bi-calendar2-week me-1"></i> Ganjil • 2025/2026
+            </span>
+        </div>
+
+        <!-- HEADER BANNER KELAS SDN 3 NGANTRU -->
+        <div class="class-banner p-4 p-md-5 text-white mb-4 position-relative">
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-md-7 mb-3 mb-md-0 d-flex align-items-center flex-wrap flex-md-nowrap gap-4">
+                    <!-- Logo SDN 3 Ngantru -->
+                    <div class="bg-white rounded-circle p-2 shadow-sm d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; min-width: 100px;">
+                        <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div>
+                        <span class="badge bg-warning text-dark mb-2 px-3 py-1.5 rounded-pill fw-bold">
+                            <i class="bi bi-bookmark-fill me-1"></i> Portal Belajar Kelas V
+                        </span>
+                        <h1 class="fw-extrabold mb-1 display-5">SD Negeri 3 Ngantru</h1>
+                        <p class="mb-0 opacity-90 fs-6">Sistem Pembelajaran Virtual Siswa Kreatif & Berprestasi</p>
+                    </div>
+                </div>
+                <!-- Card Guru Pengampu -->
+                <div class="col-md-5 mt-3 mt-md-0 d-flex justify-content-md-end">
+                    <div class="bg-white bg-opacity-10 p-3 rounded-4 backdrop-blur d-inline-flex align-items-center gap-3 w-100" style="max-width: 380px; border: 1px solid rgba(255,255,255,0.15)">
+                        <div class="bg-white rounded-circle p-1" style="width: 75px; height: 75px; min-width: 75px;">
+                            <img src="foto guru.png" alt="Aburrizal Hamdani Lubis, S.Pd" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                        </div>
+                        <div>
+                            <span class="d-block fw-bold fs-5 text-white lh-sm">Aburrizal Hamdani Lubis, S.Pd</span>
+                            <small class="opacity-80 text-white-50">Guru Pengampu • Online Aktif</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENU UTAMA INTERAKTIF -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="fw-bold mb-3 text-dark text-center text-md-start">
+                    <i class="bi bi-grid-1x2-fill text-teal me-2"></i>Menu Utama Kelas
+                </h4>
+            </div>
+            <!-- Menu 1: MATERI -->
+            <div class="col-md-6 mb-3">
+                <div class="card custom-card interactive-menu-card menu-materi p-4 h-100 d-flex flex-column justify-content-between" onclick="navigateTo('materi')">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="p-3 bg-teal-light text-teal rounded-4">
+                                <i class="bi bi-journal-bookmark-fill fs-2"></i>
+                            </div>
+                            <span class="badge bg-teal-dark text-white rounded-pill px-3 py-1.5 fw-semibold">Drive Otomatis</span>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">1. Materi Belajar</h4>
+                        <p class="text-muted small">
+                            Akses dan baca seluruh dokumen modul belajar PDF secara otomatis yang bersumber langsung dari folder penyimpanan Google Drive bersama.
+                        </p>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <span class="btn btn-teal rounded-pill px-4 py-2 text-white">
+                            Pelajari Materi <i class="bi bi-arrow-right ms-2"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu 2: TUGAS -->
+            <div class="col-md-6 mb-3">
+                <div class="card custom-card interactive-menu-card menu-tugas p-4 h-100 d-flex flex-column justify-content-between" onclick="navigateTo('tugas')">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="p-3 bg-orange-light text-orange rounded-4">
+                                <i class="bi bi-clipboard-check-fill fs-2"></i>
+                            </div>
+                            <span class="badge bg-orange text-white rounded-pill px-3 py-1.5 fw-semibold" style="background-color: var(--orange-accent);">Kuis Terintegrasi</span>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">2. Tugas & Ujian</h4>
+                        <p class="text-muted small">
+                            Lihat kuis aktif kelas yang disinkronkan secara otomatis langsung dari folder Google Drive Bapak/Ibu Guru tanpa hambatan.
+                        </p>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <span class="btn btn-orange rounded-pill px-4 py-2 text-white">
+                            Kerjakan Tugas <i class="bi bi-arrow-right ms-2"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADDITIONAL WIDGETS SECTION -->
+        <div class="row">
+            <!-- Agenda Widget -->
+            <div class="col-lg-5 mb-3">
+                <div class="card custom-card p-4 h-100" style="border-top: 5px solid var(--orange-accent);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar3 text-orange me-2"></i>Agenda Kelas Terdekat</h6>
+                        <span class="badge bg-orange-light text-orange rounded">Minggu Ini</span>
+                    </div>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                        <li class="d-flex gap-3 align-items-start">
+                            <div class="bg-orange-light rounded-3 p-2 text-center text-orange" style="min-width: 50px;">
+                                <span class="d-block fw-bold lh-1 fs-5">15</span>
+                                <small style="font-size: 0.7rem;" class="text-uppercase fw-semibold">Jun</small>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark small">Batas Pengumpulan Tugas Tematik 1</h6>
+                                <small class="text-muted d-block">Pukul 23:59 WIB • Portal Mandiri</small>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3 align-items-start">
+                            <div class="bg-teal-light rounded-3 p-2 text-center text-teal" style="min-width: 50px;">
+                                <span class="d-block fw-bold lh-1 fs-5">18</span>
+                                <small style="font-size: 0.7rem;" class="text-uppercase fw-semibold">Jun</small>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark small">Kuis Penilaian Harian Pertama</h6>
+                                <small class="text-muted d-block">08:00 - 10:00 WIB • Online CBT</small>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <!-- Siswa Aktif Online Widget integrated directly -->
+                    <div class="border-top mt-4 pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-dark small"><i class="bi bi-people-fill text-teal me-2"></i>Siswa Aktif Online</h6>
+                            <span class="badge bg-teal-light text-teal rounded-pill px-3" style="font-size: 0.7rem;">3 Online</span>
+                        </div>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="position-relative">
+                                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Fina" alt="Fina" class="rounded-circle bg-light p-1" style="width: 32px; height: 32px;">
+                                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-1 animate-pulse" style="width: 8px; height: 8px;"></span>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.8rem;">Fina Nurhasanah</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="position-relative">
+                                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Budi" alt="Budi" class="rounded-circle bg-light p-1" style="width: 32px; height: 32px;">
+                                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle p-1 animate-pulse" style="width: 8px; height: 8px;"></span>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.8rem;">Budi Setiawan</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forum Tanya Jawab / Chat Widget -->
+            <div class="col-lg-7 mb-3">
+                <div class="card custom-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-chat-quote-fill text-teal me-2"></i>Tanya Jawab Kelas V</h6>
+                        <span class="badge bg-teal-light text-teal rounded">Forum Diskusi</span>
+                    </div>
+
+                    <!-- Chat Container -->
+                    <div class="chat-container overflow-y-auto mb-3" id="chatContainer" style="max-height: 250px; display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Pesan Guru -->
+                        <div class="d-flex gap-2 align-items-start">
+                            <img src="foto guru.png" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" alt="Guru" class="rounded-circle bg-teal-light p-0.5" style="width: 35px; height: 35px; object-fit: cover;">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;">Aburrizal Hamdani Lubis, S.Pd</span>
+                                    <span class="badge bg-teal-dark text-white p-1" style="font-size: 0.55rem;">GURU</span>
+                                </div>
+                                <div class="chat-bubble teacher">
+                                    Selamat datang di kelas virtual SD Negeri 3 Ngantru anak-anak! Silakan unduh modul di menu Materi, dan jika ada tugas kuis silakan langsung kerjakan ya.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pesan Siswa -->
+                        <div class="d-flex gap-2 align-items-start">
+                            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Andi" alt="Andi" class="rounded-circle bg-light p-1" style="width: 35px; height: 35px;">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="fw-bold text-dark" style="font-size: 0.75rem;">Andi Wijaya</span>
+                                    <small class="text-muted" style="font-size: 0.65rem;">10:45 WIB</small>
+                                </div>
+                                <div class="chat-bubble">
+                                    Baik pak! Saya sedang mengunduh modul belajarnya. Terima kasih atas materinya hari ini.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kirim Chat Form -->
+                    <form id="chatForm" onsubmit="sendChatMessage(event)">
+                        <div class="d-flex gap-2">
+                            <input type="text" id="chatInput" class="form-control rounded-pill px-4 border-teal-light" placeholder="Ketik pertanyaan untuk guru atau teman..." required>
+                            <button type="submit" class="btn btn-teal rounded-circle p-0 d-flex align-items-center justify-content-center animate-pulse" style="width: 42px; height: 42px; min-width: 42px;">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBVIEW: MATERI BELAJAR (Google Drive Integration) -->
+    <div id="view-materi" class="fade-in-view d-none">
+        <!-- Back Navigation -->
+        <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <button class="btn btn-outline-teal rounded-pill px-4 py-2 fw-semibold" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-2"></i> Kembali ke Dashboard
+            </button>
+            <a href="https://drive.google.com/drive/folders/1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V?usp=sharing" target="_blank" class="btn btn-teal rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-box-arrow-up-right me-2"></i> Buka Langsung di Google Drive
+            </a>
+        </div>
+
+        <div class="card custom-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="fw-bold text-teal mb-0"><i class="bi bi-folder-symlink-fill me-2"></i>Folder Google Drive Materi</h3>
+                <span class="badge bg-teal-dark">Kelas V • SDN 3 Ngantru</span>
+            </div>
+            <p class="text-muted mb-0">
+                Di bawah ini adalah materi, buku, dan penugasan format PDF yang disinkronkan langsung dari Google Drive bersama kelas. Anda dapat mengklik file secara langsung untuk membaca atau mengunduhnya.
+            </p>
+        </div>
+
+        <!-- Warning Alert / Tip Penggunaan -->
+        <div class="alert alert-warning border-0 rounded-4 p-3 mb-4 d-flex align-items-start bg-orange-light">
+            <i class="bi bi-info-circle-fill text-orange fs-4 me-3 mt-1"></i>
+            <div>
+                <h6 class="fw-bold text-dark">Petunjuk Penggunaan Google Drive:</h6>
+                <p class="mb-0 text-muted small">
+                    Jika folder di bawah tidak muncul, pastikan Anda telah **login ke akun Google Anda** di browser ini, atau tekan tombol <strong>"Buka Langsung di Google Drive"</strong> di atas untuk mengaksesnya di tab baru.
+                </p>
+            </div>
+        </div>
+
+        <!-- IFRAME GOOGLE DRIVE FOLDER -->
+        <div class="card custom-card p-2 mb-4">
+            <div class="drive-iframe-wrapper">
+                <iframe src="https://drive.google.com/embeddedfolderview?id=1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V#list" allow="autoplay"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBVIEW: TUGAS & UJIAN -->
+    <div id="view-tugas" class="fade-in-view d-none">
+        <!-- Back Navigation -->
+        <div class="mb-4">
+            <button class="btn btn-outline-teal rounded-pill px-4 py-2 fw-semibold" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-2"></i> Kembali ke Dashboard
+            </button>
+        </div>
+
+        <div class="card custom-card p-4 mb-4">
+            <h3 class="fw-bold text-orange mb-3"><i class="bi bi-clipboard-check-fill me-2"></i>Tugas & Ujian</h3>
+            <p class="text-muted mb-0">
+                Silakan kerjakan evaluasi di bawah ini untuk menguji kemampuan pemahaman materi yang telah dipelajari.
+            </p>
+        </div>
+
+        <!-- LAYAR START KUIS SEDERHANA (SATU TOMBOL SAJA) -->
+        <div id="quizStartPanel" class="card custom-card p-5 mb-4 text-center border-0 bg-teal-light">
+            <div class="mx-auto bg-white rounded-circle shadow-sm p-4 mb-4 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                <i class="bi bi-play-circle-fill text-teal fs-1 animate-pulse" style="animation: pulse-red 1.5s infinite;"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-2">Siap untuk Memulai Kuis?</h3>
+            <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+                Sistem akan secara otomatis mengambil dan menyegarkan soal kuis paling baru langsung dari folder Google Drive Bapak/Ibu Guru.
+            </p>
+            <div>
+                <button id="btnStartQuiz" onclick="syncAndStartQuiz()" class="btn btn-orange btn-lg rounded-pill px-5 py-3 fw-extrabold text-white">
+                    <span id="startText"><i class="bi bi-rocket-takeoff-fill me-2"></i>Mulai Kuis Sekarang</span>
+                    <span id="startSpinner" class="spinner-overlay d-none"></span>
+                </button>
+            </div>
+            <!-- Download template as a small helper link below -->
+            <div class="mt-4 pt-2 text-center">
+                <button onclick="downloadTemplate()" class="btn btn-link text-teal text-decoration-none small fw-semibold mx-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Unduh Format Kuis Excel (Khusus Guru)
+                </button>
+            </div>
+        </div>
+
+        <!-- SKELETON LOADER (HANYA MUNCUL SAAT SYNCING) -->
+        <div id="quizLoader" class="d-none mb-4">
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <div class="w-50">
+                        <div class="skeleton-loader py-3 w-75 mb-2"></div>
+                        <div class="skeleton-loader py-2 w-25"></div>
+                    </div>
+                </div>
+                <div class="d-flex flex-column gap-4">
+                    <div class="card p-3 border shadow-sm rounded-3">
+                        <div class="skeleton-loader py-2.5 w-50 mb-3"></div>
+                        <div class="skeleton-loader py-4 w-100 mb-2"></div>
+                        <div class="skeleton-loader py-4 w-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AREA KUIS DINAMIS YANG DI-IMPORT -->
+        <div id="quizArea" class="d-none mb-4">
+            <div class="card custom-card p-4 border border-teal-medium">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <div>
+                        <h5 class="fw-bold text-teal mb-1" id="quizTitle"><i class="bi bi-patch-question-fill me-2"></i>Kuis Aktif Kelas V</h5>
+                        <span class="badge bg-teal-dark" id="quizQuestionCount">0 Soal</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <!-- Siswa bisa refresh kuis tanpa reload seluruh web -->
+                        <button onclick="syncAndStartQuiz()" class="btn btn-outline-teal btn-sm rounded-pill px-3">
+                            <i class="bi bi-arrow-repeat me-1"></i> Segarkan Kuis
+                        </button>
+                        <button onclick="resetImportedQuiz()" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                            <i class="bi bi-trash-fill me-1"></i> Bersihkan Jawaban
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kontainer Soal -->
+                <form id="interactiveQuizForm" onsubmit="submitInteractiveQuiz(event)">
+                    <div id="questionsContainer" class="d-flex flex-column gap-4">
+                        <!-- Soal-soal kuis akan dimuat di sini secara dinamis -->
+                    </div>
+
+                    <div class="text-end mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-orange px-5 py-2.5 rounded-pill fw-bold">
+                            <i class="bi bi-send-check-fill me-2"></i> Kirim Semua Jawaban
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ALTERNATIF: MENU IMPORT MANUAL (CADANGAN TERSEMBUNYI) -->
+        <div class="card custom-card p-3 mb-4 bg-light border-0">
+            <button class="btn btn-link text-secondary text-decoration-none w-100 text-start p-0 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManualUpload" aria-expanded="false" aria-controls="collapseManualUpload">
+                <span class="small fw-bold"><i class="bi bi-laptop me-2"></i>Gunakan Unggah Manual dari Komputer (Cadangan Offline)</span>
+                <i class="bi bi-chevron-down fs-6"></i>
+            </button>
+            <div class="collapse mt-3" id="collapseManualUpload">
+                <div class="bg-white p-3 rounded-3 border">
+                    <label for="excelFileInput" class="form-label fw-bold text-dark small mb-2">Pilih Berkas Excel Kuis:</label>
+                    <input type="file" id="excelFileInput" class="form-control form-control-sm mb-2" accept=".xlsx, .xls" onchange="handleExcelImport(event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- DAFTAR TUGAS BAWAAN DEFAULT -->
+        <div class="row g-3">
+            <!-- Tugas 1 (Belum Dikerjakan) -->
+            <div class="col-12">
+                <div class="card custom-card p-3 border-start border-4 border-warning">
+                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2 bg-warning bg-opacity-10 rounded-3 text-warning">
+                                <i class="bi bi-exclamation-circle-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="badge bg-warning text-dark mb-2 px-2 py-1 rounded-pill fw-bold">BELUM SELESAI</span>
+                                <h6 class="fw-bold mb-1 text-dark">Latihan Soal Tematik: Pengolahan Data Sederhana</h6>
+                                <p class="text-muted small mb-2">Kerjakan soal latihan di lembar tugas kemudian kumpulkan dalam bentuk PDF atau Foto hasil pengerjaan.</p>
+                                <div class="d-flex align-items-center gap-3 text-muted small">
+                                    <span><i class="bi bi-calendar-event me-1"></i> Batas: <strong>Besok, 23:59 WIB</strong></span>
+                                    <span>•</span>
+                                    <span><i class="bi bi-bookmark-star-fill me-1"></i> Bobot Nilai: 15%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-orange rounded-pill px-4 align-self-center" onclick="showSubmitModal('Latihan Soal Tematik')">
+                            Kumpulkan <i class="bi bi-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tugas 2 (Sudah Dinilai) -->
+            <div class="col-12">
+                <div class="card custom-card p-3 border-start border-4 border-success">
+                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="p-2 bg-success bg-opacity-10 rounded-3 text-success">
+                                <i class="bi bi-check-circle-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="badge bg-success text-white mb-2 px-2 py-1 rounded-pill fw-bold">SUDAH DINILAI</span>
+                                <h6 class="fw-bold mb-1 text-dark">Evaluasi Bab 1: Mengenal Bilangan Bulat</h6>
+                                <p class="text-muted small mb-2">Evaluasi format pilihan ganda interaktif.</p>
+                                <div class="d-flex align-items-center gap-3 text-muted small">
+                                    <span><i class="bi bi-calendar-check me-1"></i> Selesai pada: 10 Jun 2026</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end align-self-center">
+                            <small class="text-muted d-block mb-1">Nilai Anda</small>
+                            <span class="badge bg-teal-dark p-3 fs-5 rounded-4">98 <span class="fs-6 opacity-75">/100</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL SIMULASI PENGUMPULAN TUGAS -->
+<div class="modal fade" id="submitTugasModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-teal-dark text-white border-0 py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="modalTugasTitle">Kumpulkan Tugas</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-info border-0 rounded-3 bg-teal-light text-teal mb-3">
+                    <i class="bi bi-info-circle-fill me-2"></i> File yang diizinkan: <strong>PDF, PNG, atau JPG</strong> (Max 5MB).
+                </div>
+                <form id="tugasForm" onsubmit="submitTugasSimulasi(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">Pilih File Tugas</label>
+                        <input class="form-control" type="file" id="tugasFile" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">Catatan Tambahan (Opsional)</label>
+                        <textarea class="form-control" rows="3" placeholder="Tulis catatan pengerjaan untuk guru Anda di sini..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-orange rounded-pill px-4">Kirim Jawaban</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL HASIL NILAI KUIS INTERAKTIF -->
+<div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-teal-dark text-white border-0 py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-trophy-fill text-warning me-2"></i>Hasil Kuis Anda</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3 text-teal">
+                    <i class="bi bi-patch-check-fill" style="font-size: 4.5rem;"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Kuis Berhasil Diselesaikan!</h4>
+                <p class="text-muted small mb-4">Selamat, Anda telah menjawab seluruh pertanyaan kuis.</p>
+                
+                <div class="p-3 bg-teal-light rounded-4 border border-teal-light d-inline-block px-5 mb-4">
+                    <span class="text-muted d-block small mb-1">SKOR AKHIR</span>
+                    <h1 class="fw-extrabold text-teal mb-0" id="quizScore">0 / 100</h1>
+                </div>
+
+                <div class="row text-start g-2 mb-3">
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-3 text-center">
+                            <span class="text-muted d-block small mb-1">Benar</span>
+                            <h5 class="fw-bold text-success mb-0" id="quizCorrectCount">0</h5>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-3 text-center">
+                            <span class="text-muted d-block small mb-1">Total Soal</span>
+                            <h5 class="fw-bold text-dark mb-0" id="quizTotalQuestions">0</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="button" class="btn btn-teal w-100 rounded-pill py-2 fw-bold" data-bs-dismiss="modal">Selesai & Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST ALERT NOTIFICATION -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
+    <div id="actionToast" class="toast align-items-center text-white bg-teal-dark border-0 rounded-3 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill text-warning fs-5"></i>
+                <span id="toastMessage">Tugas berhasil diunggah!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-toast="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle with Popper JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Menyimpan data kuis hasil sinkronisasi lokal
+    let importedQuestions = [];
+
+    // Tautan Folder Google Drive yang DIKUNCI / LOCKED
+    const LOCKED_DRIVE_FOLDER_ID = "1vy-RR8BtBeGtvPRcyFTYP91fPEoG6QgB";
+
+    // Fungsi untuk navigasi antar view secara interaktif
+    function navigateTo(viewName) {
+        const views = {
+            'dashboard': document.getElementById('view-dashboard'),
+            'materi': document.getElementById('view-materi'),
+            'tugas': document.getElementById('view-tugas')
+        };
+
+        // Sembunyikan semua views
+        Object.keys(views).forEach(key => {
+            if (views[key]) {
+                views[key].classList.add('d-none');
+            }
+        });
+
+        // Tampilkan view yang dipilih
+        if (views[viewName]) {
+            views[viewName].classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Ketika membuka subview tugas, kembalikan panel "Mulai Kuis" ke tampilan awal
+            if (viewName === 'tugas') {
+                document.getElementById('quizStartPanel').classList.remove('d-none');
+                document.getElementById('quizArea').classList.add('d-none');
+                document.getElementById('quizLoader').classList.add('d-none');
+            }
+        }
+    }
+
+    // --- SKRIP CEK PASSWORD LOKAL ---
+    function checkPassword(e) {
+        e.preventDefault();
+        const enteredPassword = document.getElementById('inputPassword').value;
+        const correctPassword = "kelas5"; // Sandi pengunci lokal
+
+        if (enteredPassword === correctPassword) {
+            // Sembunyikan lockscreen popup dan tampilkan isi kelas virtual
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            navigateTo('dashboard');
+        } else {
+            // Tampilkan pesan error jika salah ketik
+            const errorDiv = document.getElementById('passwordError');
+            errorDiv.classList.remove('d-none');
+            document.getElementById('inputPassword').value = '';
+        }
+    }
+
+    // Fungsi helper cerdas untuk memindai isi folder Google Drive lewat embedded view
+    // dan mengekstrak ID file "kuis.xlsx" secara dinamis
+    function extractFileIdFromFolderHtml(html, fileName = "kuis") {
+        const lowercaseHtml = html.toLowerCase();
+        const index = lowercaseHtml.indexOf(fileName.toLowerCase());
+        if (index === -1) return null;
+        
+        // Buat jendela pencarian karakter di sekitar nama file "kuis"
+        const start = Math.max(0, index - 800);
+        const end = Math.min(html.length, index + 800);
+        const windowText = html.substring(start, end);
+        
+        // 1. Coba cari dengan format standard tautan Google Drive /file/d/ID
+        const fileDMatch = windowText.match(/\/file\/d\/([a-zA-Z0-9-_]{28,45})/);
+        if (fileDMatch) {
+            return fileDMatch[1];
+        }
+        
+        // 2. Coba cari string ID Google Drive (biasanya 33 karakter) di sekeliling nama file kuis
+        const idMatches = windowText.match(/["'\[,]([a-zA-Z0-9-_]{33})["'\]]/g);
+        if (idMatches && idMatches.length > 0) {
+            for (let m of idMatches) {
+                const id = m.replace(/[^a-zA-Z0-9-_]/g, '');
+                if (id.length === 33) return id;
+            }
+        }
+        
+        // 3. Fallback pencarian ID acak berukuran 33-40 karakter terdekat
+        const generalMatches = windowText.match(/([a-zA-Z0-9-_]{33,40})/g);
+        if (generalMatches) {
+            return generalMatches[0];
+        }
+        
+        return null;
+    }
+
+    // Fungsi pembungkus utama saat siswa menekan tombol "Mulai Kuis"
+    async function syncAndStartQuiz() {
+        await syncQuizFromDrive(true);
+    }
+
+    // Fungsi untuk mengunduh, mengekstrak, dan memproses file Excel dari Google Drive secara otomatis
+    async function syncQuizFromDrive(isManualClick = false) {
+        const btn = document.getElementById('btnStartQuiz');
+        const textSpan = document.getElementById('startText');
+        const spinner = document.getElementById('startSpinner');
+        const quizStartPanel = document.getElementById('quizStartPanel');
+        const quizArea = document.getElementById('quizArea');
+        const quizLoader = document.getElementById('quizLoader');
+
+        // Nyalakan Loading Spinner di Tombol Mulai
+        btn.disabled = true;
+        textSpan.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        
+        // Transisi tampilan: sembunyikan panel mulai kuis, tunjukkan skeleton loader
+        quizStartPanel.classList.add('d-none');
+        quizArea.classList.add('d-none');
+        quizLoader.classList.remove('d-none');
+
+        if (isManualClick) {
+            showNotification("Mengunduh lembar pertanyaan terbaru dari Google Drive...");
+        }
+
+        try {
+            const folderId = LOCKED_DRIVE_FOLDER_ID;
+
+            // Panggil embedded folderview dari Google Drive via AllOrigins CORS proxy
+            const embeddedFolderUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+            const proxyFolderUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(embeddedFolderUrl)}`;
+
+            const folderResponse = await fetch(proxyFolderUrl);
+            if (!folderResponse.ok) {
+                throw new Error("Gagal mengakses folder via proksi.");
+            }
+
+            const folderHtml = await folderResponse.text();
+            
+            // Cari file "kuis" dan ambil File ID-nya
+            const fileId = extractFileIdFromFolderHtml(folderHtml, "kuis");
+
+            if (!fileId) {
+                // FALLBACK: Jika file tidak ditemukan di Google Drive, coba ambil file "kuis.xlsx" langsung dari folder root GitHub Pages Anda
+                console.log("Mencoba mengambil fallback kuis.xlsx lokal dari server hosting GitHub...");
+                const localResponse = await fetch('kuis.xlsx');
+                if (!localResponse.ok) {
+                    throw new Error("Kuis di Google Drive tidak ditemukan dan file cadangan lokal di GitHub juga kosong.");
+                }
+                const arrayBuffer = await localResponse.arrayBuffer();
+                await parseExcelData(arrayBuffer);
+                
+                quizLoader.classList.add('d-none');
+                renderQuiz();
+                if (isManualClick) {
+                    showNotification("Mengambil file kuis.xlsx cadangan dari repositori sekolah dengan sukses!");
+                }
+                return;
+            }
+
+            // Unduh file .xlsx menggunakan Google Spreadsheet API eksportir via AllOrigins Proxy
+            const targetUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+
+            const response = await fetch(proxyUrl);
+            if (!response.ok) {
+                throw new Error("Gagal mengunduh file kuis dari Google Drive.");
+            }
+            
+            const arrayBuffer = await response.arrayBuffer();
+            await parseExcelData(arrayBuffer);
+
+            // Matikan skeleton dan tampilkan area kuis hasil sinkronisasi
+            quizLoader.classList.add('d-none');
+            renderQuiz();
+
+            if (isManualClick) {
+                showNotification(`Sukses menyiapkan kuis! Selamat mengerjakan.`);
+            }
+            
+            // Scroll otomatis ke area soal kuis
+            quizArea.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error(error);
+            // FALLBACK CADANGAN KEDUA: Coba ambil file cadangan kuis.xlsx di server GitHub Pages
+            try {
+                const localResponse = await fetch('kuis.xlsx');
+                if (localResponse.ok) {
+                    const arrayBuffer = await localResponse.arrayBuffer();
+                    await parseExcelData(arrayBuffer);
+                    quizLoader.classList.add('d-none');
+                    renderQuiz();
+                    showNotification("Siswa dialihkan ke kuis cadangan di repositori GitHub dengan sukses!");
+                    return;
+                }
+            } catch (localErr) {
+                console.error("Gagal memuat file kuis cadangan lokal.", localErr);
+            }
+
+            quizLoader.classList.add('d-none');
+            quizStartPanel.classList.remove('d-none');
+            showNotification("Siswa gagal terhubung ke Google Drive kelas. Harap periksa izin folder atau unggah file secara manual!");
+        } finally {
+            resetStartButton();
+        }
+    }
+
+    // Fungsi pembantu mem-parsing data Excel hasil fetch
+    async function parseExcelData(arrayBuffer) {
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+            throw new Error("Format tabel di dalam berkas kuis Excel tidak sesuai atau kosong!");
+        }
+
+        importedQuestions = jsonData.map((row, index) => {
+            return {
+                id: index + 1,
+                pertanyaan: row['Pertanyaan'] || row['pertanyaan'] || `Pertanyaan Tanpa Judul ${index + 1}`,
+                pilihanA: row['Pilihan A'] || row['pilihan a'] || row['A'] || '',
+                pilihanB: row['Pilihan B'] || row['pilihan b'] || row['B'] || '',
+                pilihanC: row['Pilihan C'] || row['pilihan c'] || row['C'] || '',
+                pilihanD: row['Pilihan D'] || row['pilihan d'] || row['D'] || '',
+                kunciJawaban: (row['Jawaban'] || row['jawaban'] || row['Kunci Jawaban'] || '').toString().trim().toUpperCase()
+            };
+        });
+    }
+
+    function resetStartButton() {
+        const btn = document.getElementById('btnStartQuiz');
+        const textSpan = document.getElementById('startText');
+        const spinner = document.getElementById('startSpinner');
+        btn.disabled = false;
+        textSpan.classList.remove('d-none');
+        spinner.classList.add('d-none');
+    }
+
+    // --- SKRIP IMPORT EXCEL MANUAL (CADANGAN OFFLINE) ---
+    function handleExcelImport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                if (jsonData.length === 0) {
+                    showNotification("File Excel kosong atau tidak sesuai format!");
+                    return;
+                }
+
+                importedQuestions = jsonData.map((row, index) => {
+                    return {
+                        id: index + 1,
+                        pertanyaan: row['Pertanyaan'] || row['pertanyaan'] || `Pertanyaan Tanpa Judul ${index + 1}`,
+                        pilihanA: row['Pilihan A'] || row['pilihan a'] || row['A'] || '',
+                        pilihanB: row['Pilihan B'] || row['pilihan b'] || row['B'] || '',
+                        pilihanC: row['Pilihan C'] || row['pilihan c'] || row['C'] || '',
+                        pilihanD: row['Pilihan D'] || row['pilihan d'] || row['D'] || '',
+                        kunciJawaban: (row['Jawaban'] || row['jawaban'] || row['Kunci Jawaban'] || '').toString().trim().toUpperCase()
+                    };
+                });
+
+                document.getElementById('quizStartPanel').classList.add('d-none');
+                renderQuiz();
+                showNotification(`Sukses mengimport ${importedQuestions.length} soal kuis secara manual!`);
+
+            } catch (error) {
+                console.error(error);
+                showNotification("Gagal membaca file Excel manual.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Merender daftar kuis interaktif dari array importedQuestions
+    function renderQuiz() {
+        const questionsContainer = document.getElementById('questionsContainer');
+        questionsContainer.innerHTML = ''; // Kosongkan wadah lama
+
+        importedQuestions.forEach((q, idx) => {
+            const questionHtml = `
+                <div class="card p-3 border shadow-sm rounded-3">
+                    <h6 class="fw-bold text-dark mb-3">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                    
+                    <div class="options-group">
+                        <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_A')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_A" value="A" required>
+                            <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_A">
+                                <strong>A.</strong> ${q.pilihanA}
+                            </label>
+                        </div>
+
+                        <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_B')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_B" value="B">
+                            <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_B">
+                                <strong>B.</strong> ${q.pilihanB}
+                            </label>
+                        </div>
+
+                        <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_C')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_C" value="C">
+                            <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_C">
+                                <strong>C.</strong> ${q.pilihanC}
+                            </label>
+                        </div>
+
+                        <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_D')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_D" value="D">
+                            <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_D">
+                                <strong>D.</strong> ${q.pilihanD}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            questionsContainer.insertAdjacentHTML('beforeend', questionHtml);
+        });
+
+        // Set jumlah pertanyaan di badge header kuis
+        document.getElementById('quizQuestionCount').innerText = `${importedQuestions.length} Soal`;
+        // Tampilkan kontainer Kuis
+        document.getElementById('quizArea').classList.remove('d-none');
+    }
+
+    // Fungsi visual helper saat baris pilihan diklik
+    function selectOption(element, radioId) {
+        const parent = element.closest('.options-group');
+        parent.querySelectorAll('.option-container').forEach(el => el.classList.remove('selected'));
+        const radio = document.getElementById(radioId);
+        if(radio) {
+            radio.checked = true;
+        }
+        element.classList.add('selected');
+    }
+
+    // Mengumpulkan dan menilai kuis interaktif
+    function submitInteractiveQuiz(e) {
+        e.preventDefault();
+        
+        let correctCount = 0;
+        const total = importedQuestions.length;
+
+        importedQuestions.forEach(q => {
+            const selectedRadio = document.querySelector(`input[name="soal_${q.id}"]:checked`);
+            if (selectedRadio) {
+                const answer = selectedRadio.value.toUpperCase();
+                if (answer === q.kunciJawaban) {
+                    correctCount++;
+                }
+            }
+        });
+
+        // Hitung skor kuis akhir (Skala 100)
+        const finalScore = Math.round((correctCount / total) * 100);
+
+        // Pasang hasil ke modal
+        document.getElementById('quizScore').innerText = `${finalScore} / 100`;
+        document.getElementById('quizCorrectCount').innerText = correctCount;
+        document.getElementById('quizTotalQuestions').innerText = total;
+
+        // Buka modal hasil kuis
+        const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
+        resultModal.show();
+    }
+
+    // Mengosongkan kuis hasil import
+    function resetImportedQuiz() {
+        // Reset pilihan radio
+        const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]');
+        radios.forEach(r => r.checked = false);
+        
+        // Bersihkan style pilihan ter-highlight
+        const selectedOptions = document.querySelectorAll('#interactiveQuizForm .option-container');
+        selectedOptions.forEach(o => o.classList.remove('selected'));
+
+        showNotification("Jawaban Anda berhasil dibersihkan. Silakan ulangi pengerjaan!");
+    }
+
+    // Mengunduh file Excel contoh template agar pengguna tahu strukturnya
+    function downloadTemplate() {
+        const templateData = [
+            {
+                "Pertanyaan": "Berapakah hasil dari 1/2 ditambah 1/4?",
+                "Pilihan A": "2/4",
+                "Pilihan B": "3/4",
+                "Pilihan C": "1/3",
+                "Pilihan D": "3/8",
+                "Jawaban": "B"
+            },
+            {
+                "Pertanyaan": "Manakah di bawah ini yang merupakan pecahan senilai dari 2/3?",
+                "Pilihan A": "4/6",
+                "Pilihan B": "3/2",
+                "Pilihan C": "4/9",
+                "Pilihan D": "5/6",
+                "Jawaban": "A"
+            }
+        ];
+
+        // Buat file Excel sederhana
+        const worksheet = XLSX.utils.json_to_sheet(templateData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "FormatKuis");
+
+        // Unduh otomatis
+        XLSX.writeFile(workbook, "Template_Kuis_KelasV.xlsx");
+        showNotification("Template kuis Excel telah diunduh!");
+    }
+
+    // Inisialisasi Toast Bootstrap
+    const toastElement = document.getElementById('actionToast');
+    const toast = new bootstrap.Toast(toastElement);
+    const toastMsgSpan = document.getElementById('toastMessage');
+
+    // Tampilkan Toast Notifikasi
+    function showNotification(message) {
+        toastMsgSpan.innerText = message;
+        toast.show();
+    }
+
+    // Modal Pemicu Tugas Bawaan
+    let currentTugasName = "";
+    function showSubmitModal(tugasName) {
+        currentTugasName = tugasName;
+        document.getElementById('modalTugasTitle').innerText = "Kumpul: " + tugasName;
+        const modal = new bootstrap.Modal(document.getElementById('submitTugasModal'));
+        modal.show();
+    }
+
+    // Submit Tugas Simulasi
+    function submitTugasSimulasi(e) {
+        e.preventDefault();
+        const modalElement = document.getElementById('submitTugasModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        modal.hide();
+        
+        document.getElementById('tugasForm').reset();
+        showNotification("Sukses mengunggah tugas " + currentTugasName + "!");
+    }
+
+    // Simulasi Chat Room
+    function sendChatMessage(e) {
+        e.preventDefault();
+        const chatInput = document.getElementById('chatInput');
+        const messageText = chatInput.value.trim();
+        if (messageText === "") return;
+
+        const chatContainer = document.getElementById('chatContainer');
+        const now = new Date();
+        const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ' WIB';
+
+        const userChatHtml = `
+            <div class="d-flex gap-2 align-items-start justify-content-end text-end ms-auto" style="max-width: 85%;">
+                <div>
+                    <div class="d-flex align-items-center justify-content-end gap-2 mb-1">
+                        <small class="text-muted" style="font-size: 0.65rem;">${timeString}</small>
+                        <span class="fw-bold text-dark" style="font-size: 0.75rem;">Siswa (Anda)</span>
+                    </div>
+                    <div class="chat-bubble me ms-auto">
+                        ${messageText}
+                    </div>
+                </div>
+                <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=me" alt="Siswa" class="rounded-circle bg-orange-light p-1" style="width: 35px; height: 35px;">
+            </div>
+        `;
+
+        chatContainer.insertAdjacentHTML('beforeend', userChatHtml);
+        chatInput.value = "";
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Simulasi balasan otomatis guru setelah 2 detik
+        setTimeout(() => {
+            const botChatHtml = `
+                <div class="d-flex gap-2 align-items-start">
+                    <img src="foto guru.png" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" alt="Guru" class="rounded-circle bg-teal-light p-0.5" style="width: 35px; height: 35px; object-fit: cover;">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="fw-bold text-dark" style="font-size: 0.75rem;">Aburrizal Hamdani Lubis, S.Pd</span>
+                            <span class="badge bg-teal-dark text-white p-1" style="font-size: 0.55rem;">GURU</span>
+                            <small class="text-muted" style="font-size: 0.65rem;">Baru Saja</small>
+                        </div>
+                        <div class="chat-bubble teacher">
+                            Pertanyaan bagus! Bapak akan tinjau langsung, atau jika ada kendala teknis segera kabari Bapak ya.
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', botChatHtml);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }, 1800);
+    }
+</script>
+
+</body>
+</html>

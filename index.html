@@ -276,6 +276,16 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+
+        /* Digital Receipt styling */
+        .receipt-card {
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+            font-family: 'Courier New', Courier, monospace;
+        }
     </style>
 </head>
 <body>
@@ -401,9 +411,20 @@
 
         <!-- ADDITIONAL WIDGETS SECTION -->
         <div class="row">
-            <!-- Agenda Widget -->
+            <!-- Agenda & Riwayat Widget -->
             <div class="col-lg-5 mb-3">
-                <div class="card custom-card p-4 h-100" style="border-top: 5px solid var(--orange-accent);">
+                <!-- NEW CARD: RIWAYAT KUIS (DIPEROLEH DARI LOCAL STORAGE) -->
+                <div class="card custom-card p-4 mb-4" style="border-top: 5px solid var(--teal-medium);">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-award-fill text-teal me-2"></i>Nilai Kuis Saya</h6>
+                        <span class="badge bg-teal-light text-teal rounded">Riwayat Lokal</span>
+                    </div>
+                    <div id="quizHistoryContainer">
+                        <p class="text-muted small text-center my-3 py-2">Belum ada kuis yang Anda selesaikan.</p>
+                    </div>
+                </div>
+
+                <div class="card custom-card p-4" style="border-top: 5px solid var(--orange-accent);">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar3 text-orange me-2"></i>Agenda Kelas Terdekat</h6>
                         <span class="badge bg-orange-light text-orange rounded">Minggu Ini</span>
@@ -474,7 +495,7 @@
                     </div>
 
                     <!-- Chat Container -->
-                    <div class="chat-container overflow-y-auto mb-3" id="chatContainer" style="max-height: 250px; display: flex; flex-direction: column; gap: 12px;">
+                    <div class="chat-container overflow-y-auto mb-3" id="chatContainer" style="max-height: 410px; display: flex; flex-direction: column; gap: 12px;">
                         <!-- Pesan Guru -->
                         <div class="d-flex gap-2 align-items-start">
                             <img src="foto guru.png" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" alt="Guru" class="rounded-circle bg-teal-light p-0.5" style="width: 35px; height: 35px; object-fit: cover;">
@@ -638,12 +659,28 @@
 
                 <!-- Kontainer Soal -->
                 <form id="interactiveQuizForm" onsubmit="submitInteractiveQuiz(event)">
-                    <div id="questionsContainer" class="d-flex flex-column gap-4">
+                    
+                    <div id="questionsContainer" class="d-flex flex-column gap-4 mb-4">
                         <!-- Soal-soal kuis akan dimuat di sini secara dinamis -->
                     </div>
 
-                    <div class="text-end mt-4 pt-3 border-top">
-                        <button type="submit" class="btn btn-orange px-5 py-2.5 rounded-pill fw-bold">
+                    <!-- IDENTITAS SISWA SEBELUM MENGIRIM KUIS -->
+                    <div class="card p-3 border-teal-light bg-teal-light rounded-4 mb-4">
+                        <h6 class="fw-bold text-teal mb-3"><i class="bi bi-person-badge-fill me-2"></i>Identitas Siswa (Wajib diisi sebelum kirim)</h6>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="studentNameInput" class="form-label small fw-bold text-dark">Nama Lengkap Siswa:</label>
+                                <input type="text" id="studentNameInput" class="form-control rounded-pill px-3 border border-teal-medium" placeholder="Masukkan Nama Lengkap Anda..." required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="studentAbsenInput" class="form-label small fw-bold text-dark">Nomor Absen:</label>
+                                <input type="number" id="studentAbsenInput" class="form-control rounded-pill px-3 border border-teal-medium" placeholder="No. Absen..." required min="1" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end pt-3 border-top">
+                        <button type="submit" class="btn btn-orange px-5 py-2.5 rounded-pill fw-bold shadow-sm">
                             <i class="bi bi-send-check-fill me-2"></i> Kirim Semua Jawaban
                         </button>
                     </div>
@@ -753,44 +790,75 @@
     </div>
 </div>
 
-<!-- MODAL HASIL NILAI KUIS INTERAKTIF -->
-<div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true">
+<!-- MODAL HASIL NILAI KUIS INTERAKTIF + BUKTI VERIFIKASI DIGITAL -->
+<div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-header bg-teal-dark text-white border-0 py-3 rounded-top-4">
-                <h5 class="modal-title fw-bold"><i class="bi bi-trophy-fill text-warning me-2"></i>Hasil Kuis Anda</h5>
+                <h5 class="modal-title fw-bold"><i class="bi bi-patch-check-fill text-warning me-2"></i>Hasil & Bukti Pengiriman</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <div class="mb-3 text-teal">
-                    <i class="bi bi-patch-check-fill" style="font-size: 4.5rem;"></i>
-                </div>
-                <h4 class="fw-bold mb-1">Kuis Berhasil Diselesaikan!</h4>
-                <p class="text-muted small mb-4">Selamat, Anda telah menjawab seluruh pertanyaan kuis.</p>
+            <div class="modal-body p-4">
                 
-                <div class="p-3 bg-teal-light rounded-4 border border-teal-light d-inline-block px-5 mb-4">
-                    <span class="text-muted d-block small mb-1">SKOR AKHIR</span>
-                    <h1 class="fw-extrabold text-teal mb-0" id="quizScore">0 / 100</h1>
+                <div class="text-center mb-3">
+                    <h5 class="fw-bold mb-1 text-dark">Kuis Berhasil Dikirim & Diarsip!</h5>
+                    <p class="text-muted small">Nilai Anda sudah terekam di sistem kelas lokal.</p>
                 </div>
 
-                <div class="row text-start g-2 mb-3">
-                    <div class="col-6">
-                        <div class="bg-light p-3 rounded-3 text-center">
-                            <span class="text-muted d-block small mb-1">Benar</span>
-                            <h5 class="fw-bold text-success mb-0" id="quizCorrectCount">0</h5>
-                        </div>
+                <!-- DIGITAL RECEIPT CARD -->
+                <div class="receipt-card mb-4">
+                    <div class="text-center border-bottom pb-2 mb-3">
+                        <h6 class="fw-bold mb-0">SDN 3 NGANTRU</h6>
+                        <small style="font-size: 0.75rem;">BUKTI EVALUASI KELAS V</small>
                     </div>
-                    <div class="col-6">
-                        <div class="bg-light p-3 rounded-3 text-center">
-                            <span class="text-muted d-block small mb-1">Total Soal</span>
-                            <h5 class="fw-bold text-dark mb-0" id="quizTotalQuestions">0</h5>
+                    
+                    <div class="d-flex flex-column gap-1" style="font-size: 0.85rem;">
+                        <div class="d-flex justify-content-between">
+                            <span>Siswa:</span>
+                            <span class="fw-bold text-uppercase" id="rcpName">Andi</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>No Absen:</span>
+                            <span class="fw-bold" id="rcpAbsen">07</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                            <span>Tanggal:</span>
+                            <span id="rcpDate">12/06/2026</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-2">
+                            <span class="fw-bold">NILAI AKHIR:</span>
+                            <h3 class="fw-extrabold text-teal mb-0" id="rcpScore">100</h3>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Keterangan:</span>
+                            <span id="rcpDetail">10 dari 10 Benar</span>
+                        </div>
+                        
+                        <div class="text-center border-top mt-3 pt-2">
+                            <small class="text-muted d-block">KODE VERIFIKASI ASLI:</small>
+                            <span class="fw-bold text-teal d-block" style="font-size: 0.9rem;" id="rcpCode">SDN3-K5-XXXX-YYYY</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4">
-                    <button type="button" class="btn btn-teal w-100 rounded-pill py-2 fw-bold" data-bs-dismiss="modal">Selesai & Tutup</button>
+                <!-- ACTIONS BUTTONS -->
+                <div class="d-flex flex-column gap-2">
+                    <!-- Button 1: Send via WhatsApp -->
+                    <button type="button" onclick="sendToWhatsApp()" class="btn btn-success rounded-pill py-2.5 fw-bold w-100">
+                        <i class="bi bi-whatsapp me-2"></i> Kirim Nilai ke WhatsApp Guru
+                    </button>
+                    <!-- Button 2: Copy as text -->
+                    <button type="button" onclick="copyReceiptText()" class="btn btn-outline-teal rounded-pill py-2 fw-semibold w-100">
+                        <i class="bi bi-copy me-2"></i> Salin Bukti Teks
+                    </button>
+                    <!-- Button 3: Close -->
+                    <button type="button" class="btn btn-light rounded-pill py-2 fw-semibold w-100" data-bs-dismiss="modal">
+                        Selesai & Tutup
+                    </button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -815,9 +883,52 @@
 <script>
     // Menyimpan data kuis hasil sinkronisasi lokal
     let importedQuestions = [];
+    let lastQuizResult = null; // Menyimpan data pengerjaan kuis terakhir
 
     // Tautan Folder Google Drive yang DIKUNCI / LOCKED
     const LOCKED_DRIVE_FOLDER_ID = "1vy-RR8BtBeGtvPRcyFTYP91fPEoG6QgB";
+
+    // Load data history saat halaman pertama kali dibuka
+    window.onload = function () {
+        renderQuizHistory();
+    };
+
+    // Fungsi untuk memuat dan merender riwayat kuis dari LocalStorage ke Dashboard
+    function renderQuizHistory() {
+        const historyContainer = document.getElementById('quizHistoryContainer');
+        const localData = localStorage.getItem('sdn3_quiz_history');
+        
+        if (!localData) {
+            historyContainer.innerHTML = `<p class="text-muted small text-center my-3 py-2">Belum ada kuis yang Anda selesaikan.</p>`;
+            return;
+        }
+
+        const historyList = JSON.parse(localData);
+        if (historyList.length === 0) {
+            historyContainer.innerHTML = `<p class="text-muted small text-center my-3 py-2">Belum ada kuis yang Anda selesaikan.</p>`;
+            return;
+        }
+
+        // Urutkan riwayat berdasarkan tanggal terbaru
+        historyList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        let listHtml = `<div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto; padding-right: 4px;">`;
+        historyList.forEach(item => {
+            listHtml += `
+                <div class="bg-light p-2.5 rounded-3 border-start border-4 border-teal d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="d-block fw-bold text-dark lh-sm small text-uppercase">${item.studentName} (Absen ${item.studentAbsen})</span>
+                        <small class="text-muted" style="font-size: 0.7rem;">${item.dateString} • Code: ${item.receiptCode}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-teal-dark p-2 rounded-3 fw-bold" style="font-size: 0.85rem;">${item.score} <span class="opacity-75" style="font-size: 0.65rem;">/100</span></span>
+                    </div>
+                </div>
+            `;
+        });
+        listHtml += `</div>`;
+        historyContainer.innerHTML = listHtml;
+    }
 
     // Fungsi untuk navigasi antar view secara interaktif
     function navigateTo(viewName) {
@@ -1050,14 +1161,14 @@
     }
 
     // --- SKRIP IMPORT EXCEL MANUAL (CADANGAN OFFLINE) ---
-    function handleExcelImport(e) {
-        const file = e.target.files[0];
+    function handleExcelImport(event) {
+        const file = event.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function(e) {
             try {
-                const data = new Uint8Array(event.target.result);
+                const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 
                 const firstSheetName = workbook.SheetNames[0];
@@ -1154,9 +1265,17 @@
         element.classList.add('selected');
     }
 
-    // Mengumpulkan dan menilai kuis interaktif
+    // Mengumpulkan, menilai kuis, generate bukti kirim, dan simpan riwayat kuis
     function submitInteractiveQuiz(e) {
         e.preventDefault();
+        
+        const nameInput = document.getElementById('studentNameInput').value.trim();
+        const absenInput = document.getElementById('studentAbsenInput').value.trim();
+
+        if (!nameInput || !absenInput) {
+            showNotification("Mohon lengkapi Nama dan No Absen Anda sebelum mengirim!");
+            return;
+        }
         
         let correctCount = 0;
         const total = importedQuestions.length;
@@ -1174,14 +1293,97 @@
         // Hitung skor kuis akhir (Skala 100)
         const finalScore = Math.round((correctCount / total) * 100);
 
-        // Pasang hasil ke modal
-        document.getElementById('quizScore').innerText = `${finalScore} / 100`;
-        document.getElementById('quizCorrectCount').innerText = correctCount;
-        document.getElementById('quizTotalQuestions').innerText = total;
+        // Generate unik kode verifikasi pengiriman kuis
+        const randomHex = Math.random().toString(16).substring(2, 6).toUpperCase();
+        const generatedCode = `SDN3-K5-${absenInput}-${randomHex}`;
 
-        // Buka modal hasil kuis
+        const today = new Date();
+        const dateString = today.getDate().toString().padStart(2, '0') + '/' + 
+                           (today.getMonth() + 1).toString().padStart(2, '0') + '/' + 
+                           today.getFullYear();
+
+        // 1. Simpan Riwayat Pengerjaan ke LocalStorage agar muncul di Dashboard
+        const historyItem = {
+            studentName: nameInput,
+            studentAbsen: absenInput,
+            score: finalScore,
+            correctCount: correctCount,
+            totalCount: total,
+            receiptCode: generatedCode,
+            dateString: dateString,
+            timestamp: today.toISOString()
+        };
+
+        let localHistory = localStorage.getItem('sdn3_quiz_history');
+        let historyArray = localHistory ? JSON.parse(localHistory) : [];
+        historyArray.push(historyItem);
+        localStorage.setItem('sdn3_quiz_history', JSON.stringify(historyArray));
+
+        // Update tampilan history kuis lokal di Dashboard
+        renderQuizHistory();
+
+        // 2. Simpan sementara data terakhir untuk pengiriman WhatsApp
+        lastQuizResult = historyItem;
+
+        // 3. Pasang data riwayat hasil ke struk penerimaan digital
+        document.getElementById('rcpName').innerText = nameInput;
+        document.getElementById('rcpAbsen').innerText = absenInput;
+        document.getElementById('rcpDate').innerText = dateString;
+        document.getElementById('rcpScore').innerText = `${finalScore}`;
+        document.getElementById('rcpDetail').innerText = `${correctCount} dari ${total} Jawaban Benar`;
+        document.getElementById('rcpCode').innerText = generatedCode;
+
+        // Buka modal struk kuis bukti pengerjaan digital
         const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
         resultModal.show();
+    }
+
+    // Fungsi untuk memformat dan mengirimkan bukti hasil kuis via WhatsApp Guru
+    function sendToWhatsApp() {
+        if (!lastQuizResult) return;
+
+        const waText = 
+`🏆 *BUKTI PENGERJAAN KUIS V - SDN 3 NGANTRU* 🏆
+
+Halo Bapak Aburrizal Hamdani Lubis, S.Pd., saya telah menyelesaikan kuis interaktif dengan rincian berikut:
+
+👤 *Nama Siswa* : ${lastQuizResult.studentName.toUpperCase()}
+🔢 *No. Absen*  : ${lastQuizResult.studentAbsen}
+📅 *Tanggal*     : ${lastQuizResult.dateString}
+
+🎯 *Skor Akhir*  : *${lastQuizResult.score} / 100*
+📝 *Keterangan*  : ${lastQuizResult.correctCount} dari ${lastQuizResult.totalCount} Soal Benar
+
+🔑 *Kode Bukti*  : \`${lastQuizResult.receiptCode}\`
+
+---------------------------------------
+_Dikirim secara otomatis via Portal Kelas Virtual SDN 3 Ngantru_`;
+
+        // URL WhatsApp Universal (Membuka dialog bagikan agar bisa dipilih guru dari daftar kontak)
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
+        window.open(waUrl, '_blank');
+    }
+
+    // Fungsi menyalin teks rangkuman ke clipboard
+    function copyReceiptText() {
+        if (!lastQuizResult) return;
+
+        const copyText = 
+`BUKTI EVALUASI KELAS V SDN 3 NGANTRU
+Nama: ${lastQuizResult.studentName.toUpperCase()} (Absen: ${lastQuizResult.studentAbsen})
+Tanggal: ${lastQuizResult.dateString}
+Nilai Akhir: ${lastQuizResult.score}/100 (${lastQuizResult.correctCount}/${lastQuizResult.totalCount} Benar)
+Kode Verifikasi: ${lastQuizResult.receiptCode}`;
+
+        // Menggunakan standard fallback untuk iFrame agar kompatibel
+        const tempTextArea = document.createElement("textarea");
+        tempTextArea.value = copyText;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextArea);
+
+        showNotification("Bukti teks berhasil disalin ke papan klip!");
     }
 
     // Mengosongkan kuis hasil import

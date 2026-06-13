@@ -610,7 +610,7 @@
             <div class="card custom-card p-3 border border-teal-medium">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
                     <div>
-                        <h6 class="fw-bold text-teal mb-0" id="quizTitle"><i class="bi bi-patch-question-fill me-1"></i>Kuis Aktif</h6>
+                        <h6 class="fw-bold text-teal mb-0" id="quizTitle"><i class="bi bi-patch-question-fill me-1"></i>Kuis Hack</h6>
                         <span class="badge bg-teal-dark" id="quizQuestionCount" style="font-size: 0.65rem;">0 Soal</span>
                     </div>
                 </div>
@@ -1839,6 +1839,7 @@
             .replace(/\s+/g, ' '); 
     }
 
+    // Koreksi cerdas Levenshtein Distance
     function hitungLevenshtein(s1, s2) {
         const a = bersihkanJawaban(s1);
         const b = bersihkanJawaban(s2);
@@ -2183,6 +2184,130 @@ _File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
     window.onCloseResultModal = onCloseResultModal;
     window.selectOption = selectOption;
     window.selectMultiOption = selectMultiOption;
+</script>
+
+<!-- MODUL KEDUA: FIREBASE CONFIG BRIDGE UNTUK GITHUB PAGES -->
+<script type="module">
+    // Bagian ini akan membaca data konfigurasi Firebase secara dinamis jika di-hosting di GitHub Pages.
+    // Caranya, masukkan kunci API Firebase Anda ke dalam objek GURU_FIREBASE_CONFIG di bawah ini.
+    
+    const GURU_FIREBASE_CONFIG = {
+        apiKey: "SALIN_API_KEY_ANDA_DISINI",
+        authDomain: "PROJECT_ID_ANDA.firebaseapp.com",
+        projectId: "PROJECT_ID_ANDA",
+        storageBucket: "PROJECT_ID_ANDA.appspot.com",
+        messagingSenderId: "SENDER_ID_ANDA",
+        appId: "APP_ID_ANDA"
+    };
+
+    // Pemicu inisialisasi paksa jika config manual telah diisi
+    if (GURU_FIREBASE_CONFIG.apiKey !== "SALIN_API_KEY_ANDA_DISINI") {
+        try {
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js");
+            const { getAuth, signInAnonymously, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js");
+            const { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+            
+            const app = initializeApp(GURU_FIREBASE_CONFIG);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const appId = 'sdn3-ngantru-v';
+
+            await signInAnonymously(auth);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const statusBadge = document.getElementById('db-status-badge');
+                    if (statusBadge) {
+                        statusBadge.innerText = "Mode Awan Aktif (Tersinkronisasi)";
+                        statusBadge.className = "text-success block text-[10px] font-bold";
+                    }
+
+                    // Sinkronisasi data awan ke antarmuka guru
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
+                    onSnapshot(colRef, (snapshot) => {
+                        let cloudData = [];
+                        snapshot.forEach(doc => {
+                            cloudData.push({ id: doc.id, ...doc.data() });
+                        });
+                        cloudData.sort((a, b) => (b.certId || '').localeCompare(a.certId || ''));
+                        localStorage.setItem('sdn3_rekap_guru', JSON.stringify(cloudData));
+                        
+                        // Perbarui tabel pada HP Guru
+                        const body = document.getElementById('rekapGuruTableBody');
+                        if (body) {
+                            if (cloudData.length === 0) {
+                                body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td></tr>`;
+                            } else {
+                                body.innerHTML = '';
+                                cloudData.forEach(data => {
+                                    const tr = document.createElement('tr');
+                                    tr.innerHTML = `
+                                        <td>
+                                            <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                                            <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.secureCode}</small>
+                                        </td>
+                                        <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
+                                        <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
+                                    `;
+                                    body.appendChild(tr);
+                                });
+                            }
+                        }
+                    });
+
+                    // Set up fungsi global override agar saveToRekapGuru menyimpan langsung ke database Anda
+                    window.saveToRekapGuru = async (studentData) => {
+                        let rekap = localStorage.getItem('sdn3_rekap_guru');
+                        rekap = rekap ? JSON.parse(rekap) : [];
+                        rekap.unshift(studentData);
+                        localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
+
+                        try {
+                            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
+                            await addDoc(colRef, {
+                                ...studentData,
+                                userId: user.uid,
+                                uploadedAt: new Date().toISOString()
+                            });
+                        } catch (err) {
+                            console.error("Gagal mengirim data ke awan: ", err);
+                        }
+                    };
+
+                    window.triggerResetRekap = async () => {
+                        const title = document.getElementById('confirmModalTitle');
+                        const desc = document.getElementById('confirmModalDesc');
+                        const btnAction = document.getElementById('btnConfirmModalAction');
+
+                        title.innerText = "Hapus Seluruh Rekap?";
+                        desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen dari awan dan memori HP!";
+                        
+                        btnAction.onclick = async function() {
+                            localStorage.removeItem('sdn3_rekap_guru');
+                            try {
+                                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
+                                const querySnapshot = await getDocs(colRef);
+                                const deletePromises = [];
+                                querySnapshot.forEach((docSnap) => {
+                                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai', docSnap.id);
+                                    deletePromises.push(deleteDoc(docRef));
+                                });
+                                await Promise.all(deletePromises);
+                                window.showNotification("Rekap nilai berhasil dihapus dari awan!");
+                            } catch (e) {
+                                console.error(e);
+                            }
+                            bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+                        };
+                        const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+                        confirmModal.show();
+                    };
+                }
+            });
+        } catch (error) {
+            console.error("Gagal menyambungkan Firebase kustom:", error);
+        }
+    }
 </script>
 
 </body>

@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Menu Pengayaan - SDN 3 Ngantru</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        teal: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            850: '#115e59',
+                            900: '#134e4a',
+                        },
+                        orange: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Desain scrollbar tipis ala HP Android */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .touch-target {
+            min-height: 48px;
+        }
+        /* Efek goyang saat jawaban salah */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        .shake-element {
+            animation: shake 0.3s ease-in-out;
+        }
+        /* Style tombol game retro */
+        .game-btn {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between max-w-[480px] mx-auto shadow-2xl relative pb-8">
+
+    <!-- HEADER STATUS BAR APP STYLE -->
+    <header class="bg-teal-700 text-white px-4 py-4 sticky top-0 z-50 shadow-md">
+        <div class="flex items-center gap-3">
+            <button onclick="window.location.href='index.html'" class="bg-white/10 hover:bg-white/20 active:scale-95 transition-all p-2 rounded-xl text-white">
+                <i class="bi bi-arrow-left text-lg"></i>
+            </button>
+            <div>
+                <h1 class="font-extrabold text-base tracking-tight leading-tight">Menu Pengayaan</h1>
+                <p class="text-[10px] text-teal-100 font-medium">SDN 3 Ngantru • Kelas V Kreatif</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN INTERACTIVE HUB -->
+    <main class="flex-1 p-4 space-y-5">
+
+        <!-- SECTION 1: KHUSUS GURU -->
+        <section class="space-y-3">
+            <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider px-1">
+                <i class="bi bi-shield-lock-fill me-1"></i> Area Khusus Guru
+            </h2>
+            
+            <!-- Link ke Aplikasi Pembuat Soal AI -->
+            <a href="pembuat_soal.html" class="block bg-gradient-to-r from-teal-850 to-teal-750 text-white rounded-3xl p-4 shadow-md active:scale-95 transition-all border border-teal-700/50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="bg-white/10 p-3 rounded-2xl border border-white/10 text-orange-500">
+                            <i class="bi bi-robot text-2xl"></i>
+                        </div>
+                        <div>
+                            <span class="bg-orange-500 text-[9px] font-black tracking-widest text-white px-2 py-0.5 rounded-full uppercase">Sandi Aktif</span>
+                            <h3 class="font-bold text-sm mt-1">Pembuat Soal Kuis AI</h3>
+                            <p class="text-[10px] text-teal-100/80">Desain kuis instan lewat bantuan kecerdasan buatan.</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-lg text-teal-300"></i>
+                </div>
+            </a>
+        </section>
+
+        <!-- SECTION 1B: GAME SPACE IMPACT NEON -->
+        <section class="bg-slate-900 rounded-3xl p-4 shadow-xl border border-slate-800 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-rocket-takeoff-fill text-indigo-400 text-lg"></i>
+                    <h2 class="font-bold text-slate-100 text-sm">Space Impact Retro</h2>
+                </div>
+                <span class="text-[9px] bg-indigo-950/50 text-indigo-400 px-2.5 py-0.5 rounded-full font-bold border border-indigo-500/30">Hi-Score: <span id="space_hi_score">0</span></span>
+            </div>
+
+            <!-- Area Canvas Space Impact -->
+            <div class="relative bg-slate-950 rounded-2xl border border-indigo-950 overflow-hidden flex flex-col justify-between" style="height: 250px;">
+                <canvas id="space_canvas" class="w-full h-full block"></canvas>
+
+                <!-- UI overlay awal / game over -->
+                <div id="space_overlay" class="absolute inset-0 bg-slate-950/90 text-white flex flex-col items-center justify-center text-center p-4 z-20">
+                    <span id="space_overlay_icon" class="text-4xl mb-2">🚀</span>
+                    <h3 id="space_overlay_title" class="font-extrabold text-sm mb-1 text-indigo-400">Selamatkan Galaksi!</h3>
+                    <p id="space_overlay_desc" class="text-[9px] text-slate-400 mb-4 max-w-xs leading-relaxed">Hindari meteor dan tembak jatuh semua kapal alien jahat. Ada Raja raksasa tangguh di ujung setiap level!</p>
+                    <button onclick="startSpaceGame()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-black px-6 py-2 rounded-xl shadow-lg active:scale-95 transition-all">
+                        Mulai Terbang
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kontrol Sentuh Game di HP -->
+            <div class="flex items-center justify-between gap-3 bg-slate-950/50 p-2.5 rounded-2xl border border-slate-800">
+                <div class="flex gap-2">
+                    <button id="space_btn_up" class="game-btn w-12 h-12 bg-slate-800 hover:bg-slate-700 active:bg-indigo-900 active:scale-90 text-white rounded-xl flex items-center justify-center border border-slate-700 transition-all shadow-md">
+                        <i class="bi bi-caret-up-fill text-lg"></i>
+                    </button>
+                    <button id="space_btn_down" class="game-btn w-12 h-12 bg-slate-800 hover:bg-slate-700 active:bg-indigo-900 active:scale-90 text-white rounded-xl flex items-center justify-center border border-slate-700 transition-all shadow-md">
+                        <i class="bi bi-caret-down-fill text-lg"></i>
+                    </button>
+                </div>
+                <div class="flex-1 text-center text-[10px] text-slate-500 font-medium px-2">
+                    Sentuh tombol arah atau seret untuk navigasi.
+                </div>
+                <button id="space_btn_shoot" class="game-btn px-6 h-12 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 active:scale-95 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg shadow-rose-500/20">
+                    <i class="bi bi-crosshair"></i> TEMBAK
+                </button>
+            </div>
+        </section>
+
+        <!-- SECTION 2: GAME EDUKATIF: PETUALANGAN DINO BERHITUNG -->
+        <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-controller text-orange-500 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-sm">Game: Petualangan Dino</h2>
+                </div>
+                <span class="text-[9px] bg-orange-50 text-orange-600 px-2.5 py-0.5 rounded-full font-bold">Skor Dino: <span id="game_hi_score">0</span></span>
+            </div>
+
+            <div id="game-container" class="bg-gradient-to-b from-sky-200 to-sky-100 rounded-2xl p-3 relative overflow-hidden border border-sky-300 flex flex-col justify-between" style="height: 250px;">
+                <!-- Langit, Awan & Progress Bar -->
+                <div class="flex justify-between items-center z-10">
+                    <div class="flex items-center gap-1.5 bg-white/70 px-2 py-1 rounded-full text-[9px] font-black">
+                        <span>❤️ Sisa Nyawa:</span>
+                        <div id="hearts_container" class="flex gap-0.5 text-rose-500">
+                            <i class="bi bi-heart-fill"></i>
+                            <i class="bi bi-heart-fill"></i>
+                            <i class="bi bi-heart-fill"></i>
+                        </div>
+                    </div>
+                    <span class="text-[9px] bg-emerald-600 text-white px-2 py-1 rounded-full font-bold">Langkah: <span id="game_step_text">0/8</span></span>
+                </div>
+
+                <!-- Arena Petualangan 2D Visual -->
+                <div class="relative w-full h-24 flex items-end">
+                    <!-- Dino Visual -->
+                    <div id="game_dino" class="absolute text-4xl transition-all duration-500 z-10 bottom-0 select-none" style="left: 10px;">🦖</div>
+                    <!-- Target Keranjang Buah -->
+                    <div class="absolute right-2 bottom-0 text-3xl select-none">🍒🧺</div>
+                    <!-- Rumput & Tanah Dasar -->
+                    <div class="w-full h-2 bg-emerald-600 absolute bottom-0 left-0 rounded-full"></div>
+                </div>
+
+                <!-- Soal & Tombol Pilihan Jawaban -->
+                <div id="game_question_box" class="bg-white/95 rounded-xl p-2.5 shadow-sm text-center z-10 space-y-2">
+                    <p id="game_question_text" class="text-xs font-black text-slate-800">Menghubungkan petualangan...</p>
+                    <div id="game_options_container" class="grid grid-cols-3 gap-1.5">
+                        <!-- Pilihan tombol dimuat dinamis -->
+                    </div>
+                </div>
+
+                <!-- Layar Menang / Kalah -->
+                <div id="game_overlay" class="absolute inset-0 bg-teal-900/90 text-white flex flex-col items-center justify-center text-center p-4 z-20 hidden">
+                    <span id="game_overlay_icon" class="text-4xl mb-2">🎉</span>
+                    <h3 id="game_overlay_title" class="font-extrabold text-sm mb-1">Hebat! Kamu Menang!</h3>
+                    <p id="game_overlay_desc" class="text-[10px] text-teal-100 mb-3 max-w-xs leading-tight">Dino kenyang makan buah ceri berkat kecerdasanmu berhitung.</p>
+                    <button onclick="startDinoGame()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-5 py-2 rounded-xl shadow active:scale-95 transition-all">
+                        Main Lagi <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: KALKULATOR PECAHAN VISUAL PINTAR -->
+        <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-pie-chart-fill text-teal-600 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-sm">Kalkulator Pecahan Pintar</h2>
+                </div>
+                <span class="text-[9px] bg-teal-50 text-teal-750 px-2.5 py-0.5 rounded-full font-bold">Visual Pizza</span>
+            </div>
+            <p class="text-[10px] text-slate-400 leading-tight">Selesaikan hitungan pecahan dengan visualisasi pizza bundar untuk mempermudah pemahaman logika dasar pecahan.</p>
+
+            <!-- Form Pecahan -->
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-3">
+                <div class="flex items-center justify-center gap-2">
+                    <!-- Pecahan 1 -->
+                    <div class="flex flex-col items-center gap-1.5 w-16">
+                        <input type="number" id="frac_num1" placeholder="Pemb." class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none font-bold focus:border-teal-600 touch-target">
+                        <div class="w-12 h-1 bg-slate-400 rounded"></div>
+                        <input type="number" id="frac_den1" placeholder="Peny." class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none font-bold focus:border-teal-600 touch-target">
+                    </div>
+
+                    <!-- Operator Selector -->
+                    <select id="frac_op" class="bg-white border p-2 text-sm font-black rounded-xl outline-none text-teal-700">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                        <option value="*">×</option>
+                        <option value="/">÷</option>
+                    </select>
+
+                    <!-- Pecahan 2 -->
+                    <div class="flex flex-col items-center gap-1.5 w-16">
+                        <input type="number" id="frac_num2" placeholder="Pemb." class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none font-bold focus:border-teal-600 touch-target">
+                        <div class="w-12 h-1 bg-slate-400 rounded"></div>
+                        <input type="number" id="frac_den2" placeholder="Peny." class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none font-bold focus:border-teal-600 touch-target">
+                    </div>
+
+                    <!-- Equals Sign -->
+                    <span class="text-sm font-black text-slate-400 px-1">=</span>
+
+                    <!-- Hasil Ringkas -->
+                    <div id="frac_simple_result" class="flex flex-col items-center justify-center w-16 text-center">
+                        <span class="text-xs text-slate-400 font-extrabold italic">Hasil</span>
+                    </div>
+                </div>
+
+                <button onclick="calculateFractions()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-2.5 rounded-xl active:scale-95 transition-all shadow-md">
+                    Hitung & Tampilkan Visual
+                </button>
+            </div>
+
+            <!-- Tampilan Visual Pizza Slices -->
+            <div id="frac_visual_container" class="hidden bg-slate-50 border rounded-2xl p-3 flex flex-col items-center justify-center space-y-2">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Visualisasi Hasil Pizza:</span>
+                <div class="flex items-center gap-4 py-2">
+                    <div class="text-center">
+                        <canvas id="pizza_canvas_1" width="80" height="80" class="bg-white rounded-full shadow-sm border"></canvas>
+                        <span class="text-[8px] font-bold text-slate-500 block mt-1" id="pizza_label_1">Pecahan 1</span>
+                    </div>
+                    <span class="text-xs font-black text-slate-400" id="pizza_op_symbol">+</span>
+                    <div class="text-center">
+                        <canvas id="pizza_canvas_2" width="80" height="80" class="bg-white rounded-full shadow-sm border"></canvas>
+                        <span class="text-[8px] font-bold text-slate-500 block mt-1" id="pizza_label_2">Pecahan 2</span>
+                    </div>
+                    <span class="text-xs font-black text-slate-400">=</span>
+                    <div class="text-center">
+                        <canvas id="pizza_canvas_res" width="90" height="90" class="bg-white rounded-full shadow-sm border-2 border-teal-600"></canvas>
+                        <span class="text-[8px] font-bold text-teal-700 block mt-1" id="pizza_label_res">Hasil Akhir</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Langkah Penyelesaian Bertahap -->
+            <div id="frac_steps_container" class="hidden bg-slate-50 border rounded-2xl p-3.5 space-y-2">
+                <span class="text-[9px] font-bold text-teal-700 uppercase tracking-wider block"><i class="bi bi-lightbulb-fill"></i> Langkah-Langkah Penyelesaian:</span>
+                <div id="frac_steps_content" class="text-[10px] text-slate-600 leading-relaxed space-y-1.5 font-medium">
+                    <!-- Langkah penyelesaian dimuat dinamis -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: RODA KEBERUNTUNGAN KELAS V -->
+        <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-compass-fill text-teal-600 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-sm">Roda Keberuntungan Kelas</h2>
+                </div>
+                <span class="text-[9px] bg-teal-50 text-teal-750 px-2.5 py-0.5 rounded-full font-bold">Acak Nama</span>
+            </div>
+
+            <!-- Area Canvas Spinner -->
+            <div class="flex flex-col items-center justify-center relative py-1">
+                <div class="relative w-40 h-40 flex items-center justify-center">
+                    <!-- Penunjuk Panah Atas -->
+                    <div class="absolute -top-1.5 z-20 text-orange-500 text-2xl drop-shadow-md">
+                        <i class="bi bi-caret-down-fill"></i>
+                    </div>
+                    <canvas id="wheelCanvas" width="150" height="150" class="rounded-full shadow-md transition-transform duration-75"></canvas>
+                </div>
+                
+                <button onclick="spinTheWheel()" id="spinBtn" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs px-6 py-2.5 rounded-full shadow-md active:scale-95 transition-all touch-target">
+                    <i class="bi bi-play-fill me-1"></i> Putar Roda!
+                </button>
+            </div>
+
+            <!-- Custom Names Input -->
+            <details class="bg-slate-50 rounded-2xl border border-slate-100 p-2.5">
+                <summary class="text-[10px] font-bold text-slate-500 cursor-pointer outline-none flex justify-between items-center select-none">
+                    <span><i class="bi bi-pencil-square me-1"></i> Atur Daftar Nama Siswa</span>
+                    <i class="bi bi-chevron-down"></i>
+                </summary>
+                <div class="mt-2 space-y-2">
+                    <textarea id="wheelNamesInput" rows="2.5" class="w-full p-2 text-[10px] bg-white border border-slate-200 rounded-xl outline-none focus:border-teal-600 resize-none font-semibold" placeholder="Andi, Shinta, Rizky, Budi, Siti, Rara, Roni"></textarea>
+                    <button onclick="saveWheelNames()" class="w-full bg-teal-600 hover:bg-teal-700 text-white text-[9px] font-black py-1.5 rounded-lg active:scale-95 transition-all">
+                        Terapkan Nama Baru
+                    </button>
+                </div>
+            </details>
+
+            <!-- Winner Popup Card -->
+            <div id="winnerAlertBox" class="hidden p-3 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">🏆</span>
+                    <div>
+                        <span class="text-[8px] font-bold text-emerald-600 uppercase block tracking-wider">Nama Terpilih:</span>
+                        <h4 class="font-extrabold text-slate-900 text-xs" id="winnerText">Siswa Terpilih</h4>
+                    </div>
+                </div>
+                <button onclick="dismissWinnerAlert()" class="text-slate-400 hover:text-slate-600"><i class="bi bi-x-circle-fill text-sm"></i></button>
+            </div>
+        </section>
+
+        <!-- SECTION 5: KALKULATOR SIMULASI RAPORT -->
+        <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+            <div class="flex items-center gap-2 border-b border-slate-50 pb-2.5">
+                <i class="bi bi-calculator-fill text-orange-500 text-lg"></i>
+                <h2 class="font-bold text-slate-900 text-sm">Simulasi Nilai Akhir Raport</h2>
+            </div>
+            <p class="text-[10px] text-slate-400">Bantu ananda menghitung estimasi nilai akhir pelajaran berdasarkan KKM Kelas V (75).</p>
+
+            <div class="space-y-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Rerata Tugas</label>
+                        <input type="number" id="calc_tugas" placeholder="Cth: 80" min="0" max="100" class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-teal-600 font-semibold touch-target">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Nilai PTS</label>
+                        <input type="number" id="calc_pts" placeholder="Cth: 75" min="0" max="100" class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-teal-600 font-semibold touch-target">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Nilai PAS</label>
+                        <input type="number" id="calc_pas" placeholder="Cth: 78" min="0" max="100" class="w-full text-center p-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-teal-600 font-semibold touch-target">
+                    </div>
+                </div>
+
+                <button onclick="calculateFinalReportScore()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs py-2.5 rounded-xl shadow-md touch-target active:scale-95 transition-all">
+                    Hitung Nilai Akhir
+                </button>
+            </div>
+
+            <!-- Tampilan Hasil Kalkulator -->
+            <div id="calc_result_box" class="hidden p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all duration-300">
+                <div>
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Prediksi Nilai Akhir:</span>
+                    <h3 class="text-2xl font-black text-slate-800" id="calc_final_score">0</h3>
+                    <span id="calc_badge_status" class="text-[9px] font-extrabold px-2 py-0.5 rounded-full mt-1 inline-block">LULUS KKM</span>
+                </div>
+                <div class="text-right max-w-[180px]">
+                    <span class="text-[10px] font-bold text-slate-700 block">Predikat:</span>
+                    <p id="calc_desc" class="text-[10px] text-slate-500 leading-tight">Ananda siap melanjutkan materi baru.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="customToast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+        <i id="toast_icon" class="bi bi-info-circle-fill text-teal-400"></i>
+        <span id="toast_text">Notifikasi...</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Memori Penyimpanan Roda
+        let wheelNames = ["Andi", "Shinta", "Rizky", "Budi", "Siti", "Rara", "Dewi", "Doni"];
+
+        // Konfigurasi Web Audio API untuk Efek Suara Game
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep(frequency, type, duration) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Audio Web tidak diaktifkan peramban:", e);
+            }
+        }
+
+        window.onload = function() {
+            // Muat Roda Acak
+            initWheelNames();
+            drawWheel(0);
+            // Muat Game Dino
+            startDinoGame();
+            // Muat Game Space Impact
+            initSpaceGame();
+        };
+
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById("customToast");
+            const toastText = document.getElementById("toast_text");
+            const toastIcon = document.getElementById("toast_icon");
+
+            toastText.innerText = message;
+            if (isSuccess) {
+                toastIcon.className = "bi bi-check-circle-fill text-emerald-400";
+            } else {
+                toastIcon.className = "bi bi-exclamation-circle-fill text-orange-500";
+            }
+
+            toast.classList.remove("opacity-0", "pointer-events-none");
+            toast.classList.add("opacity-100");
+
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "pointer-events-none");
+                toast.classList.remove("opacity-100");
+            }, 3000);
+        }
+
+        // ==========================================
+        // STATE & LOGIKA GAME SPACE IMPACT NEON
+        // ==========================================
+        let spaceCanvas, spaceCtx;
+        let spaceGameRunning = false;
+        let spaceScore = 0;
+        let spaceLevel = 1;
+        let spaceLevelKills = 0;
+        let spaceKillsTarget = 10; // Jumlah musuh yang harus dihancurkan sebelum Bos muncul
+
+        let spacePlayer = { x: 20, y: 100, size: 14, speed: 4.5, shield: 100 };
+        let spaceBullets = [];
+        let spaceEnemies = [];
+        let spaceParticles = [];
+        let spaceStars = [];
+        let spaceControls = { up: false, down: false, shoot: false, lastShot: 0 };
+        
+        // Objek Bos (Raja)
+        let spaceBoss = null;
+
+        function initSpaceGame() {
+            spaceCanvas = document.getElementById('space_canvas');
+            spaceCtx = spaceCanvas.getContext('2d');
+            
+            spaceCanvas.width = spaceCanvas.parentElement.clientWidth;
+            spaceCanvas.height = 250;
+
+            const savedHi = localStorage.getItem('sdn3_space_hi_score') || 0;
+            document.getElementById('space_hi_score').innerText = savedHi;
+
+            spaceStars = [];
+            for (let i = 0; i < 30; i++) {
+                spaceStars.push({
+                    x: Math.random() * spaceCanvas.width,
+                    y: Math.random() * spaceCanvas.height,
+                    speed: 0.5 + Math.random() * 1.5,
+                    size: 1 + Math.random() * 2
+                });
+            }
+
+            // Daftarkan listener kontrol sentuh mobile
+            const btnUp = document.getElementById('space_btn_up');
+            const btnDown = document.getElementById('space_btn_down');
+            const btnShoot = document.getElementById('space_btn_shoot');
+
+            btnUp.addEventListener('mousedown', () => spaceControls.up = true);
+            btnUp.addEventListener('mouseup', () => spaceControls.up = false);
+            btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); spaceControls.up = true; });
+            btnUp.addEventListener('touchend', (e) => { e.preventDefault(); spaceControls.up = false; });
+
+            btnDown.addEventListener('mousedown', () => spaceControls.down = true);
+            btnDown.addEventListener('mouseup', () => spaceControls.down = false);
+            btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); spaceControls.down = true; });
+            btnDown.addEventListener('touchend', (e) => { e.preventDefault(); spaceControls.down = false; });
+
+            btnShoot.addEventListener('mousedown', () => spaceControls.shoot = true);
+            btnShoot.addEventListener('mouseup', () => spaceControls.shoot = false);
+            btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); spaceControls.shoot = true; });
+            btnShoot.addEventListener('touchend', (e) => { e.preventDefault(); spaceControls.shoot = false; });
+
+            // Keyboard PC Fallback
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp' || e.key === 'w') spaceControls.up = true;
+                if (e.key === 'ArrowDown' || e.key === 's') spaceControls.down = true;
+                if (e.key === ' ' || e.key === 'f') spaceControls.shoot = true;
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'ArrowUp' || e.key === 'w') spaceControls.up = false;
+                if (e.key === 'ArrowDown' || e.key === 's') spaceControls.down = false;
+                if (e.key === ' ' || e.key === 'f') spaceControls.shoot = false;
+            });
+
+            drawSpaceSplash();
+        }
+
+        function drawSpaceSplash() {
+            spaceCtx.fillStyle = '#020617';
+            spaceCtx.fillRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+            
+            spaceCtx.fillStyle = '#ffffff';
+            spaceStars.forEach(star => {
+                spaceCtx.fillRect(star.x, star.y, star.size, star.size);
+            });
+
+            spaceCtx.shadowBlur = 10;
+            spaceCtx.shadowColor = '#6366f1';
+            spaceCtx.fillStyle = '#818cf8';
+            spaceCtx.beginPath();
+            spaceCtx.arc(spaceCanvas.width / 2, 80, 25, 0, 2 * Math.PI);
+            spaceCtx.fill();
+            spaceCtx.shadowBlur = 0;
+        }
+
+        function startSpaceGame() {
+            document.getElementById('space_overlay').classList.add('hidden');
+            spaceGameRunning = true;
+            spaceScore = 0;
+            spaceLevel = 1;
+            spaceLevelKills = 0;
+            spaceKillsTarget = 10;
+            spaceBoss = null;
+
+            spacePlayer.y = spaceCanvas.height / 2;
+            spacePlayer.shield = 100;
+            spaceBullets = [];
+            spaceEnemies = [];
+            spaceParticles = [];
+
+            playBeep(440, 'square', 0.15);
+            setTimeout(() => playBeep(554, 'square', 0.15), 100);
+            setTimeout(() => playBeep(659, 'square', 0.3), 200);
+
+            requestAnimationFrame(spaceGameLoop);
+        }
+
+        function spaceGameLoop() {
+            if (!spaceGameRunning) return;
+
+            updateSpacePhysics();
+            drawSpaceFrame();
+
+            requestAnimationFrame(spaceGameLoop);
+        }
+
+        function spawnBoss() {
+            // Skema warna neon berganti-ganti sesuai level bos
+            const colors = ['#a855f7', '#06b6d4', '#ec4899', '#f43f5e'];
+            const glows = ['#c084fc', '#22d3ee', '#f472b6', '#fda4af'];
+            const colorIdx = (spaceLevel - 1) % colors.length;
+
+            spaceBoss = {
+                x: spaceCanvas.width - 50,
+                y: spaceCanvas.height / 2,
+                size: 25,
+                hp: spaceLevel * 12,
+                maxHp: spaceLevel * 12,
+                speedY: 1.5 + (spaceLevel * 0.3),
+                dir: 1,
+                color: colors[colorIdx],
+                glow: glows[colorIdx],
+                lastShot: 0
+            };
+            
+            showToast(`⚠️ AMARAH RAJA LEVEL ${spaceLevel} MUNCUL! ⚠️`, false);
+            playBeep(180, 'sawtooth', 0.6);
+            setTimeout(() => playBeep(260, 'sawtooth', 0.4), 200);
+        }
+
+        function updateSpacePhysics() {
+            // 1. Gerakan Bintang Belakang
+            spaceStars.forEach(star => {
+                star.x -= star.speed;
+                if (star.x < 0) {
+                    star.x = spaceCanvas.width;
+                    star.y = Math.random() * spaceCanvas.height;
+                }
+            });
+
+            // 2. Gerakan Pemain Kapal
+            if (spaceControls.up && spacePlayer.y > 15) {
+                spacePlayer.y -= spacePlayer.speed;
+            }
+            if (spaceControls.down && spacePlayer.y < spaceCanvas.height - 15) {
+                spacePlayer.y += spacePlayer.speed;
+            }
+
+            // 3. Tembakan Laser Pemain
+            if (spaceControls.shoot) {
+                const now = Date.now();
+                if (now - spaceControls.lastShot > 220) {
+                    spaceBullets.push({
+                        x: spacePlayer.x + 15,
+                        y: spacePlayer.y,
+                        speed: 7.5,
+                        size: 3
+                    });
+                    spaceControls.lastShot = now;
+                    playBeep(880, 'triangle', 0.08);
+                }
+            }
+
+            // 4. Update Peluru Pemain
+            spaceBullets.forEach((bullet, bIdx) => {
+                bullet.x += bullet.speed;
+                if (bullet.x > spaceCanvas.width) {
+                    spaceBullets.splice(bIdx, 1);
+                }
+            });
+
+            // 5. Logika Spawning Musuh Biasa / Raja (Bos)
+            if (!spaceBoss) {
+                // Spawn musuh biasa jika target membunuh level belum tercapai
+                if (spaceLevelKills < spaceKillsTarget) {
+                    if (Math.random() < 0.02 + (spaceLevel * 0.005)) {
+                        const type = Math.random() > 0.4 ? 'alien' : 'meteor';
+                        spaceEnemies.push({
+                            x: spaceCanvas.width + 20,
+                            y: 15 + Math.random() * (spaceCanvas.height - 30),
+                            speed: 1.5 + Math.random() * 2.0 + (spaceLevel * 0.2),
+                            type: type,
+                            size: type === 'alien' ? 10 : 12,
+                            color: type === 'alien' ? '#10b981' : '#f97316',
+                            glow: type === 'alien' ? '#34d399' : '#f87171'
+                        });
+                    }
+                } else {
+                    // Jika target terpenuhi dan belum ada musuh tersisa di layar, panggil RAJA!
+                    if (spaceEnemies.length === 0) {
+                        spawnBoss();
+                    }
+                }
+            } else {
+                // Gerakan Raja (Bergerak naik turun di ujung kanan layar)
+                spaceBoss.y += spaceBoss.speedY * spaceBoss.dir;
+                if (spaceBoss.y < 35 || spaceBoss.y > spaceCanvas.height - 35) {
+                    spaceBoss.dir *= -1;
+                }
+
+                // Raja Menembak Laser Berwarna Merah
+                const now = Date.now();
+                const shotCooldown = Math.max(900 - (spaceLevel * 80), 350);
+                if (now - spaceBoss.lastShot > shotCooldown) {
+                    // Level yang lebih tinggi membuat tembakan menyebar / lebih banyak
+                    const numShots = Math.min(spaceLevel, 3);
+                    for (let i = 0; i < numShots; i++) {
+                        const offset = (numShots > 1) ? (i - (numShots - 1) / 2) * 12 : 0;
+                        spaceEnemies.push({
+                            x: spaceBoss.x - 20,
+                            y: spaceBoss.y + offset,
+                            speed: 3.5 + (spaceLevel * 0.2),
+                            type: 'boss_bullet',
+                            size: 4,
+                            color: '#f43f5e',
+                            glow: '#fda4af'
+                        });
+                    }
+                    spaceBoss.lastShot = now;
+                    playBeep(280, 'square', 0.12);
+                }
+            }
+
+            // 6. Update Gerakan Musuh / Peluru Musuh & Tabrakan
+            spaceEnemies.forEach((enemy, eIdx) => {
+                enemy.x -= enemy.speed;
+
+                if (enemy.x < -20) {
+                    spaceEnemies.splice(eIdx, 1);
+                    return;
+                }
+
+                // Tabrakan Fisik dengan Kapal Pemain
+                const distToPlayer = Math.hypot(enemy.x - spacePlayer.x, enemy.y - spacePlayer.y);
+                if (distToPlayer < (enemy.size + spacePlayer.size)) {
+                    spaceEnemies.splice(eIdx, 1);
+                    let damage = 15;
+                    if (enemy.type === 'boss_bullet') damage = 20;
+                    if (enemy.type === 'meteor') damage = 25;
+
+                    spacePlayer.shield -= damage;
+                    createExplosion(enemy.x, enemy.y, '#ef4444');
+                    playBeep(110, 'sawtooth', 0.25);
+
+                    if (spacePlayer.shield <= 0) {
+                        endSpaceGame();
+                    }
+                    return;
+                }
+
+                // Tabrakan Tembakan Pemain Menghantam Musuh Biasa / Peluru Bos
+                spaceBullets.forEach((bullet, bIdx) => {
+                    const distToBullet = Math.hypot(enemy.x - bullet.x, enemy.y - bullet.y);
+                    if (distToBullet < (enemy.size + bullet.size)) {
+                        createExplosion(enemy.x, enemy.y, enemy.glow);
+                        spaceEnemies.splice(eIdx, 1);
+                        spaceBullets.splice(bIdx, 1);
+                        
+                        if (enemy.type !== 'boss_bullet') {
+                            spaceLevelKills++;
+                            spaceScore += enemy.type === 'alien' ? 10 : 5;
+                        }
+                        playBeep(420, 'square', 0.08);
+                    }
+                });
+            });
+
+            // Tabrakan Peluru Pemain dengan Tubuh Raja (Bos)
+            if (spaceBoss) {
+                spaceBullets.forEach((bullet, bIdx) => {
+                    const distToBoss = Math.hypot(spaceBoss.x - bullet.x, spaceBoss.y - bullet.y);
+                    if (distToBoss < (spaceBoss.size + bullet.size)) {
+                        spaceBoss.hp -= 1;
+                        spaceBullets.splice(bIdx, 1);
+                        createExplosion(bullet.x, bullet.y, '#f59e0b');
+                        playBeep(650, 'square', 0.06);
+
+                        // Raja meledak berkeping-keping (Kalah)
+                        if (spaceBoss.hp <= 0) {
+                            for (let k = 0; k < 3; k++) {
+                                setTimeout(() => {
+                                    createExplosion(spaceBoss.x + (Math.random() - 0.5) * 20, spaceBoss.y + (Math.random() - 0.5) * 20, spaceBoss.glow);
+                                    playBeep(300 + (k * 100), 'sawtooth', 0.2);
+                                }, k * 150);
+                            }
+
+                            setTimeout(() => {
+                                spaceBoss = null;
+                                spaceLevelKills = 0;
+                                spaceLevel++;
+                                spaceKillsTarget = 10 + (spaceLevel * 3);
+                                spaceScore += 250 * (spaceLevel - 1);
+                                showToast(`🌟 LEVEL ${spaceLevel - 1} SELESAI! MENINGKAT KE LEVEL ${spaceLevel} 🌟`);
+                                playBeep(523, 'sine', 0.15);
+                                setTimeout(() => playBeep(659, 'sine', 0.15), 100);
+                                setTimeout(() => playBeep(784, 'sine', 0.4), 200);
+                            }, 500);
+                        }
+                    }
+                });
+            }
+
+            // 7. Update Partikel Animasi Ledakan
+            spaceParticles.forEach((part, pIdx) => {
+                part.x += part.vx;
+                part.y += part.vy;
+                part.alpha -= 0.035;
+                if (part.alpha <= 0) {
+                    spaceParticles.splice(pIdx, 1);
+                }
+            });
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 9; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const speed = 1.2 + Math.random() * 3.5;
+                spaceParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: color,
+                    alpha: 1,
+                    size: 1.5 + Math.random() * 2
+                });
+            }
+        }
+
+        function drawSpaceFrame() {
+            // Latar luar angkasa
+            spaceCtx.fillStyle = '#020617';
+            spaceCtx.fillRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+
+            // 1. Gambar Bintang
+            spaceCtx.fillStyle = '#ffffff';
+            spaceStars.forEach(star => {
+                spaceCtx.fillRect(star.x, star.y, star.size, star.size);
+            });
+
+            // 2. Gambar Peluru Pemain
+            spaceCtx.shadowBlur = 8;
+            spaceCtx.shadowColor = '#f43f5e';
+            spaceCtx.fillStyle = '#fda4af';
+            spaceBullets.forEach(bullet => {
+                spaceCtx.beginPath();
+                spaceCtx.arc(bullet.x, bullet.y, bullet.size, 0, 2 * Math.PI);
+                spaceCtx.fill();
+            });
+
+            // 3. Gambar Kapal Pemain (🚀 Neon)
+            spaceCtx.shadowBlur = 12;
+            spaceCtx.shadowColor = '#38bdf8';
+            spaceCtx.fillStyle = '#0ea5e9';
+            
+            spaceCtx.beginPath();
+            spaceCtx.moveTo(spacePlayer.x + 16, spacePlayer.y);
+            spaceCtx.lineTo(spacePlayer.x - 10, spacePlayer.y - 12);
+            spaceCtx.lineTo(spacePlayer.x - 4, spacePlayer.y);
+            spaceCtx.lineTo(spacePlayer.x - 10, spacePlayer.y + 12);
+            spaceCtx.closePath();
+            spaceCtx.fill();
+
+            // Semburan Api Mesin
+            if (Math.random() > 0.3) {
+                spaceCtx.fillStyle = '#f97316';
+                spaceCtx.shadowColor = '#f97316';
+                spaceCtx.beginPath();
+                spaceCtx.moveTo(spacePlayer.x - 6, spacePlayer.y - 3);
+                spaceCtx.lineTo(spacePlayer.x - 16, spacePlayer.y);
+                spaceCtx.lineTo(spacePlayer.x - 6, spacePlayer.y + 3);
+                spaceCtx.closePath();
+                spaceCtx.fill();
+            }
+
+            // 4. Gambar Musuh / Peluru Musuh
+            spaceEnemies.forEach(enemy => {
+                spaceCtx.shadowBlur = 10;
+                spaceCtx.shadowColor = enemy.glow;
+                spaceCtx.fillStyle = enemy.color;
+
+                if (enemy.type === 'alien') {
+                    // Gambar Kapal UFO
+                    spaceCtx.beginPath();
+                    spaceCtx.ellipse(enemy.x, enemy.y, enemy.size + 4, enemy.size - 4, 0, 0, 2 * Math.PI);
+                    spaceCtx.fill();
+                    // Kubah UFO
+                    spaceCtx.fillStyle = '#ffffff';
+                    spaceCtx.beginPath();
+                    spaceCtx.arc(enemy.x, enemy.y - 3, 5, 0, 2 * Math.PI);
+                    spaceCtx.fill();
+                } else if (enemy.type === 'meteor') {
+                    // Gambar Meteor
+                    spaceCtx.beginPath();
+                    spaceCtx.arc(enemy.x, enemy.y, enemy.size, 0, 2 * Math.PI);
+                    spaceCtx.fill();
+                } else if (enemy.type === 'boss_bullet') {
+                    // Tembakan Raja (Sinar Laser Oval)
+                    spaceCtx.beginPath();
+                    spaceCtx.ellipse(enemy.x, enemy.y, enemy.size + 3, enemy.size, 0, 0, 2 * Math.PI);
+                    spaceCtx.fill();
+                }
+            });
+
+            // 5. Gambar Raja (Bos) Berwarna-Warni Berukuran Besar
+            if (spaceBoss) {
+                spaceCtx.shadowBlur = 15;
+                spaceCtx.shadowColor = spaceBoss.glow;
+                spaceCtx.fillStyle = spaceBoss.color;
+
+                // Tubuh Utama Raja (Segi Sembilan Monster Angkasa)
+                spaceCtx.beginPath();
+                const numPoints = 9;
+                for (let i = 0; i < numPoints; i++) {
+                    const angle = (i * 2 * Math.PI) / numPoints;
+                    const radiusOffset = i % 2 === 0 ? spaceBoss.size : spaceBoss.size - 8;
+                    const px = spaceBoss.x + radiusOffset * Math.cos(angle);
+                    const py = spaceBoss.y + radiusOffset * Math.sin(angle);
+                    if (i === 0) spaceCtx.moveTo(px, py);
+                    else spaceCtx.lineTo(px, py);
+                }
+                spaceCtx.closePath();
+                spaceCtx.fill();
+
+                // Core Pusat Raja (Mengkilap)
+                spaceCtx.fillStyle = '#ffffff';
+                spaceCtx.beginPath();
+                spaceCtx.arc(spaceBoss.x - 3, spaceBoss.y, 8, 0, 2 * Math.PI);
+                spaceCtx.fill();
+
+                // Garis Generator Core Neon
+                spaceCtx.strokeStyle = spaceBoss.glow;
+                spaceCtx.lineWidth = 3;
+                spaceCtx.stroke();
+            }
+
+            // 6. Gambar Partikel Ledakan
+            spaceCtx.shadowBlur = 0;
+            spaceParticles.forEach(part => {
+                spaceCtx.fillStyle = part.color;
+                spaceCtx.globalAlpha = part.alpha;
+                spaceCtx.fillRect(part.x, part.y, part.size, part.size);
+            });
+            spaceCtx.globalAlpha = 1;
+
+            // 7. Gambar UI (Skor, Shield Player, level & Boss HP)
+            spaceCtx.fillStyle = '#ffffff';
+            spaceCtx.font = 'bold 9px sans-serif';
+            spaceCtx.fillText(`Skor: ${spaceScore}`, 10, 18);
+            spaceCtx.fillText(`Lvl: ${spaceLevel}`, 10, 32);
+
+            // Nyawa / Shield Bar Player
+            spaceCtx.fillStyle = '#374151';
+            spaceCtx.fillRect(10, 38, 60, 4);
+            const shieldWidth = (spacePlayer.shield / 100) * 60;
+            spaceCtx.fillStyle = spacePlayer.shield > 40 ? '#10b981' : '#f43f5e';
+            spaceCtx.fillRect(10, 38, Math.max(0, shieldWidth), 4);
+
+            // HP Bar untuk Raja
+            if (spaceBoss) {
+                const barWidth = 100;
+                const barX = (spaceCanvas.width / 2) - (barWidth / 2);
+                
+                spaceCtx.fillStyle = '#1e293b';
+                spaceCtx.fillRect(barX, 10, barWidth, 6);
+                
+                const bossHpWidth = (spaceBoss.hp / spaceBoss.maxHp) * barWidth;
+                spaceCtx.fillStyle = spaceBoss.color;
+                spaceCtx.fillRect(barX, 10, Math.max(0, bossHpWidth), 6);
+
+                spaceCtx.fillStyle = '#ffffff';
+                spaceCtx.font = 'black 8px sans-serif';
+                spaceCtx.fillText(`RAJA LV.${spaceLevel}`, barX + 22, 25);
+            } else {
+                // Tampilkan persentase progress menuju kemunculan Raja
+                const progressWidth = 100;
+                const progressX = (spaceCanvas.width / 2) - (progressWidth / 2);
+                spaceCtx.fillStyle = '#1e293b';
+                spaceCtx.fillRect(progressX, 10, progressWidth, 4);
+
+                const progressPct = Math.min(spaceLevelKills / spaceKillsTarget, 1) * progressWidth;
+                spaceCtx.fillStyle = '#38bdf8'; // Blue progress
+                spaceCtx.fillRect(progressX, 10, progressPct, 4);
+                
+                spaceCtx.fillStyle = '#94a3b8';
+                spaceCtx.font = 'bold 7px sans-serif';
+                spaceCtx.fillText(`PROGRES BOS`, progressX + 24, 22);
+            }
+        }
+
+        function endSpaceGame() {
+            spaceGameRunning = false;
+            
+            const overlay = document.getElementById('space_overlay');
+            const oIcon = document.getElementById('space_overlay_icon');
+            const oTitle = document.getElementById('space_overlay_title');
+            const oDesc = document.getElementById('space_overlay_desc');
+
+            overlay.classList.remove('hidden');
+            oIcon.innerText = "👾💥";
+            oTitle.innerText = "KAPAL HANCUR!";
+            oTitle.className = "font-extrabold text-sm mb-1 text-rose-500";
+            oDesc.innerText = `Ananda gugur di Level ${spaceLevel} dengan raihan skor akhir: ${spaceScore} poin.`;
+
+            playBeep(100, 'sawtooth', 0.8);
+
+            const savedHi = parseInt(localStorage.getItem('sdn3_space_hi_score') || 0);
+            if (spaceScore > savedHi) {
+                localStorage.setItem('sdn3_space_hi_score', spaceScore);
+                document.getElementById('space_hi_score').innerText = spaceScore;
+                showToast(`Keren! Rekor baru tercipta: ${spaceScore} poin.`);
+            }
+        }
+
+        // ==========================================
+        // STATE & LOGIKA GAME PETUALANGAN DINO
+        // ==========================================
+        const dinoQuestions = [
+            { q: "1/2 + 1/2 = ...", a: ["1", "1/4", "2/4"], correct: 0 },
+            { q: "3/4 - 1/4 = ...", a: ["2/4", "1/4", "1/2"], correct: 2 },
+            { q: "1/3 + 1/3 = ...", a: ["2/6", "2/3", "1/6"], correct: 1 },
+            { q: "2/5 × 1/2 = ...", a: ["2/10", "1/5", "3/10"], correct: 1 },
+            { q: "1/2 ÷ 1/2 = ...", a: ["1", "1/4", "2"], correct: 0 },
+            { q: "3/5 + 1/5 = ...", a: ["4/5", "4/10", "2/5"], correct: 0 },
+            { q: "7/8 - 3/8 = ...", a: ["4/8", "1/2", "3/8"], correct: 1 },
+            { q: "2/3 × 3/4 = ...", a: ["6/12", "1/2", "5/12"], correct: 1 }
+        ];
+
+        let gameLives = 3;
+        let gameStep = 0;
+        let gameShuffledQuestions = [];
+
+        function startDinoGame() {
+            gameLives = 3;
+            gameStep = 0;
+            gameShuffledQuestions = [...dinoQuestions].sort(() => Math.random() - 0.5);
+            
+            const savedHi = localStorage.getItem('sdn3_dino_hi_score') || 0;
+            document.getElementById('game_hi_score').innerText = savedHi;
+
+            document.getElementById('game_overlay').classList.add('hidden');
+            updateGameUI();
+            loadGameQuestion();
+        }
+
+        function updateGameUI() {
+            const hCont = document.getElementById('hearts_container');
+            hCont.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < gameLives) {
+                    hCont.innerHTML += '<i class="bi bi-heart-fill"></i>';
+                } else {
+                    hCont.innerHTML += '<i class="bi bi-heart text-slate-400"></i>';
+                }
+            }
+
+            document.getElementById('game_step_text').innerText = `${gameStep}/8`;
+            
+            const pct = (gameStep / 8) * 78;
+            document.getElementById('game_dino').style.left = `${pct}%`;
+        }
+
+        function loadGameQuestion() {
+            if (gameStep >= 8) {
+                endDinoGame(true);
+                return;
+            }
+
+            const currentQ = gameShuffledQuestions[gameStep];
+            document.getElementById('game_question_text').innerText = `Kuis ${gameStep + 1}: Berapakah ${currentQ.q}`;
+            
+            const btnContainer = document.getElementById('game_options_container');
+            btnContainer.innerHTML = '';
+
+            currentQ.a.forEach((optText, idx) => {
+                const btn = `
+                    <button onclick="submitGameAnswer(${idx})" class="bg-teal-50 hover:bg-teal-100 active:scale-95 border border-teal-200 text-teal-800 font-extrabold text-[10px] py-2 px-1.5 rounded-xl transition-all touch-target">
+                        ${optText}
+                    </button>
+                `;
+                btnContainer.insertAdjacentHTML('beforeend', btn);
+            });
+        }
+
+        function submitGameAnswer(selectedIdx) {
+            const currentQ = gameShuffledQuestions[gameStep];
+            const gameBox = document.getElementById('game-container');
+
+            if (selectedIdx === currentQ.correct) {
+                playBeep(880, 'sine', 0.2);
+                gameStep++;
+                showToast("Jawaban kamu tepat! Dino melompat maju.");
+                
+                const dino = document.getElementById('game_dino');
+                dino.classList.add('-translate-y-4');
+                setTimeout(() => dino.classList.remove('-translate-y-4'), 300);
+            } else {
+                playBeep(220, 'sawtooth', 0.35);
+                gameLives--;
+                showToast("Aduh, jawabanmu kurang tepat. Dino gemetaran!", false);
+                
+                gameBox.classList.add('shake-element', 'border-red-400');
+                setTimeout(() => gameBox.classList.remove('shake-element', 'border-red-400'), 400);
+
+                if (gameLives <= 0) {
+                    endDinoGame(false);
+                    return;
+                }
+            }
+
+            updateGameUI();
+            loadGameQuestion();
+        }
+
+        function endDinoGame(isWin) {
+            const overlay = document.getElementById('game_overlay');
+            const oIcon = document.getElementById('game_overlay_icon');
+            const oTitle = document.getElementById('game_overlay_title');
+            const oDesc = document.getElementById('game_overlay_desc');
+
+            overlay.classList.remove('hidden');
+
+            if (isWin) {
+                oIcon.innerText = "🏆🎉";
+                oTitle.innerText = "Dino Kenyang! Kamu Menang!";
+                oDesc.innerText = "Kamu berhasil menjawab seluruh kuis pecahan dengan gemilang. Dino berterima kasih kepadamu!";
+                playBeep(600, 'sine', 0.1);
+                setTimeout(() => playBeep(900, 'sine', 0.3), 150);
+
+                const savedHi = parseInt(localStorage.getItem('sdn3_dino_hi_score') || 0);
+                if (gameStep > savedHi) {
+                    localStorage.setItem('sdn3_dino_hi_score', gameStep);
+                }
+            } else {
+                oIcon.innerText = "👾🍂";
+                oTitle.innerText = "Yaaah, Dino Kelaparan!";
+                oDesc.innerText = "Nyawamu habis. Jangan berkecil hati, mari pelajari pecahan lagi dan coba kembali!";
+                playBeep(150, 'triangle', 0.5);
+            }
+        }
+
+        // ==========================================
+        // LOGIKA KALKULATOR PECAHAN VISUAL & LANGKAH
+        // ==========================================
+        function calculateFractions() {
+            const num1 = parseInt(document.getElementById('frac_num1').value);
+            const den1 = parseInt(document.getElementById('frac_den1').value);
+            const op = document.getElementById('frac_op').value;
+            const num2 = parseInt(document.getElementById('frac_num2').value);
+            const den2 = parseInt(document.getElementById('frac_den2').value);
+
+            if (isNaN(num1) || isNaN(den1) || isNaN(num2) || isNaN(den2)) {
+                showToast("Mohon isi seluruh pembilang dan penyebut!", false);
+                return;
+            }
+
+            if (den1 === 0 || den2 === 0) {
+                showToast("Penyebut pecahan tidak boleh berharga 0!", false);
+                return;
+            }
+
+            const fpb = (a, b) => b === 0 ? a : fpb(b, a % b);
+            const kpk = (a, b) => (a * b) / fpb(a, b);
+
+            let resNum = 0;
+            let resDen = 1;
+            let stepsHtml = '';
+
+            if (op === '+' || op === '-') {
+                const kpkDen = kpk(den1, den2);
+                const adjNum1 = (kpkDen / den1) * num1;
+                const adjNum2 = (kpkDen / den2) * num2;
+                
+                if (op === '+') {
+                    resNum = adjNum1 + adjNum2;
+                } else {
+                    resNum = adjNum1 - adjNum2;
+                }
+                resDen = kpkDen;
+
+                stepsHtml += `<li>1. Cari KPK dari penyebut ${den1} dan ${den2}, diperoleh KPK = <strong>${kpkDen}</strong>.</li>`;
+                stepsHtml += `<li>2. Sesuaikan pembilang: <br> 
+                    &bull; (${kpkDen} ÷ ${den1}) × ${num1} = <strong>${adjNum1}</strong> <br>
+                    &bull; (${kpkDen} ÷ ${den2}) × ${num2} = <strong>${adjNum2}</strong>
+                </li>`;
+                stepsHtml += `<li>3. Lakukan operasi hitung pembilang: <br>
+                    ${adjNum1} ${op} ${adjNum2} = <strong>${resNum}</strong>. <br>
+                    Maka diperoleh pecahan sementara: <strong><sup>${resNum}</sup>/<sub>${resDen}</sub></strong>.
+                </li>`;
+            } else if (op === '*') {
+                resNum = num1 * num2;
+                resDen = den1 * den2;
+
+                stepsHtml += `<li>1. Kalikan langsung pembilang dengan pembilang: <br> ${num1} × ${num2} = <strong>${resNum}</strong>.</li>`;
+                stepsHtml += `<li>2. Kalikan langsung penyebut dengan penyebut: <br> ${den1} × ${den2} = <strong>${resDen}</strong>.</li>`;
+                stepsHtml += `<li>3. Diperoleh pecahan sementara: <strong><sup>${resNum}</sup>/<sub>${resDen}</sub></strong>.</li>`;
+            } else if (op === '/') {
+                resNum = num1 * den2;
+                resDen = den1 * num2;
+
+                stepsHtml += `<li>1. Ubah pembagian menjadi perkalian dengan membalik pecahan kedua: <br> 
+                    <sup>${num1}</sup>/<sub>${den1}</sub> × <sup>${den2}</sup>/<sub>${num2}</sub>
+                </li>`;
+                stepsHtml += `<li>2. Kalikan menyilang pembilang dan penyebut: <br>
+                    &bull; ${num1} × ${den2} = <strong>${resNum}</strong> <br>
+                    &bull; ${den1} × ${num2} = <strong>${resDen}</strong>
+                </li>`;
+                stepsHtml += `<li>3. Diperoleh pecahan sementara: <strong><sup>${resNum}</sup>/<sub>${resDen}</sub></strong>.</li>`;
+            }
+
+            const commonDiv = Math.abs(fpb(resNum, resDen));
+            const simpNum = resNum / commonDiv;
+            const simpDen = resDen / commonDiv;
+
+            if (commonDiv > 1) {
+                stepsHtml += `<li>4. Sederhanakan pecahan dengan membagi pembilang dan penyebut menggunakan FPB (${commonDiv}): <br>
+                    <sup>(${resNum} ÷ ${commonDiv})</sup>/<sub>(${resDen} ÷ ${commonDiv})</sub> = <strong><sup>${simpNum}</sup>/<sub>${simpDen}</sub></strong>.
+                </li>`;
+            }
+
+            let mixedHtml = '';
+            if (Math.abs(simpNum) >= simpDen && simpDen !== 1) {
+                const whole = Math.floor(Math.abs(simpNum) / simpDen) * (simpNum < 0 ? -1 : 1);
+                const rem = Math.abs(simpNum) % simpDen;
+                if (rem > 0) {
+                    mixedHtml = `atau pecahan campuran: <strong>${whole} <sup>${rem}</sup>/<sub>${simpDen}</sub></strong>`;
+                    stepsHtml += `<li>5. Karena pembilang lebih besar dari penyebut, ubah ke pecahan campuran: <br>
+                        ${Math.abs(simpNum)} ÷ ${simpDen} = <strong>${Math.abs(whole)} sisa ${rem}</strong>, <br>
+                        diperoleh hasil akhir: <strong>${whole} <sup>${rem}</sup>/<sub>${simpDen}</sub></strong>.
+                    </li>`;
+                } else {
+                    mixedHtml = `atau bilangan bulat: <strong>${whole}</strong>`;
+                }
+            }
+
+            const resBox = document.getElementById('frac_simple_result');
+            resBox.innerHTML = `
+                <div class="flex flex-col items-center gap-1">
+                    <span class="text-xs font-black text-teal-700">${simpNum}</span>
+                    <div class="w-10 h-0.5 bg-teal-600"></div>
+                    <span class="text-xs font-black text-teal-700">${simpDen}</span>
+                </div>
+                ${mixedHtml ? `<span class="text-[8px] text-slate-400 block mt-1 leading-tight">${mixedHtml}</span>` : ''}
+            `;
+
+            document.getElementById('frac_steps_container').classList.remove('hidden');
+            document.getElementById('frac_steps_content').innerHTML = stepsHtml;
+
+            document.getElementById('frac_visual_container').classList.remove('hidden');
+            document.getElementById('pizza_op_symbol').innerText = op === '*' ? '×' : (op === '/' ? '÷' : op);
+            
+            document.getElementById('pizza_label_1').innerText = `${num1}/${den1}`;
+            document.getElementById('pizza_label_2').innerText = `${num2}/${den2}`;
+            document.getElementById('pizza_label_res').innerText = `${simpNum}/${simpDen}`;
+
+            drawPizzaSlice('pizza_canvas_1', num1, den1, '#0f766e');
+            drawPizzaSlice('pizza_canvas_2', num2, den2, '#f97316');
+            drawPizzaSlice('pizza_canvas_res', simpNum, simpDen, '#10b981');
+
+            showToast("Kalkulator pecahan berhasil dihitung!");
+            playBeep(523, 'sine', 0.25);
+        }
+
+        function drawPizzaSlice(canvasId, num, den, colorHex) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let safeNum = Math.abs(num);
+            const lineCount = den > 24 ? 1 : den;
+
+            ctx.beginPath();
+            ctx.arc(radius, radius, radius - 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f1f5f9';
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (safeNum > 0) {
+                const fillRatio = Math.min(safeNum / den, 1);
+                
+                ctx.beginPath();
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius - 6, -Math.PI / 2, (-Math.PI / 2) + (2 * Math.PI * fillRatio));
+                ctx.closePath();
+                ctx.fillStyle = colorHex;
+                ctx.fill();
+            }
+
+            if (lineCount > 1) {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < lineCount; i++) {
+                    const angle = (-Math.PI / 2) + (2 * Math.PI * (i / lineCount));
+                    ctx.beginPath();
+                    ctx.moveTo(radius, radius);
+                    ctx.lineTo(radius + (radius - 6) * Math.cos(angle), radius + (radius - 6) * Math.sin(angle));
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // ==========================================
+        // LOGIKA RODA KEBERUNTUNGAN ACAK SISWA
+        // ==========================================
+        function initWheelNames() {
+            const saved = localStorage.getItem('sdn3_wheel_names');
+            if (saved) {
+                wheelNames = JSON.parse(saved);
+            }
+            document.getElementById('wheelNamesInput').value = wheelNames.join(', ');
+        }
+
+        function saveWheelNames() {
+            const inputVal = document.getElementById('wheelNamesInput').value;
+            const namesArray = inputVal.split(',').map(name => name.trim()).filter(name => name.length > 0);
+            
+            if (namesArray.length < 2) {
+                showToast("Masukkan minimal 2 nama siswa agar roda bisa berputar!", false);
+                return;
+            }
+
+            wheelNames = namesArray;
+            localStorage.setItem('sdn3_wheel_names', JSON.stringify(wheelNames));
+            drawWheel(0);
+            showToast("Daftar nama keberuntungan kelas berhasil diperbarui!");
+        }
+
+        function drawWheel(currentAngle) {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const numSegments = wheelNames.length;
+            const segmentAngle = (2 * Math.PI) / numSegments;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const colors = ["#0f766e", "#f97316", "#0ea5e9", "#eab308", "#8b5cf6", "#ec4899", "#10b981", "#ef4444"];
+
+            for (let i = 0; i < numSegments; i++) {
+                const angle = currentAngle + i * segmentAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius - 4, angle, angle + segmentAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(radius, radius);
+                ctx.rotate(angle + segmentAngle / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 8px sans-serif";
+                
+                let nameToShow = wheelNames[i];
+                if (nameToShow.length > 7) nameToShow = nameToShow.substring(0, 6) + "..";
+                
+                ctx.fillText(nameToShow, radius - 12, 3);
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.arc(radius, radius, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#f97316';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+
+        let isSpinning = false;
+        function spinTheWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            dismissWinnerAlert();
+
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+            spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            let currentAngle = 0;
+            const totalRotation = 2 * Math.PI * 4 + Math.random() * (2 * Math.PI);
+            const duration = 2500;
+            const startTime = performance.now();
+
+            function animateWheel(timestamp) {
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeOutProgress = 1 - Math.pow(1 - progress, 3);
+                const angle = easeOutProgress * totalRotation;
+
+                drawWheel(angle);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateWheel);
+                } else {
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                    const normalizedAngle = (angle % (2 * Math.PI));
+                    const segmentAngle = (2 * Math.PI) / wheelNames.length;
+                    
+                    let winnerIndex = Math.floor((1.5 * Math.PI - normalizedAngle) / segmentAngle);
+                    if (winnerIndex < 0) {
+                        winnerIndex = wheelNames.length + (winnerIndex % wheelNames.length);
+                    }
+                    winnerIndex = winnerIndex % wheelNames.length;
+
+                    const winnerName = wheelNames[winnerIndex];
+                    showWinnerAlert(winnerName);
+                }
+            }
+
+            requestAnimationFrame(animateWheel);
+        }
+
+        function showWinnerAlert(name) {
+            const box = document.getElementById('winnerAlertBox');
+            const text = document.getElementById('winnerText');
+            text.innerText = name.toUpperCase() + " • Semoga Sukses!";
+            box.classList.remove('hidden');
+            showToast(`Siswa terpilih: ${name}!`);
+            playBeep(523.25, 'sine', 0.15);
+            setTimeout(() => playBeep(659.25, 'sine', 0.35), 100);
+        }
+
+        function dismissWinnerAlert() {
+            document.getElementById('winnerAlertBox').classList.add('hidden');
+        }
+
+        // ==========================================
+        // LOGIKA KALKULATOR NILAI RAPORT (KKM 75)
+        // ==========================================
+        function calculateFinalReportScore() {
+            const tugasVal = parseFloat(document.getElementById('calc_tugas').value);
+            const ptsVal = parseFloat(document.getElementById('calc_pts').value);
+            const pasVal = parseFloat(document.getElementById('calc_pas').value);
+
+            if (isNaN(tugasVal) || isNaN(ptsVal) || isNaN(pasVal)) {
+                showToast("Mohon isi seluruh kolom nilai!", false);
+                return;
+            }
+
+            if (tugasVal < 0 || tugasVal > 100 || ptsVal < 0 || ptsVal > 100 || pasVal < 0 || pasVal > 100) {
+                showToast("Nilai harus berada di antara rentang 0 - 100!", false);
+                return;
+            }
+
+            const finalScore = Math.round((tugasVal * 0.5) + (ptsVal * 0.25) + (pasVal * 0.25));
+
+            const resultBox = document.getElementById('calc_result_box');
+            const scoreText = document.getElementById('calc_final_score');
+            const badgeStatus = document.getElementById('calc_badge_status');
+            const descText = document.getElementById('calc_desc');
+
+            scoreText.innerText = finalScore;
+            resultBox.classList.remove('hidden');
+
+            if (finalScore >= 75) {
+                resultBox.className = "p-3.5 rounded-2xl border border-emerald-100 bg-emerald-50/50 flex items-center justify-between gap-3 transition-all duration-300";
+                badgeStatus.className = "text-[9px] font-extrabold px-2 py-0.5 rounded-full mt-1 inline-block bg-emerald-600 text-white";
+                badgeStatus.innerText = "LULUS KKM";
+                
+                if (finalScore >= 90) {
+                    descText.innerText = "Predikat A (Sangat Baik). Pertahankan prestasi gemilang ananda!";
+                } else if (finalScore >= 80) {
+                    descText.innerText = "Predikat B (Baik). Kemampuan berpikir logis ananda berkembang pesat.";
+                } else {
+                    descText.innerText = "Predikat C (Cukup). Ananda lulus KKM dan siap naik tingkat.";
+                }
+            } else {
+                resultBox.className = "p-3.5 rounded-2xl border border-orange-150 bg-orange-50/50 flex items-center justify-between gap-3 transition-all duration-300";
+                badgeStatus.className = "text-[9px] font-extrabold px-2 py-0.5 rounded-full mt-1 inline-block bg-orange-600 text-white";
+                badgeStatus.innerText = "PERLU BIMBINGAN";
+                descText.innerText = "Predikat D (Kurang). Harap tingkatkan latihan belajar mandiri di rumah.";
+            }
+
+            showToast("Hasil perhitungan simulasi berhasil!");
+            playBeep(finalScore >= 75 ? 587.33 : 293.66, 'sine', 0.25);
+        }
+    </script>
+</body>
+</html>

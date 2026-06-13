@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pembuat Soal Kuis AI - SDN 3 Ngantru</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS (XLSX) untuk Export/Import Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        teal: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        orange: {
+                            50: '#fff7ed',
+                            500: '#f97316',
+                            600: '#ea580c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Desain scrollbar tipis ala HP */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .touch-target {
+            min-height: 48px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between max-w-[480px] mx-auto shadow-2xl relative">
+
+    <!-- PANEL POPUP LOCKSCREEN (PASSWORD VERIFICATION) -->
+    <div id="passwordOverlay" class="absolute inset-0 bg-gradient-to-b from-teal-850 to-teal-950 z-[9999] flex flex-col justify-center items-center p-6 text-center">
+        <div class="bg-white rounded-[28px] p-6 shadow-2xl w-full max-w-[340px] border border-slate-150 space-y-4">
+            <div class="text-teal-700 bg-teal-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <i class="bi bi-shield-lock-fill text-3xl"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-slate-900 text-lg leading-tight">Otoritas Guru</h3>
+                <p class="text-[11px] text-slate-400 mt-1">Silakan masukkan password ruang kerja guru untuk melanjutkan pembuatan kuis.</p>
+            </div>
+            
+            <form onsubmit="checkLockscreenPassword(event)" class="space-y-3">
+                <div>
+                    <input type="password" id="inputLockPassword" placeholder="Sandi Akses Guru" required class="w-full text-center px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all font-bold tracking-widest text-sm touch-target">
+                    <p id="passwordError" class="text-red-500 text-[10px] font-bold mt-1.5 hidden"><i class="bi bi-exclamation-triangle-fill"></i> Sandi salah, akses ditolak!</p>
+                </div>
+                <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 active:scale-95 transition-all text-white font-extrabold text-xs py-3 rounded-xl shadow-md touch-target">
+                    Verifikasi Keamanan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER (HIDDEN UNTIL AUTHENTICATED) -->
+    <div id="appContainer" class="hidden flex flex-col min-h-screen justify-between">
+        
+        <!-- HEADER NAVBAR ANDROID APP STYLE -->
+        <header class="bg-teal-700 text-white px-4 py-3.5 sticky top-0 z-50 shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-white/10 p-2 rounded-xl">
+                        <i class="bi bi-robot text-xl text-orange-500"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-base tracking-tight leading-tight">Pembuat Soal AI Kuis</h1>
+                        <p class="text-[10px] text-teal-100 font-medium">SDN 3 Ngantru • Kelas V Kreatif</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Tombol Import Cadangan -->
+                    <label for="importExcelInput" class="bg-teal-800 hover:bg-teal-900 text-white rounded-xl px-2.5 py-1.5 text-xs font-bold cursor-pointer flex items-center gap-1.5 border border-white/10 active:scale-95 transition-all">
+                        <i class="bi bi-file-earmark-arrow-up text-sm text-teal-300"></i> Impor
+                    </label>
+                    <input type="file" id="importExcelInput" accept=".xlsx, .xls" class="hidden" onchange="importExistingExcel(event)">
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN INTERACTIVE WORKSPACE -->
+        <main class="flex-1 p-4 space-y-4 pb-28">
+            
+            <!-- PANEL GENERATOR AI GEMINI -->
+            <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+                <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                    <i class="bi bi-magic text-orange-500 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-sm">Asisten AI Gemini Pembuat Soal</h2>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- API KEY OPTIONAL WITH DIRECT ACCESS BUTTON -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1" for="api_key_input">API Key Gemini (Opsional):</label>
+                        <input type="password" id="api_key_input" placeholder="Dibiarkan kosong untuk menggunakan kunci sistem" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all touch-target font-mono">
+                        
+                        <!-- Tombol Pintas Dapatkan API Key Gemini -->
+                        <div class="mt-2 flex items-center justify-between bg-teal-50/50 p-2 rounded-xl border border-teal-100">
+                            <span class="text-[10px] text-teal-800 font-medium"><i class="bi bi-info-circle-fill me-1"></i>Belum punya API Key?</span>
+                            <a href="https://aistudio.google.com/" target="_blank" class="text-[10px] bg-teal-700 hover:bg-teal-850 text-white font-bold py-1 px-2.5 rounded-lg active:scale-95 transition-all flex items-center gap-1">
+                                <i class="bi bi-key-fill"></i> Ambil Kunci Gratis <i class="bi bi-box-arrow-up-right text-[8px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- TOPIK MATERI -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1" for="ai_topic_input">Topik / Materi Pembelajaran:</label>
+                        <input type="text" id="ai_topic_input" placeholder="Contoh: Operasi Hitung Pecahan Matematika" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all font-semibold touch-target">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- MATAPELAJARAN -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1" for="ai_subject_input">Mata Pelajaran:</label>
+                            <input type="text" id="ai_subject_input" value="Matematika" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all touch-target font-semibold">
+                        </div>
+                        <!-- KELAS -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1" for="ai_class_input">Tingkat Kelas:</label>
+                            <select id="ai_class_input" class="w-full px-2 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all touch-target font-medium">
+                                <option value="Kelas IV (Empat)">Kelas IV</option>
+                                <option value="Kelas V (Lima)" selected>Kelas V</option>
+                                <option value="Kelas VI (Enam)">Kelas VI</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- TIPE SOAL PILIHAN -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Target Tipe Soal & Jumlah:</label>
+                        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-medium text-slate-600">P. Ganda:</span>
+                                <input type="number" id="num_pg" value="2" min="0" max="10" class="w-12 text-center py-1 border rounded-lg font-bold">
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-medium text-slate-600">PG Kompleks:</span>
+                                <input type="number" id="num_pgk" value="1" min="0" max="10" class="w-12 text-center py-1 border rounded-lg font-bold">
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-medium text-slate-600">Menjodohkan:</span>
+                                <input type="number" id="num_matching" value="1" min="0" max="10" class="w-12 text-center py-1 border rounded-lg font-bold">
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-medium text-slate-600">Isian Singkat:</span>
+                                <input type="number" id="num_isian" value="1" min="0" max="10" class="w-12 text-center py-1 border rounded-lg font-bold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn_generate_ai" onclick="generateQuestionsWithGemini()" class="w-full bg-orange-500 hover:bg-orange-600 active:scale-95 transition-all text-white font-extrabold text-xs py-3 rounded-2xl shadow-md flex items-center justify-center gap-2 touch-target">
+                        <i class="bi bi-cpu"></i> Desain Soal Otomatis lewat AI
+                    </button>
+                </div>
+            </section>
+
+            <!-- CARD METADATA KUIS (JADWAL & DURASI) -->
+            <section class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+                <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                    <i class="bi bi-sliders text-teal-700 text-lg"></i>
+                    <h2 class="font-bold text-slate-900 text-sm">Pengaturan Waktu Kuis</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1" for="quiz_start_date">Waktu Mulai Akses:</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="bi bi-calendar-event"></i>
+                            </span>
+                            <input type="datetime-local" id="quiz_start_date" class="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all font-medium touch-target">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1" for="quiz_end_date">Waktu Selesai Akses:</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="bi bi-calendar-x"></i>
+                            </span>
+                            <input type="datetime-local" id="quiz_end_date" class="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all font-medium touch-target">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1" for="quiz_duration">Durasi Pengerjaan:</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="bi bi-hourglass-split"></i>
+                            </span>
+                            <input type="number" id="quiz_duration" placeholder="Contoh: 15" min="0" class="w-full pl-9 pr-16 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:bg-white outline-none transition-all font-bold touch-target">
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-bold text-slate-400">Menit</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SKELETON LOADING OVERLAY SAAT PROSES AI -->
+            <div id="ai_loader_overlay" class="hidden bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center space-y-3">
+                <div class="relative flex items-center justify-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-teal-700"></div>
+                    <i class="bi bi-cpu absolute text-lg text-teal-500 animate-pulse"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-800">Menghubungi AI Gemini...</h4>
+                    <p class="text-[10px] text-slate-400 mt-1 max-w-xs mx-auto">Gemini sedang merancang butir-butir soal ujian SD yang variatif, bermutu, dan sesuai standar.</p>
+                </div>
+            </div>
+
+            <!-- SOAL-SOAL KUIS CONTAINER -->
+            <section id="questionsList" class="space-y-4">
+                <!-- Soal-soal dinamis akan dimuat di sini -->
+            </section>
+
+            <!-- TOMBOL TAMBAH SOAL MANUAL -->
+            <div class="pt-2 text-center">
+                <button onclick="addNewQuestion()" class="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 border-2 border-dashed border-teal-200 rounded-2xl py-3.5 text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5 touch-target">
+                    <i class="bi bi-plus-circle-fill text-sm"></i> Tambah Soal Baru Secara Manual
+                </button>
+            </div>
+
+        </main>
+
+        <!-- BAR NAVIGASI BAWAH / STICKY TOOLBAR UNTUK DOWNLOAD -->
+        <footer class="bg-white border-t border-slate-100 p-4 fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto z-40 rounded-t-3xl shadow-2xl">
+            <div class="flex items-center gap-3">
+                <div class="flex-1">
+                    <div class="text-[10px] text-slate-500 font-semibold mb-1" id="question_counter_text">Total: 0 Soal Terbuat</div>
+                    <button onclick="downloadExcelQuiz()" class="w-full bg-orange-500 hover:bg-orange-600 active:scale-95 transition-all text-white py-3 px-4 rounded-2xl font-extrabold text-xs shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 touch-target">
+                        <i class="bi bi-cloud-arrow-down-fill text-sm"></i> Download File Kuis (.xlsx)
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- TOAST NOTIFICATION MODAL ALAT BANTU -->
+    <div id="customToast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+        <i id="toast_icon" class="bi bi-info-circle-fill text-teal-400"></i>
+        <span id="toast_text">Pesan pemberitahuan...</span>
+    </div>
+
+    <!-- MODAL CONFIRMATION DIALOG KUSTOM -->
+    <div id="customConfirmModal" class="fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-5 w-full max-w-[360px] space-y-4 shadow-2xl">
+            <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
+                <i class="bi bi-exclamation-triangle text-orange-500"></i> Konfirmasi Tindakan
+            </h4>
+            <p id="confirm_modal_message" class="text-xs text-slate-600 leading-relaxed">Apakah Bapak/Ibu yakin ingin melanjutkan tindakan ini?</p>
+            <div class="flex gap-2 justify-end">
+                <button id="btn_confirm_cancel" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl">Batal</button>
+                <button id="btn_confirm_ok" class="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+
+        // VALIDASI KEAMANAN SANDI GURU LOKAL
+        function checkLockscreenPassword(event) {
+            event.preventDefault();
+            const passwordInput = document.getElementById('inputLockPassword').value.trim();
+            const passwordError = document.getElementById('passwordError');
+
+            if (passwordInput === '11223344') {
+                document.getElementById('passwordOverlay').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                passwordError.classList.add('hidden');
+                
+                showToast("Akses diijinkan. Selamat merancang soal!");
+            } else {
+                passwordError.classList.remove('hidden');
+                document.getElementById('inputLockPassword').value = '';
+            }
+        }
+
+        // Inisialisasi awal saat aplikasi dimuat
+        window.onload = function() {
+            // Berikan 1 contoh soal pertama secara otomatis agar guru tidak bingung
+            addNewQuestion();
+        };
+
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById("customToast");
+            const toastText = document.getElementById("toast_text");
+            const toastIcon = document.getElementById("toast_icon");
+
+            toastText.innerText = message;
+            if (isSuccess) {
+                toastIcon.className = "bi bi-check-circle-fill text-emerald-400";
+            } else {
+                toastIcon.className = "bi bi-exclamation-circle-fill text-orange-500";
+            }
+
+            toast.classList.remove("opacity-0", "pointer-events-none");
+            toast.classList.add("opacity-100");
+
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "pointer-events-none");
+                toast.classList.remove("opacity-100");
+            }, 3000);
+        }
+
+        function showConfirm(message, callback) {
+            const modal = document.getElementById("customConfirmModal");
+            const msgText = document.getElementById("confirm_modal_message");
+            const btnCancel = document.getElementById("btn_confirm_cancel");
+            const btnOk = document.getElementById("btn_confirm_ok");
+
+            msgText.innerText = message;
+            modal.classList.remove("hidden");
+
+            btnCancel.onclick = function() {
+                modal.classList.add("hidden");
+            };
+
+            btnOk.onclick = function() {
+                modal.classList.add("hidden");
+                callback();
+            };
+        }
+
+        function updateCounter() {
+            document.getElementById('question_counter_text').innerText = `Total: ${questions.length} Soal Terbuat`;
+        }
+
+        function addNewQuestion() {
+            const nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id)) + 1 : 1;
+            const newQ = {
+                id: nextId,
+                tipe: 'PG', // default Pilihan Ganda
+                pertanyaan: '',
+                pilihanA: '',
+                pilihanB: '',
+                pilihanC: '',
+                pilihanD: '',
+                jawaban: '',
+                // Untuk kebutuhan tipe MENJODOHKAN
+                kiri: ['', '', ''],
+                jodohIndex: ['A', 'B', 'C'] // index map default
+            };
+
+            questions.push(newQ);
+            renderQuestions();
+            updateCounter();
+        }
+
+        function removeQuestion(id) {
+            if (questions.length <= 1) {
+                showToast("Minimal harus ada 1 soal di dalam kuis!", false);
+                return;
+            }
+            showConfirm("Apakah Bapak/Ibu yakin ingin menghapus soal ini?", () => {
+                questions = questions.filter(q => q.id !== id);
+                renderQuestions();
+                updateCounter();
+                showToast("Soal berhasil dihapus!");
+            });
+        }
+
+        function changeQuestionType(id, newType) {
+            const q = questions.find(q => q.id === id);
+            if (q) {
+                q.tipe = newType;
+                q.jawaban = ''; // Reset jawaban agar tidak bentrok format
+                renderQuestions();
+            }
+        }
+
+        // MEMANGGIL API GEMINI UNTUK MEMBUAT SOAL SECARA OTOMATIS
+        async function generateQuestionsWithGemini() {
+            const topic = document.getElementById("ai_topic_input").value.trim();
+            const subject = document.getElementById("ai_subject_input").value.trim();
+            const className = document.getElementById("ai_class_input").value;
+            const numPG = parseInt(document.getElementById("num_pg").value) || 0;
+            const numPGK = parseInt(document.getElementById("num_pgk").value) || 0;
+            const numMatch = parseInt(document.getElementById("num_matching").value) || 0;
+            const numIsian = parseInt(document.getElementById("num_isian").value) || 0;
+
+            if (!topic) {
+                showToast("Mohon isi Topik / Materi Pembelajaran terlebih dahulu!", false);
+                document.getElementById("ai_topic_input").focus();
+                return;
+            }
+
+            const totalRequest = numPG + numPGK + numMatch + numIsian;
+            if (totalRequest <= 0) {
+                showToast("Tentukan minimal 1 jumlah target tipe soal!", false);
+                return;
+            }
+
+            // Atur loader state
+            const loaderOverlay = document.getElementById("ai_loader_overlay");
+            const btnGenerate = document.getElementById("btn_generate_ai");
+            loaderOverlay.classList.remove("hidden");
+            btnGenerate.disabled = true;
+            btnGenerate.classList.add("opacity-50", "cursor-not-allowed");
+
+            const customKey = document.getElementById("api_key_input").value.trim();
+            // Jika kosong, pakai string kosong agar Canvas inject otomatis pada environment
+            const apiKey = customKey || "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const systemPrompt = "Anda adalah asisten pembuatan kuis kurikulum SD di Indonesia kelas 4-6. Anda harus selalu menjawab dalam bentuk format JSON terstruktur yang valid secara mutlak.";
+            
+            const userPrompt = `
+                Buatkan soal kuis mata pelajaran "${subject}" untuk tingkat "${className}" mengenai topik materi "${topic}".
+                Jumlah soal yang saya minta adalah:
+                - Pilihan Ganda (PG): ${numPG} soal
+                - Pilihan Ganda Kompleks (PGK): ${numPGK} soal
+                - Menjodohkan: ${numMatch} soal
+                - Isian Singkat: ${numIsian} soal
+
+                Aturan Format Output JSON Kuis:
+                Hasilkan sebuah array objek di mana setiap objek merepresentasikan butir soal dengan properti berikut:
+                - tipe: pilih salah satu dari ["PG", "PGK", "MENJODOHKAN", "ISIAN"]
+                - pertanyaan: teks instruksi/soal (untuk tipe MENJODOHKAN isi dengan kalimat pembuka seperti "Pasangkan pernyataan organ indra berikut dengan fungsinya:")
+                - pilihanA: teks opsi A (isikan kosong "" jika tipe ISIAN)
+                - pilihanB: teks opsi B (isikan kosong "" jika tipe ISIAN)
+                - pilihanC: teks opsi C (isikan kosong "" jika tipe ISIAN)
+                - pilihanD: teks opsi D (isikan kosong "" jika tipe ISIAN)
+                - jawaban: 
+                  - Untuk PG: "A" atau "B" atau "C" atau "D"
+                  - Untuk PGK: kombinasi pilihan benar dipisah titik koma, misalnya "A;C"
+                  - Untuk MENJODOHKAN: susunan matching 3 kolom kiri ke kolom kanan, misalnya "B;A;C"
+                  - Untuk ISIAN: alternatif kunci dipisah tanda garis tegak, misalnya "Pencernaan | sistem pencernaan"
+                - kiri: Hanya diisi jika tipe "MENJODOHKAN". Berupa array berisi persis 3 teks baris sisi kiri, contoh: ["Mata", "Telinga", "Hidung"]. Untuk tipe lain, isi array kosong [].
+                - jodohIndex: Hanya diisi jika tipe "MENJODOHKAN". Berupa array berisi persis 3 opsi penghubung (A/B/C/D) yang memetakan baris kiri ke opsi kanan (pilihanA, pilihanB, pilihanC, pilihanD) secara berurutan, contoh: ["B", "A", "C"].
+
+                Pastikan format JSON yang Anda berikan adalah murni valid dan bisa diparsing menggunakan JSON.parse di JavaScript tanpa tambahan kata-kata pengantar.
+            `;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "tipe": { "type": "STRING" },
+                                "pertanyaan": { "type": "STRING" },
+                                "pilihanA": { "type": "STRING" },
+                                "pilihanB": { "type": "STRING" },
+                                "pilihanC": { "type": "STRING" },
+                                "pilihanD": { "type": "STRING" },
+                                "jawaban": { "type": "STRING" },
+                                "kiri": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                },
+                                "jodohIndex": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                }
+                            },
+                            "required": ["tipe", "pertanyaan", "jawaban"]
+                        }
+                    }
+                },
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (jsonText) {
+                    const parsedQuestions = JSON.parse(jsonText);
+                    
+                    // Format ulang ID questions
+                    let currentMaxId = questions.length > 0 ? Math.max(...questions.map(q => q.id)) : 0;
+                    const cleanQuestions = parsedQuestions.map((q, idx) => {
+                        const kiriList = Array.isArray(q.kiri) && q.kiri.length >= 3 ? q.kiri : ['', '', ''];
+                        const jodohList = Array.isArray(q.jodohIndex) && q.jodohIndex.length >= 3 ? q.jodohIndex : ['A', 'B', 'C'];
+
+                        return {
+                            id: currentMaxId + idx + 1,
+                            tipe: q.tipe || 'PG',
+                            pertanyaan: q.pertanyaan || '',
+                            pilihanA: q.pilihanA || '',
+                            pilihanB: q.pilihanB || '',
+                            pilihanC: q.pilihanC || '',
+                            pilihanD: q.pilihanD || '',
+                            jawaban: q.jawaban || '',
+                            kiri: kiriList,
+                            jodohIndex: jodohList
+                        };
+                    });
+
+                    // Tambahkan ke list soal saat ini
+                    questions = [...questions, ...cleanQuestions];
+                    
+                    // Bersihkan soal kosong default pertama jika masih ada
+                    if (questions.length > 1 && questions[0].pertanyaan === "" && questions[0].pilihanA === "") {
+                        questions.shift();
+                    }
+
+                    renderQuestions();
+                    updateCounter();
+                    showToast(`Berhasil merancang ${cleanQuestions.length} butir soal lewat AI!`);
+                } else {
+                    throw new Error("Struktur respons Gemini tidak lengkap.");
+                }
+
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal menghubungi AI Gemini. Periksa kembali API Key Anda!", false);
+            } finally {
+                loaderOverlay.classList.add("hidden");
+                btnGenerate.disabled = false;
+                btnGenerate.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+        }
+
+        function updateField(id, fieldName, value) {
+            const q = questions.find(q => q.id === id);
+            if (q) {
+                q[fieldName] = value;
+            }
+        }
+
+        // Khusus update array untuk tipe Menjodohkan
+        function updateMatchingArray(id, arrayName, index, value) {
+            const q = questions.find(q => q.id === id);
+            if (q && q[arrayName]) {
+                q[arrayName][index] = value;
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsList');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                let optionsHtml = '';
+
+                if (q.tipe === 'PG') {
+                    optionsHtml = `
+                        <div class="space-y-2 mt-3 pt-2.5 border-t border-slate-100">
+                            <span class="block text-xs font-bold text-slate-500 mb-1"><i class="bi bi-list-check me-1"></i>Pilihan Jawaban & Kunci:</span>
+                            <div class="grid grid-cols-1 gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-teal-700 bg-teal-50 w-6 h-6 rounded-lg flex items-center justify-center">A</span>
+                                    <input type="text" placeholder="Teks pilihan A..." value="${q.pilihanA}" oninput="updateField(${q.id}, 'pilihanA', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 focus:bg-white touch-target">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-teal-700 bg-teal-50 w-6 h-6 rounded-lg flex items-center justify-center">B</span>
+                                    <input type="text" placeholder="Teks pilihan B..." value="${q.pilihanB}" oninput="updateField(${q.id}, 'pilihanB', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 focus:bg-white touch-target">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-teal-700 bg-teal-50 w-6 h-6 rounded-lg flex items-center justify-center">C</span>
+                                    <input type="text" placeholder="Teks pilihan C..." value="${q.pilihanC}" oninput="updateField(${q.id}, 'pilihanC', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 focus:bg-white touch-target">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-teal-700 bg-teal-50 w-6 h-6 rounded-lg flex items-center justify-center">D</span>
+                                    <input type="text" placeholder="Teks pilihan D..." value="${q.pilihanD}" oninput="updateField(${q.id}, 'pilihanD', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 focus:bg-white touch-target">
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <label class="block text-xs font-bold text-slate-600 mb-1">Kunci Jawaban Benar:</label>
+                                <select onchange="updateField(${q.id}, 'jawaban', this.value)" class="w-full bg-teal-50 border border-teal-100 text-teal-800 font-bold text-xs rounded-xl px-3 py-2.5 outline-none touch-target">
+                                    <option value="" ${q.jawaban === '' ? 'selected' : ''}>-- Pilih Satu Jawaban --</option>
+                                    <option value="A" ${q.jawaban === 'A' ? 'selected' : ''}>A</option>
+                                    <option value="B" ${q.jawaban === 'B' ? 'selected' : ''}>B</option>
+                                    <option value="C" ${q.jawaban === 'C' ? 'selected' : ''}>C</option>
+                                    <option value="D" ${q.jawaban === 'D' ? 'selected' : ''}>D</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                } else if (q.tipe === 'PGK') {
+                    const jawArr = q.jawaban.split(';').map(j => j.trim().toUpperCase());
+                    optionsHtml = `
+                        <div class="space-y-2 mt-3 pt-2.5 border-t border-slate-100">
+                            <span class="block text-xs font-bold text-slate-500 mb-1"><i class="bi bi-ui-checks me-1"></i>Pilihan Jawaban (Bisa Centang > 1 Kunci):</span>
+                            <div class="grid grid-cols-1 gap-2.5">
+                                <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border">
+                                    <input type="checkbox" id="chk_${q.id}_A" value="A" ${jawArr.includes('A') ? 'checked' : ''} onchange="togglePgkAnswer(${q.id}, 'A')" class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500">
+                                    <span class="text-xs font-bold text-slate-700">A.</span>
+                                    <input type="text" placeholder="Opsi A..." value="${q.pilihanA}" oninput="updateField(${q.id}, 'pilihanA', this.value)" class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-teal-500 touch-target">
+                                </div>
+                                <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border">
+                                    <input type="checkbox" id="chk_${q.id}_B" value="B" ${jawArr.includes('B') ? 'checked' : ''} onchange="togglePgkAnswer(${q.id}, 'B')" class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500">
+                                    <span class="text-xs font-bold text-slate-700">B.</span>
+                                    <input type="text" placeholder="Opsi B..." value="${q.pilihanB}" oninput="updateField(${q.id}, 'pilihanB', this.value)" class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-teal-500 touch-target">
+                                </div>
+                                <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border">
+                                    <input type="checkbox" id="chk_${q.id}_C" value="C" ${jawArr.includes('C') ? 'checked' : ''} onchange="togglePgkAnswer(${q.id}, 'C')" class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500">
+                                    <span class="text-xs font-bold text-slate-700">C.</span>
+                                    <input type="text" placeholder="Opsi C..." value="${q.pilihanC}" oninput="updateField(${q.id}, 'pilihanC', this.value)" class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-teal-500 touch-target">
+                                </div>
+                                <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border">
+                                    <input type="checkbox" id="chk_${q.id}_D" value="D" ${jawArr.includes('D') ? 'checked' : ''} onchange="togglePgkAnswer(${q.id}, 'D')" class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500">
+                                    <span class="text-xs font-bold text-slate-700">D.</span>
+                                    <input type="text" placeholder="Opsi D..." value="${q.pilihanD}" oninput="updateField(${q.id}, 'pilihanD', this.value)" class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-teal-500 touch-target">
+                                </div>
+                            </div>
+                            <div class="bg-orange-50 text-orange-600 text-[10px] p-2.5 rounded-xl font-bold border border-orange-100 mt-2">
+                                <i class="bi bi-info-circle-fill me-1"></i> Terpilih kunci saat ini: ${q.jawaban || '(Belum dipilih)'}
+                            </div>
+                        </div>
+                    `;
+                } else if (q.tipe === 'MENJODOHKAN') {
+                    optionsHtml = `
+                        <div class="space-y-3 mt-3 pt-2.5 border-t border-slate-100">
+                            <span class="block text-xs font-bold text-slate-500"><i class="bi bi-arrow-left-right me-1"></i>Pasangkan Kolom Kiri & Kanan:</span>
+                            
+                            <!-- Deret Kiri (Soal) -->
+                            <div class="space-y-2">
+                                <span class="block text-[10px] font-extrabold text-teal-700"><i class="bi bi-arrow-right-circle"></i> Sisi Kiri (Bulatan Teal):</span>
+                                <div class="space-y-1.5">
+                                    <input type="text" placeholder="Pasangan 1 Kiri..." value="${q.kiri[0]}" oninput="updateMatchingArray(${q.id}, 'kiri', 0, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                    <input type="text" placeholder="Pasangan 2 Kiri..." value="${q.kiri[1]}" oninput="updateMatchingArray(${q.id}, 'kiri', 1, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                    <input type="text" placeholder="Pasangan 3 Kiri..." value="${q.kiri[2]}" oninput="updateMatchingArray(${q.id}, 'kiri', 2, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                </div>
+                            </div>
+
+                            <!-- Deret Kanan (Opsi Jawaban) -->
+                            <div class="space-y-2 mt-3">
+                                <span class="block text-[10px] font-extrabold text-orange-600"><i class="bi bi-arrow-left-circle"></i> Sisi Kanan (Bulatan Oranye):</span>
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-400">A.</span>
+                                        <input type="text" placeholder="Opsi A..." value="${q.pilihanA}" oninput="updateField(${q.id}, 'pilihanA', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-400">B.</span>
+                                        <input type="text" placeholder="Opsi B..." value="${q.pilihanB}" oninput="updateField(${q.id}, 'pilihanB', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-400">C.</span>
+                                        <input type="text" placeholder="Opsi C..." value="${q.pilihanC}" oninput="updateField(${q.id}, 'pilihanC', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-400">D.</span>
+                                        <input type="text" placeholder="Opsi D..." value="${q.pilihanD}" oninput="updateField(${q.id}, 'pilihanD', this.value)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 touch-target">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Peta Kunci Jodoh -->
+                            <div class="mt-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                <span class="block text-xs font-bold text-slate-700 mb-2"><i class="bi bi-link-45deg"></i> Atur Kunci Jawaban Pasangan:</span>
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-600 font-medium">Baris Kiri 1 terhubung ke:</span>
+                                        <select onchange="updateJodohIndex(${q.id}, 0, this.value)" class="bg-white border rounded-lg p-1.5 font-bold text-teal-800">
+                                            <option value="A" ${q.jodohIndex[0] === 'A' ? 'selected' : ''}>Opsi A</option>
+                                            <option value="B" ${q.jodohIndex[0] === 'B' ? 'selected' : ''}>Opsi B</option>
+                                            <option value="C" ${q.jodohIndex[0] === 'C' ? 'selected' : ''}>Opsi C</option>
+                                            <option value="D" ${q.jodohIndex[0] === 'D' ? 'selected' : ''}>Opsi D</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-600 font-medium">Baris Kiri 2 terhubung ke:</span>
+                                        <select onchange="updateJodohIndex(${q.id}, 1, this.value)" class="bg-white border rounded-lg p-1.5 font-bold text-teal-800">
+                                            <option value="A" ${q.jodohIndex[1] === 'A' ? 'selected' : ''}>Opsi A</option>
+                                            <option value="B" ${q.jodohIndex[1] === 'B' ? 'selected' : ''}>Opsi B</option>
+                                            <option value="C" ${q.jodohIndex[1] === 'C' ? 'selected' : ''}>Opsi C</option>
+                                            <option value="D" ${q.jodohIndex[1] === 'D' ? 'selected' : ''}>Opsi D</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-600 font-medium">Baris Kiri 3 terhubung ke:</span>
+                                        <select onchange="updateJodohIndex(${q.id}, 2, this.value)" class="bg-white border rounded-lg p-1.5 font-bold text-teal-800">
+                                            <option value="A" ${q.jodohIndex[2] === 'A' ? 'selected' : ''}>Opsi A</option>
+                                            <option value="B" ${q.jodohIndex[2] === 'B' ? 'selected' : ''}>Opsi B</option>
+                                            <option value="C" ${q.jodohIndex[2] === 'C' ? 'selected' : ''}>Opsi C</option>
+                                            <option value="D" ${q.jodohIndex[2] === 'D' ? 'selected' : ''}>Opsi D</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (q.tipe === 'ISIAN') {
+                    optionsHtml = `
+                        <div class="space-y-2 mt-3 pt-2.5 border-t border-slate-100">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Alternatif Kunci Jawaban (Pisahkan dengan garis tegak | jika > 1):</label>
+                            <input type="text" placeholder="Contoh: Ngantang | kecamatan ngantang" value="${q.jawaban}" oninput="updateField(${q.id}, 'jawaban', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-teal-500 focus:bg-white touch-target">
+                            <p class="text-[9px] text-slate-400">Sistem akan otomatis menyesuaikan koreksi kecil jika siswa salah menulis spasi atau huruf kapital.</p>
+                        </div>
+                    `;
+                }
+
+                const cardHtml = `
+                    <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 relative">
+                        <!-- Top Header Card -->
+                        <div class="flex items-center justify-between border-b border-slate-50 pb-2 mb-3">
+                            <span class="text-xs font-black text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg">Soal No. ${index + 1}</span>
+                            <button onclick="removeQuestion(${q.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg active:scale-95 transition-all">
+                                <i class="bi bi-trash-fill text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Selector Tipe Soal -->
+                        <div class="mb-3">
+                            <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Tipe Soal:</label>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <button onclick="changeQuestionType(${q.id}, 'PG')" class="py-1.5 text-[10px] font-bold rounded-xl border ${q.tipe === 'PG' ? 'bg-teal-700 text-white border-teal-700' : 'bg-slate-50 text-slate-600 border-slate-100'}">P. Ganda</button>
+                                <button onclick="changeQuestionType(${q.id}, 'PGK')" class="py-1.5 text-[10px] font-bold rounded-xl border ${q.tipe === 'PGK' ? 'bg-teal-700 text-white border-teal-700' : 'bg-slate-50 text-slate-600 border-slate-100'}">PGK</button>
+                                <button onclick="changeQuestionType(${q.id}, 'MENJODOHKAN')" class="py-1.5 text-[10px] font-bold rounded-xl border ${q.tipe === 'MENJODOHKAN' ? 'bg-teal-700 text-white border-teal-700' : 'bg-slate-50 text-slate-600 border-slate-100'}">Jodohkan</button>
+                                <button onclick="changeQuestionType(${q.id}, 'ISIAN')" class="py-1.5 text-[10px] font-bold rounded-xl border ${q.tipe === 'ISIAN' ? 'bg-teal-700 text-white border-teal-700' : 'bg-slate-50 text-slate-600 border-slate-100'}">Isian</button>
+                            </div>
+                        </div>
+
+                        <!-- Pertanyaan Input -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Pertanyaan / Instruksi:</label>
+                            <textarea rows="2.5" placeholder="Tuliskan pertanyaan kuis di sini..." oninput="updateField(${q.id}, 'pertanyaan', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium outline-none focus:border-teal-500 focus:bg-white resize-none">${q.pertanyaan}</textarea>
+                        </div>
+
+                        <!-- Pilihan Opsi HTML -->
+                        ${optionsHtml}
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        function togglePgkAnswer(qId, val) {
+            const q = questions.find(q => q.id === qId);
+            if (!q) return;
+
+            let answers = q.jawaban ? q.jawaban.split(';').map(j => j.trim()) : [];
+            if (answers.includes(val)) {
+                answers = answers.filter(a => a !== val);
+            } else {
+                answers.push(val);
+            }
+            q.jawaban = answers.sort().join(';');
+            
+            renderQuestions();
+        }
+
+        function updateJodohIndex(qId, rowIndex, selectedOpt) {
+            const q = questions.find(q => q.id === qId);
+            if (q) {
+                q.jodohIndex[rowIndex] = selectedOpt;
+            }
+        }
+
+        // IMPLEMENTASI EXPORT KE EXCEL DENGAN STRUKTUR KOMPATIBEL PORTAL BELAJAR
+        function downloadExcelQuiz() {
+            // Validasi data sebelum didownload
+            const startDate = document.getElementById('quiz_start_date').value;
+            const endDate = document.getElementById('quiz_end_date').value;
+            const durationInput = document.getElementById('quiz_duration').value;
+
+            // Bersihkan format datetime local ke string terbaca "YYYY-MM-DD HH:MM"
+            let finalStart = '';
+            let finalEnd = '';
+
+            if (startDate) {
+                finalStart = startDate.replace('T', ' ');
+            }
+            if (endDate) {
+                finalEnd = endDate.replace('T', ' ');
+            }
+
+            const excelRows = [];
+
+            // Iterasi merakit soal satu persatu sesuai spesifikasi kuis.xlsx yang eksak
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i];
+
+                if (!q.pertanyaan.trim()) {
+                    showToast(`Pertanyaan Soal No. ${i + 1} masih kosong!`, false);
+                    return;
+                }
+
+                let finalPertanyaan = q.pertanyaan;
+                let finalJawaban = q.jawaban;
+
+                // Modifikasi khusus untuk tipe MENJODOHKAN agar terbaca sempurna oleh engine ujian
+                if (q.tipe === 'MENJODOHKAN') {
+                    if (!q.kiri[0] || !q.kiri[1] || !q.kiri[2]) {
+                        showToast(`Sisi Kiri Menjodohkan pada Soal No. ${i + 1} harus diisi lengkap!`, false);
+                        return;
+                    }
+                    if (!q.pilihanA || !q.pilihanB || !q.pilihanC) {
+                        showToast(`Pilihan Opsi Kanan pada Soal No. ${i + 1} minimal A, B, C harus terisi!`, false);
+                        return;
+                    }
+                    
+                    // Merakit Pertanyaan Gabungan: [Instruksi]; Kiri 1; Kiri 2; Kiri 3
+                    finalPertanyaan = `${q.pertanyaan}; ${q.kiri[0]}; ${q.kiri[1]}; ${q.kiri[2]}`;
+                    
+                    // Merakit Jawaban Berurutan: Jodoh1;Jodoh2;Jodoh3
+                    finalJawaban = `${q.jodohIndex[0]};${q.jodohIndex[1]};${q.jodohIndex[2]}`;
+                }
+
+                if (!finalJawaban) {
+                    showToast(`Kunci Jawaban Soal No. ${i + 1} belum ditentukan!`, false);
+                    return;
+                }
+
+                // Row format yang eksak dan kompatibel 100% dengan kuis.xlsx aslinya
+                excelRows.push({
+                    "Waktu Mulai": i === 0 ? finalStart : "",
+                    "Waktu Selesai": i === 0 ? finalEnd : "",
+                    "Durasi (Menit)": i === 0 ? (parseInt(durationInput) || "") : "",
+                    "Tipe": q.tipe,
+                    "Pertanyaan": finalPertanyaan,
+                    "Pilihan A": q.pilihanA || "",
+                    "Pilihan B": q.pilihanB || "",
+                    "Pilihan C": q.pilihanC || "",
+                    "Pilihan D": q.pilihanD || "",
+                    "Jawaban": finalJawaban
+                });
+            }
+
+            // Generate sheet via SheetJS library
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+            // Simpan file
+            XLSX.writeFile(workbook, "kuis.xlsx");
+            showToast("Sukses! File 'kuis.xlsx' siap diunggah ke Google Drive kelas.");
+        }
+
+        function importExistingExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (jsonData.length === 0) {
+                        showToast("File Excel kosong!", false);
+                        return;
+                    }
+
+                    // Muat Pengaturan metadata di baris pertama
+                    const firstRow = jsonData[0];
+                    const startVal = firstRow['Waktu Mulai'] || firstRow['waktu mulai'] || '';
+                    const endVal = firstRow['Waktu Selesai'] || firstRow['waktu selesai'] || '';
+                    const durationVal = firstRow['Durasi (Menit)'] || firstRow['durasi'] || '';
+
+                    if (startVal) {
+                        document.getElementById('quiz_start_date').value = startVal.replace(' ', 'T');
+                    }
+                    if (endVal) {
+                        document.getElementById('quiz_end_date').value = endVal.replace(' ', 'T');
+                    }
+                    if (durationVal) {
+                        document.getElementById('quiz_duration').value = durationVal;
+                    }
+
+                    // Muat Soal
+                    questions = jsonData.map((row, index) => {
+                        const rawType = (row['Tipe'] || row['tipe'] || 'PG').toString().toUpperCase().trim();
+                        let rawPertanyaan = row['Pertanyaan'] || row['pertanyaan'] || '';
+                        let rawJawaban = (row['Jawaban'] || row['jawaban'] || '').toString().trim();
+
+                        let insMenjodohkan = '';
+                        let kiriArr = ['', '', ''];
+                        let jodohMap = ['A', 'B', 'C'];
+
+                        if (rawType === 'MENJODOHKAN') {
+                            const splitQ = rawPertanyaan.split(';');
+                            insMenjodohkan = splitQ[0] || '';
+                            kiriArr[0] = (splitQ[1] || '').trim();
+                            kiriArr[1] = (splitQ[2] || '').trim();
+                            kiriArr[2] = (splitQ[3] || '').trim();
+
+                            const splitJ = rawJawaban.split(';');
+                            jodohMap[0] = (splitJ[0] || 'A').trim().toUpperCase();
+                            jodohMap[1] = (splitJ[1] || 'B').trim().toUpperCase();
+                            jodohMap[2] = (splitJ[2] || 'C').trim().toUpperCase();
+
+                            rawPertanyaan = insMenjodohkan;
+                        }
+
+                        return {
+                            id: index + 1,
+                            tipe: rawType,
+                            pertanyaan: rawPertanyaan,
+                            pilihanA: row['Pilihan A'] || row['pilihan a'] || '',
+                            pilihanB: row['Pilihan B'] || row['pilihan b'] || '',
+                            pilihanC: row['Pilihan C'] || row['pilihan c'] || '',
+                            pilihanD: row['Pilihan D'] || row['pilihan d'] || '',
+                            jawaban: rawJawaban,
+                            kiri: kiriArr,
+                            jodohIndex: jodohMap
+                        };
+                    });
+
+                    renderQuestions();
+                    updateCounter();
+                    showToast(`Berhasil mengimpor ${questions.length} soal kuis!`);
+
+                } catch (err) {
+                    console.error(err);
+                    showToast("Format berkas Excel tidak dikenali!", false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>

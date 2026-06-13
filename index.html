@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ruang Kelas Virtual - SD Negeri 3 Ngantru</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,6 +16,13 @@
     <!-- html2canvas untuk merender sertifikat menjadi gambar JPG beresolusi tinggi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+    <script type="module">
+        // Inisialisasi Firebase akan disuntikkan secara otomatis oleh lingkungan hosting
+        // Namun kita tetap menyediakan objek konfigurasi kosong sebagai fallback aman
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    </script>
+
     <style>
         :root {
             --teal-dark: #0f766e;
@@ -25,24 +32,32 @@
             --orange-accent: #f97316;
             --orange-light: #fff7ed;
             --dark-card: #1e293b;
-            --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
+            background-color: #f1f5f9;
             color: #334155;
             overflow-x: hidden;
+            /* Membuat tampilan web terasa pas seperti aplikasi HP Android */
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            box-shadow: 0 0 32px rgba(15, 118, 110, 0.08);
+            position: relative;
         }
 
-        /* --- STYLING UNTUK PASSWORD LOCKSCREEN --- */
+        /* --- STYLING UNTUK PASSWORD LOCKSCREEN (MOBILE APP DESIGN) --- */
         #passwordOverlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at top right, var(--teal-medium), var(--teal-dark)); 
+            right: 0;
+            bottom: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, var(--teal-hover) 0%, var(--teal-dark) 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -51,18 +66,17 @@
         }
         .lockscreen-card {
             background: white;
-            padding: 3rem 2.5rem;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(15, 118, 110, 0.4);
-            max-width: 420px;
-            width: 90%;
+            padding: 2.5rem 1.75rem;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(15, 118, 110, 0.3);
+            width: 88%;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(8px);
         }
         /* Menyembunyikan konten utama sebelum password benar */
         #mainContent {
             display: none;
+            padding-bottom: 80px;
         }
 
         /* Teal & Orange Theme Custom Classes */
@@ -85,140 +99,125 @@
             border-color: var(--teal-light) !important;
         }
 
-        /* Buttons styling */
+        /* Android Native Style Buttons */
         .btn-teal {
             background-color: var(--teal-dark);
             color: white;
             border: none;
+            height: 48px;
+            border-radius: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: var(--transition-smooth);
         }
-        .btn-teal:hover {
-            background-color: var(--teal-hover);
-            color: white;
-            transform: translateY(-2px);
+        .btn-teal:active {
+            transform: scale(0.96);
+            opacity: 0.9;
         }
         .btn-outline-teal {
             border: 2px solid var(--teal-dark);
             color: var(--teal-dark);
             background: transparent;
+            height: 48px;
+            border-radius: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: var(--transition-smooth);
         }
-        .btn-outline-teal:hover {
-            background-color: var(--teal-dark);
-            color: white;
+        .btn-outline-teal:active {
+            background-color: var(--teal-light);
+            transform: scale(0.96);
         }
         .btn-orange {
             background-color: var(--orange-accent);
             color: white;
             border: none;
+            height: 48px;
+            border-radius: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: var(--transition-smooth);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
         }
-        .btn-orange:hover {
-            background-color: #ea580c;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+        .btn-orange:active {
+            transform: scale(0.96);
+            box-shadow: none;
         }
 
-        /* Custom Cards */
+        /* Custom Mobile Cards */
         .custom-card {
             border: none;
-            border-radius: 18px;
-            box-shadow: 0 4px 20px rgba(15, 118, 110, 0.05);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.04);
             background-color: #ffffff;
-            transition: var(--transition-smooth);
-        }
-        .custom-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(15, 118, 110, 0.08);
+            margin-bottom: 16px;
+            border: 1px solid rgba(15, 118, 110, 0.05);
         }
 
-        /* Interactive Menu Cards */
+        /* Interactive Menu Cards (HP Android Touch Style) */
         .interactive-menu-card {
             cursor: pointer;
-            border: 2px solid transparent;
             transition: var(--transition-smooth);
-            overflow: hidden;
+            border-radius: 20px;
+            border: 1.5px solid transparent;
             position: relative;
         }
-        .interactive-menu-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 6px;
-            background: transparent;
-            transition: var(--transition-smooth);
+        .interactive-menu-card:active {
+            transform: scale(0.97);
+            background-color: #f8fafc;
         }
-        .interactive-menu-card.menu-materi:hover {
-            border-color: var(--teal-medium);
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(20, 184, 166, 0.15);
+        .interactive-menu-card.menu-materi {
+            border-bottom: 5px solid var(--teal-medium);
         }
-        .interactive-menu-card.menu-materi::after {
-            background: var(--teal-medium);
+        .interactive-menu-card.menu-tugas {
+            border-bottom: 5px solid var(--orange-accent);
         }
-        .interactive-menu-card.menu-tugas:hover {
-            border-color: var(--orange-accent);
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(249, 115, 22, 0.15);
-        }
-        .interactive-menu-card.menu-tugas::after {
-            background: var(--orange-accent);
-        }
-        .interactive-menu-card.menu-lain:hover {
-            border-color: var(--bs-primary);
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(13, 110, 253, 0.15);
-        }
-        .interactive-menu-card.menu-lain::after {
-            background: var(--bs-primary);
+        .interactive-menu-card.menu-lain {
+            border-bottom: 5px solid var(--bs-primary);
         }
 
-        /* Class Banner */
+        /* Banner Kelas Ringkas */
         .class-banner {
             background: linear-gradient(135deg, var(--teal-dark) 0%, #115e59 100%);
-            border-radius: 24px;
+            border-radius: 20px;
             overflow: hidden;
             position: relative;
-            box-shadow: 0 10px 30px rgba(15, 118, 110, 0.15);
-        }
-        .class-banner::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background: rgba(20, 184, 166, 0.12);
+            box-shadow: 0 8px 24px rgba(15, 118, 110, 0.1);
         }
 
-        /* Quiz UI Styles */
+        /* Quiz UI Mobile-first Styles */
         .option-container {
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 10px;
             cursor: pointer;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
             transition: var(--transition-smooth);
         }
-        .option-container:hover {
+        .option-container:active {
             background-color: var(--teal-light);
-            border-color: var(--teal-medium);
         }
         .option-container.selected {
             background-color: var(--teal-light);
             border-color: var(--teal-dark);
-            font-weight: 600;
+            font-weight: 700;
         }
 
-        /* UI Menjodohkan Tarik Garis */
+        /* UI Menjodohkan Tarik Garis (HP Android Responsive Canvas) */
         .matching-wrapper {
             position: relative;
             min-height: 250px;
             user-select: none;
+            touch-action: none;
         }
         .matching-canvas {
             position: absolute;
@@ -230,15 +229,15 @@
             z-index: 5;
         }
         
-        /* JAMINAN TAMPILAN BULATAN JELAS DI SEMUA PONSEL */
+        /* Bulatan Tarik Garis Lebih Mudah Ditekan di HP */
         .matching-dot {
             display: block !important;
-            width: 22px !important;
-            height: 22px !important;
+            width: 26px !important;
+            height: 26px !important;
             border-radius: 50% !important;
-            border: 3px solid #ffffff !important;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-            transition: transform 0.2s, background-color 0.2s;
+            border: 4px solid #ffffff !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+            transition: transform 0.15s, background-color 0.15s;
             cursor: pointer;
             z-index: 10;
         }
@@ -250,55 +249,87 @@
             background-color: var(--orange-accent) !important;
             background: var(--orange-accent) !important;
         }
-        .matching-dot:hover, .matching-dot.active-glow {
-            transform: scale(1.35);
-            box-shadow: 0 0 12px rgba(20, 184, 166, 0.9) !important;
-        }
-        .matching-dot.active-glow {
-            animation: pulse-glow 1.5s infinite;
-        }
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+        .matching-dot:active, .matching-dot.active-glow {
+            transform: scale(1.4);
+            box-shadow: 0 0 14px rgba(20, 184, 166, 0.9) !important;
         }
 
-        /* Drive Iframe Container */
+        /* --- PERBAIKAN PRATINJAU GOOGLE DRIVE AGAR 100% PRESISI DI HP --- */
         .drive-iframe-wrapper {
-            position: relative;
             width: 100%;
-            height: 600px;
-            border-radius: 18px;
+            height: 480px;
+            border-radius: 16px;
             overflow: hidden;
             border: 1px solid #cbd5e1;
             background-color: #ffffff;
-            box-shadow: 0 10px 25px -5px rgba(15, 118, 110, 0.1);
+            position: relative;
+            -webkit-overflow-scrolling: touch; /* Mulus di peramban seluler iOS/Android */
         }
         .drive-iframe-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+            outline: none !important;
         }
 
-        /* View transition animations */
-        .fade-in-view {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Floating Timer Layout Mobile */
+        .floating-timer-card {
+            position: sticky;
+            top: 8px;
+            margin-bottom: 12px;
+            z-index: 1020;
+            background-color: #ffffff;
+            border: 2px solid var(--orange-accent);
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.15);
         }
 
-        /* Loading Spinner */
-        .spinner-overlay {
-            display: inline-block;
-            width: 1.5rem;
-            height: 1.5rem;
-            vertical-align: text-bottom;
-            border: .25em solid currentColor;
-            border-right-color: transparent;
+        /* --- STYLING UTAMA PREVIEW BUKTI DI HP ANDROID --- */
+        #pdfCertificateTemplate {
+            width: 595px;
+            padding: 30px;
+            background: #ffffff;
+            border: 12px double var(--teal-dark);
+            color: #334155;
+            position: relative;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            box-sizing: border-box;
+        }
+        .cert-header {
+            border-bottom: 3px double var(--teal-dark);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .cert-seal {
+            border: 4px dashed var(--orange-accent);
             border-radius: 50%;
-            animation: spinner-border .75s linear infinite;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--orange-accent);
+            transform: rotate(-10deg);
+            background-color: var(--orange-light);
+            font-size: 0.8rem;
+        }
+
+        /* Desain UI Lembaran Form Android */
+        .form-control {
+            height: 48px;
+            border-radius: 14px;
+            border: 1.5px solid #cbd5e1;
+            padding: 0 16px;
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+        }
+        .form-control:focus {
+            border-color: var(--teal-medium);
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15);
         }
 
         /* Skeleton Loading */
@@ -313,103 +344,43 @@
             100% { background-position: -200% 0; }
         }
 
-        /* CSS KHUSUS DESAIN BUKTI HASIL EVALUASI - JAMINAN TINGGI */
-        #pdfCertificateTemplate {
-            width: 595px; /* Lebar Standar Piksel */
-            padding: 40px;
-            background: #ffffff;
-            border: 15px double var(--teal-dark);
-            color: #334155;
-            position: relative;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        .cert-header {
-            border-bottom: 3px double var(--teal-dark);
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-        }
-        .cert-seal {
-            border: 4px dashed var(--orange-accent);
-            border-radius: 50%;
-            width: 110px;
-            height: 110px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            color: var(--orange-accent);
-            transform: rotate(-10deg);
-            background-color: var(--orange-light);
-        }
-
-        /* STYLES UNTUK FLOATING TIMER */
-        .floating-timer-card {
-            position: sticky;
-            top: 15px;
-            z-index: 1020;
-            background-color: #ffffff;
-            border: 2px solid var(--orange-accent);
-            border-radius: 14px;
-            box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.2);
-            animation: pulse-border 2s infinite;
-        }
-        @keyframes pulse-border {
-            0% { border-color: var(--orange-accent); }
-            50% { border-color: #ef4444; }
-            100% { border-color: var(--orange-accent); }
-        }
-
-        /* --- STYLING KHUSUS RESPONSIVE HP ANDROID (PRESISI & TIDAK TERLALU BESAR) --- */
+        /* Media Query HP Android Presisi */
         @media (max-width: 575.98px) {
             .modal-dialog {
                 margin: 0.5rem !important;
                 max-width: calc(100% - 1rem) !important;
             }
             .modal-content {
-                border-radius: 16px !important;
+                border-radius: 20px !important;
             }
             .modal-body {
-                padding: 1rem !important;
+                padding: 1.25rem 1rem !important;
             }
-            .modal-header {
-                padding: 0.85rem 1rem !important;
-            }
-            .modal-footer {
-                padding: 0.85rem 1rem !important;
+            .modal-header, .modal-footer {
+                padding: 0.75rem 1rem !important;
             }
             #tugasPreviewImage {
                 max-height: 180px !important;
                 object-fit: contain;
                 width: 100%;
             }
-            .cert-seal {
-                width: 90px;
-                height: 90px;
-                font-size: 0.8rem;
-            }
-            /* Menyesuaikan text-size modal hasil */
-            #quizResultModal h5 {
-                font-size: 1.15rem !important;
-            }
-            #quizResultModal p.text-muted {
-                font-size: 0.8rem !important;
-            }
         }
     </style>
 </head>
 <body>
 
+<!-- 1. LAYAR POPUP PASSWORD -->
 <div id="passwordOverlay">
     <div class="lockscreen-card">
         <div class="text-teal mb-3">
-            <i class="bi bi-shield-lock-fill" style="font-size: 3.5rem;"></i>
+            <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
         </div>
         <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
         <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
         
         <form onsubmit="checkPassword(event)">
             <div class="mb-3">
-                <input type="password" id="inputPassword" class="form-control text-center py-2.5 rounded-3 border-teal-light" placeholder="Masukkan Password" required>
+                <input type="password" id="inputPassword" class="form-control text-center rounded-3 border-teal-light" placeholder="Masukkan Password" required>
                 <div id="passwordError" class="text-danger small mt-2 d-none">Password salah, silakan coba lagi!</div>
             </div>
             <button type="submit" class="btn btn-teal w-100 py-2.5 fw-bold rounded-3 shadow-sm">Masuk Kelas</button>
@@ -417,124 +388,100 @@
     </div>
 </div>
 
-<div id="mainContent" class="container py-4">
+<!-- 2. MAIN CONTENT AREA -->
+<div id="mainContent" class="container py-3">
     
     <!-- SUBVIEW: DASHBOARD / TAMPILAN AWAL -->
     <div id="view-dashboard" class="fade-in-view">
-        <!-- Header & Breadcrumb -->
+        <!-- Header & Breadcrumb HP Style -->
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0 text-dark">
-                <i class="bi bi-house-door-fill text-teal me-2"></i>Dashboard Kelas
-            </h5>
-            <span class="badge bg-teal-light text-teal border border-teal-light py-2 px-3 rounded-pill fw-bold">
-                <i class="bi bi-calendar2-week me-1"></i> Ganjil • 2025/2026
+            <span class="fw-bold text-dark small">
+                <i class="bi bi-house-door-fill text-teal me-1"></i>Portal Kelas V
             </span>
+            <!-- Tombol Rahasia Akses Guru dengan Sandi 11223344 -->
+            <button onclick="promptGuruMenu()" class="btn btn-sm btn-outline-teal rounded-pill px-2.5 py-1 text-xs" style="height: auto;">
+                <i class="bi bi-person-badge-fill me-1"></i>Menu Guru
+            </button>
         </div>
 
         <!-- HEADER BANNER KELAS SDN 3 NGANTRU -->
-        <div class="class-banner p-4 p-md-5 text-white mb-4 position-relative">
-            <div class="row align-items-center position-relative z-1">
-                <div class="col-md-7 mb-3 mb-md-0 d-flex align-items-center flex-wrap flex-md-nowrap gap-4">
-                    <!-- Logo SDN 3 Ngantru -->
-                    <div class="bg-white rounded-circle p-2 shadow-sm d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; min-width: 100px;">
-                        <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div>
-                        <span class="badge bg-warning text-dark mb-2 px-3 py-1.5 rounded-pill fw-bold">
-                            <i class="bi bi-bookmark-fill me-1"></i> Portal Belajar Kelas V
-                        </span>
-                        <h1 class="fw-extrabold mb-1 display-5">SD Negeri 3 Ngantru</h1>
-                        <p class="mb-0 opacity-90 fs-6">Sistem Pembelajaran Virtual Siswa Kreatif & Berprestasi</p>
-                    </div>
+        <div class="class-banner p-3 text-white mb-3 position-relative">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Logo SDN 3 Ngantru -->
+                <div class="bg-white rounded-circle p-1.5 shadow-sm d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; min-width: 72px;">
+                    <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/100x100/0f766e/ffffff?text=SDN3';" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
-                <!-- Card Guru Pengampu -->
-                <div class="col-md-5 mt-3 mt-md-0 d-flex justify-content-md-end">
-                    <div class="bg-white bg-opacity-10 p-3 rounded-4 backdrop-blur d-inline-flex align-items-center gap-3 w-100" style="max-width: 380px; border: 1px solid rgba(255,255,255,0.15)">
-                        <div class="bg-white rounded-circle p-1" style="width: 75px; height: 75px; min-width: 75px;">
-                            <img src="foto guru.png" alt="Aburrizal Hamdani Lubis, S.Pd" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
-                        </div>
-                        <div>
-                            <span class="d-block fw-bold fs-5 text-white lh-sm">Aburrizal Hamdani Lubis, S.Pd</span>
-                            <small class="opacity-80 text-white-50">Guru Pengampu • Online Aktif</small>
-                        </div>
-                    </div>
+                <div>
+                    <span class="badge bg-warning text-dark mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 0.65rem;">
+                        <i class="bi bi-bookmark-fill me-1"></i> Kelas V Kreatif
+                    </span>
+                    <h4 class="fw-extrabold mb-0" style="font-size: 1.35rem; letter-spacing: -0.5px;">SDN 3 Ngantru</h4>
+                    <p class="mb-0 opacity-90 small">Kec. Ngantang, Kab. Malang</p>
+                </div>
+            </div>
+            
+            <!-- Profil Singkat Guru Bawah -->
+            <div class="mt-3 pt-3 border-top border-white border-opacity-10 d-flex align-items-center gap-2">
+                <div class="bg-white rounded-circle p-0.5" style="width: 32px; height: 32px; min-width: 32px;">
+                    <img src="foto guru.png" alt="Aburrizal Hamdani Lubis, S.Pd" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                </div>
+                <div>
+                    <span class="d-block fw-bold text-white small lh-1">Aburrizal Hamdani Lubis, S.Pd</span>
+                    <small class="opacity-70 text-white-50" style="font-size: 0.65rem;">Guru Pengampu • Online</small>
                 </div>
             </div>
         </div>
 
         <!-- MENU UTAMA INTERAKTIF -->
-        <div class="row mb-4">
+        <div class="row g-2 mb-3">
             <div class="col-12">
-                <h4 class="fw-bold mb-3 text-dark text-center text-md-start">
-                    <i class="bi bi-grid-1x2-fill text-teal me-2"></i>Menu Utama Kelas
-                </h4>
+                <h6 class="fw-bold mb-2 text-dark px-1"><i class="bi bi-grid-1x2-fill text-teal me-1"></i>Menu Utama Kelas</h6>
             </div>
             <!-- Menu 1: MATERI -->
-            <div class="col-md-4 mb-3">
-                <div class="card custom-card interactive-menu-card menu-materi p-4 h-100 d-flex flex-column justify-content-between" onclick="navigateTo('materi')">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="p-3 bg-teal-light text-teal rounded-4">
-                                <i class="bi bi-journal-bookmark-fill fs-2"></i>
-                            </div>
-                            <span class="badge bg-teal-dark text-white rounded-pill px-3 py-1.5 fw-semibold">Drive Otomatis</span>
+            <div class="col-12">
+                <div class="card custom-card interactive-menu-card menu-materi p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('materi')">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-2.5 bg-teal-light text-teal rounded-3">
+                            <i class="bi bi-journal-bookmark-fill fs-3"></i>
                         </div>
-                        <h4 class="fw-bold text-dark mb-2">1. Materi Belajar</h4>
-                        <p class="text-muted small">
-                            Akses dan baca seluruh dokumen modul belajar PDF secara otomatis yang bersumber langsung dari folder penyimpanan Google Drive bersama.
-                        </p>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">1. Materi Belajar</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Akses & baca PDF Modul Pelajaran</p>
+                        </div>
                     </div>
-                    <div class="mt-3 text-end">
-                        <span class="btn btn-teal rounded-pill px-4 py-2 text-white">
-                            Pelajari Materi <i class="bi bi-arrow-right ms-2"></i>
-                        </span>
-                    </div>
+                    <i class="bi bi-chevron-right text-teal"></i>
                 </div>
             </div>
 
             <!-- Menu 2: TUGAS -->
-            <div class="col-md-4 mb-3">
-                <div class="card custom-card interactive-menu-card menu-tugas p-4 h-100 d-flex flex-column justify-content-between" onclick="navigateTo('tugas')">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="p-3 bg-orange-light text-orange rounded-4">
-                                <i class="bi bi-clipboard-check-fill fs-2"></i>
-                            </div>
-                            <span class="badge bg-orange text-white rounded-pill px-3 py-1.5 fw-semibold" style="background-color: var(--orange-accent);">Kuis Terintegrasi</span>
+            <div class="col-12">
+                <div class="card custom-card interactive-menu-card menu-tugas p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('tugas')">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-2.5 bg-orange-light text-orange rounded-3">
+                            <i class="bi bi-clipboard-check-fill fs-3"></i>
                         </div>
-                        <h4 class="fw-bold text-dark mb-2">2. Tugas & Ujian</h4>
-                        <p class="text-muted small">
-                            Lihat kuis aktif kelas yang disinkronkan secara otomatis langsung dari folder Google Drive Bapak/Ibu Guru tanpa hambatan.
-                        </p>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">2. Tugas & Kuis</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Kerjakan kuis harian kelas</p>
+                        </div>
                     </div>
-                    <div class="mt-3 text-end">
-                        <span class="btn btn-orange rounded-pill px-4 py-2 text-white">
-                            Kerjakan Tugas <i class="bi bi-arrow-right ms-2"></i>
-                        </span>
-                    </div>
+                    <i class="bi bi-chevron-right text-orange"></i>
                 </div>
             </div>
 
             <!-- Menu 3: LAIN-LAIN -->
-            <div class="col-md-4 mb-3">
-                <div class="card custom-card interactive-menu-card menu-lain p-4 h-100 d-flex flex-column justify-content-between" onclick="window.location.href='lain-lain.html'">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="p-3 bg-primary-subtle text-primary rounded-4" style="background-color: #e0f2fe !important; color: #0369a1 !important;">
-                                <i class="bi bi-grid-3x3-gap-fill fs-2"></i>
-                            </div>
-                            <span class="badge text-white rounded-pill px-3 py-1.5 fw-semibold" style="background-color: #0284c7;">Pengembangan</span>
+            <div class="col-12">
+                <div class="card custom-card interactive-menu-card menu-lain p-3 d-flex flex-row align-items-center justify-content-between" onclick="window.location.href='lain-lain.html'">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-2.5 bg-primary-subtle text-primary rounded-3" style="background-color: #e0f2fe !important; color: #0369a1 !important;">
+                            <i class="bi bi-grid-3x3-gap-fill fs-3"></i>
                         </div>
-                        <h4 class="fw-bold text-dark mb-2">3. Menu Lain-lain</h4>
-                        <p class="text-muted small">
-                            Akses menu eksternal tambahan, pengumuman mading sekolah, album galeri kelas, atau halaman masa depan lainnya di sini.
-                        </p>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">3. Menu Pengayaan</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Game, Pecahan & Roda Keberuntungan</p>
+                        </div>
                     </div>
-                    <div class="mt-3 text-end">
-                        <span class="btn rounded-pill px-4 py-2 text-white border-0" style="background-color: #0284c7;">
-                            Buka Menu <i class="bi bi-arrow-right ms-2"></i>
-                        </span>
-                    </div>
+                    <i class="bi bi-chevron-right text-primary" style="color: #0284c7 !important;"></i>
                 </div>
             </div>
         </div>
@@ -543,38 +490,38 @@
     <!-- SUBVIEW: MATERI BELAJAR (Google Drive Integration) -->
     <div id="view-materi" class="fade-in-view d-none">
         <!-- Back Navigation -->
-        <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <button class="btn btn-outline-teal rounded-pill px-4 py-2 fw-semibold" onclick="navigateTo('dashboard')">
-                <i class="bi bi-arrow-left me-2"></i> Kembali ke Dashboard
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
             </button>
-            <a href="https://drive.google.com/drive/folders/1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V?usp=sharing" target="_blank" class="btn btn-teal rounded-pill px-4 py-2 fw-semibold">
-                <i class="bi bi-box-arrow-up-right me-2"></i> Buka Langsung di Google Drive
+            <a href="https://drive.google.com/drive/folders/1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V?usp=sharing" target="_blank" class="btn btn-teal rounded-pill px-3 py-1.5 btn-sm text-white">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Buka Full Drive
             </a>
         </div>
 
-        <div class="card custom-card p-4 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="fw-bold text-teal mb-0"><i class="bi bi-folder-symlink-fill me-2"></i>Folder Google Drive Materi</h3>
-                <span class="badge bg-teal-dark">Kelas V • SDN 3 Ngantru</span>
+        <div class="card custom-card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-bold text-teal mb-0"><i class="bi bi-folder-symlink-fill me-1"></i>Materi Google Drive</h6>
+                <span class="badge bg-teal-dark small" style="font-size: 0.65rem;">Kelas V</span>
             </div>
-            <p class="text-muted mb-0">
-                Di bawah ini adalah materi, buku, dan penugasan format PDF yang disinkronkan langsung dari Google Drive bersama kelas. Anda dapat mengklik file secara langsung untuk membaca atau mengunduhnya.
+            <p class="text-muted mb-0 small">
+                Di bawah ini adalah berkas materi pembelajaran format PDF dari Google Drive kelas. Anda dapat mengkliknya langsung untuk membaca.
             </p>
         </div>
 
-        <!-- Warning Alert / Tip Penggunaan -->
-        <div class="alert alert-warning border-0 rounded-4 p-3 mb-4 d-flex align-items-start bg-orange-light">
-            <i class="bi bi-info-circle-fill text-orange fs-4 me-3 mt-1"></i>
-            <div>
-                <h6 class="fw-bold text-dark">Petunjuk Penggunaan Google Drive:</h6>
-                <p class="mb-0 text-muted small">
-                    Jika folder di bawah tidak muncul, pastikan Anda telah **login ke akun Google Anda** di browser ini, atau tekan tombol <strong>"Buka Langsung di Google Drive"</strong> di atas untuk mengaksesnya di tab baru.
+        <!-- Warning Alert / Tip HP -->
+        <div class="alert alert-warning border-0 rounded-4 p-3 mb-3 d-flex align-items-start bg-orange-light">
+            <i class="bi bi-info-circle-fill text-orange fs-5 me-2 mt-0.5"></i>
+            <div class="small">
+                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.8rem;">Petunjuk Akses HP:</h6>
+                <p class="mb-0 text-muted" style="font-size: 0.75rem;">
+                    Bila folder di bawah tidak terbuka, pastikan ananda sudah login ke akun Google di HP ini, atau tekan tombol <strong>"Buka Full Drive"</strong> di atas.
                 </p>
             </div>
         </div>
 
-        <!-- IFRAME GOOGLE DRIVE FOLDER -->
-        <div class="card custom-card p-2 mb-4">
+        <!-- IFRAME GOOGLE DRIVE FOLDER - DIJAMIN PRESISI 100% -->
+        <div class="card custom-card p-1.5 mb-3">
             <div class="drive-iframe-wrapper">
                 <iframe src="https://drive.google.com/embeddedfolderview?id=1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V#list" allow="autoplay"></iframe>
             </div>
@@ -584,81 +531,67 @@
     <!-- SUBVIEW: TUGAS & UJIAN -->
     <div id="view-tugas" class="fade-in-view d-none">
         <!-- Back Navigation -->
-        <div class="mb-4">
-            <button class="btn btn-outline-teal rounded-pill px-4 py-2 fw-semibold" onclick="navigateTo('dashboard')">
-                <i class="bi bi-arrow-left me-2"></i> Kembali ke Dashboard
+        <div class="mb-3">
+            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
             </button>
         </div>
 
-        <div class="card custom-card p-4 mb-4">
-            <h3 class="fw-bold text-orange mb-3"><i class="bi bi-clipboard-check-fill me-2"></i>Tugas & Ujian</h3>
-            <p class="text-muted mb-0">
-                Silakan isi identitas Anda dengan benar terlebih dahulu sebelum memulai pengerjaan evaluasi belajar terjadwal.
-            </p>
-        </div>
-
         <!-- LAYAR START KUIS SEDERHANA + FORM IDENTITAS SISWA -->
-        <div id="quizStartPanel" class="card custom-card p-4 p-md-5 mb-4 border-0 bg-teal-light">
+        <div id="quizStartPanel" class="card custom-card p-3 mb-3 border-0 bg-teal-light">
             <div class="text-center">
-                <div class="mx-auto bg-white rounded-circle shadow-sm p-4 mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                <div class="mx-auto bg-white rounded-circle shadow-sm p-3 mb-2 d-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
                     <i class="bi bi-play-circle-fill text-teal fs-1 animate-pulse" style="animation: pulse-red 1.5s infinite;"></i>
                 </div>
-                <h3 class="fw-bold text-dark mb-2">Siap untuk Memulai Kuis?</h3>
-                <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
-                    Sistem akan memuat soal kuis terjadwal dari Google Drive. Masukkan nama dan nomor absen untuk membuka kuis.
+                <h5 class="fw-bold text-dark mb-1">Siap untuk Memulai Kuis?</h5>
+                <p class="text-muted small mx-auto mb-3">
+                    Isi nama lengkap dan nomor absen untuk mengaktifkan kuis harian ananda.
                 </p>
             </div>
 
-            <!-- IDENTITAS SISWA (DIISI DI AWAL - AMAN DARI TIMEOUT) -->
-            <div class="card p-4 border border-teal-light bg-white rounded-4 shadow-sm mx-auto mb-4" style="max-width: 500px;">
-                <h6 class="fw-bold text-teal mb-3"><i class="bi bi-person-badge-fill me-2"></i>Lengkapi Identitas Diri</h6>
-                <div class="row g-3">
+            <!-- IDENTITAS SISWA -->
+            <div class="card p-3 border border-teal-light bg-white rounded-4 shadow-sm mb-3">
+                <h6 class="fw-bold text-teal mb-2 small"><i class="bi bi-person-badge-fill me-1"></i>Lengkapi Identitas Siswa</h6>
+                <div class="row g-2">
                     <div class="col-12">
-                        <label for="studentNameInput" class="form-label small fw-bold text-dark">Nama Lengkap Siswa:</label>
-                        <input type="text" id="studentNameInput" class="form-control rounded-pill px-3 border border-teal-medium" placeholder="Masukkan Nama Lengkap Anda..." required>
+                        <label for="studentNameInput" class="form-label small fw-bold text-dark mb-1">Nama Lengkap Siswa:</label>
+                        <input type="text" id="studentNameInput" class="form-control" placeholder="Masukkan Nama Lengkap..." required>
                     </div>
                     <div class="col-12">
-                        <label for="studentAbsenInput" class="form-label small fw-bold text-dark">Nomor Absen:</label>
-                        <input type="number" id="studentAbsenInput" class="form-control rounded-pill px-3 border border-teal-medium" placeholder="No. Absen (Contoh: 12)..." required min="1" max="50">
+                        <label for="studentAbsenInput" class="form-label small fw-bold text-dark mb-1">Nomor Absen:</label>
+                        <input type="number" id="studentAbsenInput" class="form-control" placeholder="Contoh: 12" required min="1" max="50">
                     </div>
                 </div>
             </div>
             
-            <!-- Alert Informasi Waktu Kuis (Dinamis) -->
-            <div id="quizScheduleAlert" class="alert alert-secondary d-none border-0 rounded-4 mx-auto py-2.5 px-4 mb-4 text-center" style="max-width: 500px;">
+            <!-- Alert Informasi Waktu Kuis -->
+            <div id="quizScheduleAlert" class="alert alert-secondary d-none border-0 rounded-4 py-2 px-3 mb-3 text-center">
                 <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis Aktif:</span>
                 <span class="small text-muted d-block" id="scheduleText">-</span>
                 <span class="small text-orange fw-bold d-block mt-1" id="durationText">-</span>
             </div>
 
             <div class="text-center">
-                <button id="btnStartQuiz" onclick="syncAndStartQuiz()" class="btn btn-orange btn-lg rounded-pill px-5 py-3 fw-extrabold text-white shadow">
-                    <span id="startText"><i class="bi bi-rocket-takeoff-fill me-2"></i>Mulai Kuis Sekarang</span>
+                <button id="btnStartQuiz" onclick="syncAndStartQuiz()" class="btn btn-orange w-100 rounded-pill py-2.5 text-white">
+                    <span id="startText"><i class="bi bi-rocket-takeoff-fill me-1"></i>Mulai Kuis Sekarang</span>
                     <span id="startSpinner" class="spinner-overlay d-none"></span>
-                </button>
-            </div>
-            
-            <!-- Download template helper link -->
-            <div class="mt-4 pt-2 text-center">
-                <button onclick="downloadTemplate()" class="btn btn-link text-teal text-decoration-none small fw-semibold mx-2" style="font-size: 0.85rem;">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Unduh Format Kuis Excel Terjadwal (Khusus Guru)
                 </button>
             </div>
         </div>
 
-        <!-- SKELETON LOADER (HANYA MUNCUL SAAT SYNCING) -->
-        <div id="quizLoader" class="d-none mb-4">
-            <div class="card custom-card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                    <div class="w-50">
+        <!-- SKELETON LOADER -->
+        <div id="quizLoader" class="d-none mb-3">
+            <div class="card custom-card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="w-100">
                         <div class="skeleton-loader py-3 w-75 mb-2"></div>
                         <div class="skeleton-loader py-2 w-25"></div>
                     </div>
                 </div>
-                <div class="d-flex flex-column gap-4">
+                <div class="d-flex flex-column gap-3">
                     <div class="card p-3 border shadow-sm rounded-3">
-                        <div class="skeleton-loader py-2.5 w-50 mb-3"></div>
-                        <div class="skeleton-loader py-4 w-100 mb-2"></div>
+                        <div class="skeleton-loader py-2 w-50 mb-2"></div>
+                        <div class="skeleton-loader py-4 w-100 mb-1"></div>
                         <div class="skeleton-loader py-4 w-100"></div>
                     </div>
                 </div>
@@ -666,93 +599,63 @@
         </div>
 
         <!-- AREA KUIS DINAMIS YANG DI-IMPORT -->
-        <div id="quizArea" class="d-none mb-4">
+        <div id="quizArea" class="d-none mb-3">
             
             <!-- STICKY FLOATING TIMEOUT TIMER CARD -->
-            <div id="floatingTimerCard" class="floating-timer-card p-3 mb-4 d-none">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="spinner-grow text-danger spinner-grow-sm" role="status"></div>
-                        <span class="fw-bold text-dark small">KUIS SEDANG BERJALAN</span>
+            <div id="floatingTimerCard" class="floating-timer-card p-2 mb-3 d-none">
+                <div class="d-flex justify-content-between align-items-center px-1">
+                    <div class="d-flex align-items-center gap-1.5">
+                        <div class="spinner-grow text-danger spinner-grow-sm" role="status" style="width: 10px; height: 10px;"></div>
+                        <span class="fw-bold text-dark" style="font-size: 0.75rem;">KUIS MULAI</span>
                     </div>
                     <div class="text-end">
-                        <span class="small text-muted d-block" style="font-size: 0.75rem;">SISA WAKTU PENGERJAAN:</span>
-                        <h4 class="fw-extrabold text-danger mb-0" id="quizTimerText">00:00</h4>
+                        <h5 class="fw-extrabold text-danger mb-0" id="quizTimerText" style="font-size: 1.1rem; line-height: 1;">00:00</h5>
                     </div>
                 </div>
             </div>
 
-            <div class="card custom-card p-4 border border-teal-medium">
-                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
+            <div class="card custom-card p-3 border border-teal-medium">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
                     <div>
-                        <h5 class="fw-bold text-teal mb-1" id="quizTitle"><i class="bi bi-patch-question-fill me-2"></i>Kuis Aktif Kelas V</h5>
-                        <span class="badge bg-teal-dark" id="quizQuestionCount">0 Soal</span>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <!-- Siswa bisa refresh kuis tanpa reload seluruh web -->
-                        <button type="button" onclick="syncAndStartQuiz()" class="btn btn-outline-teal btn-sm rounded-pill px-3">
-                            <i class="bi bi-arrow-repeat me-1"></i> Segarkan Kuis
-                        </button>
-                        <button type="button" onclick="resetImportedQuiz()" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                            <i class="bi bi-trash-fill me-1"></i> Bersihkan Jawaban
-                        </button>
+                        <h6 class="fw-bold text-teal mb-0" id="quizTitle"><i class="bi bi-patch-question-fill me-1"></i>Kuis Aktif</h6>
+                        <span class="badge bg-teal-dark" id="quizQuestionCount" style="font-size: 0.65rem;">0 Soal</span>
                     </div>
                 </div>
 
                 <!-- Kontainer Soal -->
                 <form id="interactiveQuizForm" onsubmit="submitInteractiveQuiz(event)">
-                    <div id="questionsContainer" class="d-flex flex-column gap-4">
-                        <!-- Soal-soal kuis akan dimuat di sini secara dinamis -->
+                    <div id="questionsContainer" class="d-flex flex-column gap-3">
+                        <!-- Soal kuis dimuat dinamis -->
                     </div>
 
-                    <div class="text-end pt-4 border-top mt-4">
-                        <button type="submit" id="btnSubmitQuizForm" class="btn btn-orange px-5 py-2.5 rounded-pill fw-bold shadow-sm">
-                            <i class="bi bi-send-check-fill me-2"></i> Kirim Jawaban & Unduh Bukti
+                    <div class="text-end pt-3 border-top mt-3">
+                        <button type="submit" id="btnSubmitQuizForm" class="btn btn-orange w-100 rounded-pill text-white">
+                            <i class="bi bi-send-check-fill me-1"></i> Kirim Jawaban
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- ALTERNATIF: MENU IMPORT MANUAL (CADANGAN TERSEMBUNYI) -->
-        <div class="card custom-card p-3 mb-4 bg-light border-0">
-            <button class="btn btn-link text-secondary text-decoration-none w-100 text-start p-0 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManualUpload" aria-expanded="false" aria-controls="collapseManualUpload">
-                <span class="small fw-bold"><i class="bi bi-laptop me-2"></i>Gunakan Unggah Manual dari Komputer (Cadangan Offline)</span>
-                <i class="bi bi-chevron-down fs-6"></i>
-            </button>
-            <div class="collapse mt-3" id="collapseManualUpload">
-                <div class="bg-white p-3 rounded-3 border">
-                    <label for="excelFileInput" class="form-label fw-bold text-dark small mb-2">Pilih Berkas Excel Kuis Terjadwal:</label>
-                    <input type="file" id="excelFileInput" class="form-control form-control-sm mb-2" accept=".xlsx, .xls" onchange="handleExcelImport(event)">
-                </div>
-            </div>
-        </div>
-
-        <!-- RIWAYAT MENGERJAKAN KUIS (PERSISTED LOCAL STORAGE) -->
-        <div class="card custom-card p-4 mt-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-teal me-2"></i>Riwayat Hasil Belajar Kuis</h5>
-                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="clearQuizHistory()">
-                    <i class="bi bi-trash"></i> Bersihkan Riwayat
+        <!-- RIWAYAT MENGERJAKAN KUIS (LOCAL STORAGE) -->
+        <div class="card custom-card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-teal me-1"></i>Riwayat Hasil Belajar</h6>
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill" onclick="clearQuizHistory()" style="font-size: 0.7rem; height: auto;">
+                    Hapus
                 </button>
             </div>
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0" style="min-width: 320px;">
                     <thead class="table-light">
-                        <tr style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                            <th>Tanggal</th>
-                            <th>Nama Lengkap</th>
-                            <th class="text-center">No. Absen</th>
-                            <th class="text-center">Skor Kuis</th>
-                            <th>Kode Pengaman</th>
-                            <th class="text-center">Bukti Kelulusan</th>
+                        <tr style="font-size: 0.75rem;">
+                            <th>Nama & Absen</th>
+                            <th class="text-center">Nilai</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="quizHistoryBody" style="font-size: 0.9rem;">
-                        <!-- Data riwayat kuis dimuat secara aman dari LocalStorage -->
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-3">Belum ada riwayat hasil belajar kuis siswa.</td>
-                        </tr>
+                    <tbody id="quizHistoryBody" style="font-size: 0.8rem;">
+                        <!-- Riwayat kuis dimuat dinamis -->
                     </tbody>
                 </table>
             </div>
@@ -760,71 +663,70 @@
 
     </div>
 
-</div>
+    <!-- SUBVIEW BARU: REKAPITULASI DATA MENU GURU -->
+    <div id="view-rekap-guru" class="fade-in-view d-none">
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 btn-sm fw-semibold" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-1"></i> Tutup Menu Guru
+            </button>
+            <span class="badge bg-danger rounded-pill px-2.5 py-1 text-xs">Akses Khusus</span>
+        </div>
 
-<!-- MODAL SIMULASI PENGUMPULAN TUGAS (Cadangan) -->
-<div class="modal fade" id="submitTugasModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg">
-            <div class="modal-header bg-teal-dark text-white border-0 py-3 rounded-top-4">
-                <h5 class="modal-title fw-bold" id="modalTugasTitle">Kumpulkan Tugas</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-info border-0 rounded-3 bg-teal-light text-teal mb-3">
-                    <i class="bi bi-info-circle-fill me-2"></i> File yang diizinkan: <strong>PDF, PNG, atau JPG</strong> (Max 5MB).
+        <div class="card custom-card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <h6 class="fw-bold text-teal mb-0"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i>Rekap Nilai Siswa</h6>
+                    <small class="text-muted block text-[10px]" id="db-status-badge">Mode lokal aktif. Tidak terhubung database cloud.</small>
                 </div>
-                <form id="tugasForm" onsubmit="submitTugasSimulasi(event)">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-dark">Pilih File Tugas</label>
-                        <input class="form-control" type="file" id="tugasFile" accept="image/*, application/pdf" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-dark">Catatan Tambahan (Opsional)</label>
-                        <textarea class="form-control" rows="3" placeholder="Tulis catatan pengerjaan untuk guru Anda di sini..."></textarea>
-                    </div>
-                    <div class="d-flex gap-2 justify-content-end mt-4">
-                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-orange rounded-pill px-4">Kirim Jawaban</button>
-                    </div>
-                </form>
+                <!-- Tombol Reset Lembar Rekap -->
+                <button onclick="triggerResetRekap()" class="btn btn-sm btn-danger rounded-pill px-2.5 py-1 text-xs" style="height: auto;">
+                    <i class="bi bi-trash-fill"></i> Reset
+                </button>
+            </div>
+            <p class="text-muted mb-3 small" style="font-size: 0.75rem;">
+                Berikut adalah rekapitulasi nilai kuis siswa yang dikirimkan secara langsung dari HP siswa secara nirkabel.
+            </p>
+            <button onclick="downloadRekapExcel()" class="btn btn-teal w-100 rounded-pill btn-sm mb-1 text-white">
+                <i class="bi bi-download me-1"></i> Unduh Berkas Rekap Excel
+            </button>
+        </div>
+
+        <div class="card custom-card p-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="min-width: 320px;">
+                    <thead class="table-light">
+                        <tr style="font-size: 0.75rem;">
+                            <th>Nama Siswa (Absen)</th>
+                            <th class="text-center">Skor</th>
+                            <th class="text-center">Tanggal & Jam</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekapGuruTableBody" style="font-size: 0.8rem;">
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- MODAL PRATINJAU BUKTI PENGIRIMAN GAMBAR/FILE TUGAS -->
-<div class="modal fade" id="pratinjauTugasModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg text-center">
-            <div class="modal-header bg-success text-white border-0 py-3 rounded-top-4">
-                <h5 class="modal-title fw-bold"><i class="bi bi-cloud-check-fill me-2"></i>Tugas Berhasil Terkirim!</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3 text-success">
-                    <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+<!-- DIALOG KONFIRMASI KUSTOM (MODAL PENGGANTI CONFIRM BROWSER) -->
+<div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 340px; margin: 1.5rem auto;">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-body p-4 text-center">
+                <div class="text-danger mb-3">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.8rem;"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">Pratinjau File Yang Dikirim</h5>
-                <p class="text-muted small mb-3">Berikut adalah pratinjau file/gambar tugas Anda yang telah diterima di server kelas Pak Rizal:</p>
-                
-                <!-- Box Preview File -->
-                <div class="border rounded-4 p-2 bg-light mb-4 text-center d-flex align-items-center justify-content-center overflow-hidden" style="min-height: 200px;">
-                    <img id="tugasPreviewImage" src="" alt="Pratinjau Tugas" class="img-fluid rounded shadow-sm" style="max-height: 250px; display: none;">
-                    <div id="tugasPreviewFallback" class="py-4 text-muted">
-                        <i class="bi bi-file-earmark-text-fill display-4 text-secondary mb-2 d-block"></i>
-                        <span id="tugasFallbackName" class="fw-bold small d-block text-truncate px-3">Nama_Berkas.pdf</span>
-                    </div>
+                <h6 class="fw-bold text-dark mb-2" id="confirmModalTitle">Apakah Anda Yakin?</h6>
+                <p class="text-muted mb-4 small" id="confirmModalDesc">Tindakan ini akan menghapus semua rekaman data secara permanen!</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light rounded-pill px-3 py-2 btn-sm fw-semibold" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="btnConfirmModalAction" class="btn btn-danger rounded-pill px-4 py-2 btn-sm fw-semibold">Hapus Sekarang</button>
                 </div>
-
-                <div class="alert alert-success small border-0 bg-success bg-opacity-10 text-success text-start mb-0 py-2.5 px-3 rounded-3">
-                    <i class="bi bi-info-circle-fill me-2"></i> Tugas Anda telah terekam secara sistematis dengan timestamp pengerjaan yang sah.
-                </div>
-            </div>
-            <div class="modal-footer border-0 bg-light d-flex justify-content-end p-3">
-                <button type="button" class="btn btn-teal rounded-pill px-4" data-bs-dismiss="modal">
-                    Selesai & Tutup <i class="bi bi-check-circle ms-1"></i>
-                </button>
             </div>
         </div>
     </div>
@@ -833,61 +735,61 @@
 <!-- MODAL UNDUH BUKTI & KIRIM WA (PILIHAN DUA LANGKAH) -->
 <div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 rounded-4 shadow-lg">
-            <div class="modal-header bg-teal-dark text-white border-0 py-3 rounded-top-4">
-                <h5 class="modal-title fw-bold"><i class="bi bi-image text-warning me-2"></i>Pratinjau & Unduh Bukti Hasil</h5>
+        <div class="modal-content border-0">
+            <div class="modal-header bg-teal-dark text-white border-0 py-2.5">
+                <h6 class="modal-title fw-bold"><i class="bi bi-image text-warning me-1"></i>Pratinjau Hasil Belajar</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="onCloseResultModal()"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <div class="mb-3 text-teal">
-                    <i class="bi bi-shield-fill-check" style="font-size: 3rem;"></i>
+            <div class="modal-body p-3 text-center">
+                <div class="mb-2 text-teal">
+                    <i class="bi bi-shield-fill-check fs-2"></i>
                 </div>
-                <h5 class="fw-bold mb-1" id="quizResultTitle">Pengerjaan Berhasil Tersimpan!</h5>
-                <p class="text-muted small mb-3">Tinjau pratinjau bukti hasil belajar resmi Anda di bawah ini, lalu unduh gambar JPG.</p>
+                <h6 class="fw-bold mb-1" id="quizResultTitle">Pengerjaan Disimpan!</h6>
+                <p class="text-muted small mb-3" style="font-size: 0.75rem;">Pratinjau bukti belajar resmi ananda di bawah ini. Geser ke samping jika terpotong, lalu tekan tombol unduh.</p>
 
-                <!-- AREA PRATINJAU SERTIFIKAT (Scrollable Container) -->
-                <div class="border rounded-4 p-2 bg-secondary bg-opacity-10 mb-4 overflow-auto text-start d-flex justify-content-start justify-content-md-center" style="max-height: 400px;">
+                <!-- AREA PRATINJAU SERTIFIKAT (HP Android Scrollable & Scaled Container) -->
+                <div class="border rounded-4 p-2 bg-secondary bg-opacity-10 mb-3 text-start d-flex justify-content-start overflow-auto" style="max-height: 320px; -webkit-overflow-scrolling: touch;">
                     <div style="min-width: 595px; width: 595px; flex-shrink: 0; display: inline-block;">
                         <div id="pdfCertificateTemplate">
                             <!-- HEADER KOP SURAT SEKOLAH -->
-                            <div class="cert-header text-center d-flex align-items-center justify-content-center gap-3">
-                                <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid" style="width: 70px; height: 70px; object-fit: contain;">
+                            <div class="cert-header text-center d-flex align-items-center justify-content-center gap-2">
+                                <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid" style="width: 56px; height: 56px; object-fit: contain;">
                                 <div>
-                                    <h3 class="fw-black m-0 text-teal-dark" style="font-weight: 900; font-size: 1.6rem; letter-spacing: 0.5px;">SD NEGERI 3 NGANTRU</h3>
-                                    <small class="text-muted d-block">Alamat: Kecamatan Ngantru, Kabupaten Tulungagung, Jawa Timur 66252</small>
+                                    <h4 class="fw-black m-0 text-teal-dark" style="font-weight: 900; font-size: 1.35rem; letter-spacing: 0.5px;">SD NEGERI 3 NGANTRU</h4>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Kecamatan Ngantang, Kabupaten Malang, Jawa Timur 65162</small>
                                 </div>
                             </div>
 
-                            <div class="text-center my-4">
-                                <h4 class="fw-bold text-dark text-uppercase mb-1" style="text-decoration: underline; letter-spacing: 1.5px; font-size: 1.25rem;">BUKTI MENGERJAKAN KUIS/UJIAN</h4>
-                                <span class="text-muted small" id="pdfCertId">Nomor: SDN3/V/EVAL/2026/001</span>
-                                <div class="mt-2 text-teal fw-bold" style="font-size: 0.95rem;">dari Pak Rizal</div>
+                            <div class="text-center my-3">
+                                <h5 class="fw-bold text-dark text-uppercase mb-0" style="text-decoration: underline; letter-spacing: 1px; font-size: 1.05rem;">BUKTI MENGERJAKAN KUIS/UJIAN</h5>
+                                <span class="text-muted" style="font-size: 0.7rem;" id="pdfCertId">Nomor: SDN3/V/EVAL/2026/001</span>
+                                <div class="mt-1 text-teal fw-bold small">dari Pak Rizal</div>
                             </div>
 
-                            <div class="my-4 fs-6" style="line-height: 1.8;">
-                                <p class="mb-3">Dengan ini, sistem pembelajaran portal digital menyatakan bahwa siswa di bawah ini:</p>
-                                <table class="table table-borderless ms-4" style="width: 80%;">
+                            <div class="my-3 small" style="line-height: 1.6; font-size: 0.85rem;">
+                                <p class="mb-2">Dengan ini, sistem pembelajaran portal digital menyatakan bahwa siswa di bawah ini:</p>
+                                <table class="table table-borderless ms-2 mb-2" style="width: 90%;">
                                     <tr>
-                                        <td style="width: 150px;" class="fw-bold">Nama Lengkap</td>
-                                        <td>: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td>
+                                        <td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td>
+                                        <td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Nomor Absen</td>
-                                        <td>: <span id="pdfAbsen" class="fw-bold">07</span></td>
+                                        <td class="fw-bold p-0">Nomor Absen</td>
+                                        <td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td>
                                     </tr>
                                     <tr>
-                                        <td class="fw-bold">Tanggal Ujian</td>
-                                        <td>: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td>
+                                        <td class="fw-bold p-0">Tanggal Ujian</td>
+                                        <td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td>
                                     </tr>
                                 </table>
-                                <p class="mt-3">Telah menyelesaikan evaluasi belajar mandiri terintegrasi secara jujur dengan hasil prestasi:</p>
+                                <p class="mt-2 mb-0">Telah menyelesaikan evaluasi belajar mandiri terintegrasi secara jujur dengan hasil prestasi:</p>
                             </div>
 
                             <!-- SKOR BESAR JAMINAN AMAN -->
-                            <div class="d-flex align-items-center justify-content-around my-5">
+                            <div class="d-flex align-items-center justify-content-around my-4">
                                 <div>
-                                    <span class="text-muted d-block small mb-1">PRESTASI SKOR:</span>
-                                    <h1 class="fw-black text-teal display-1 m-0" style="font-weight: 900;" id="pdfScore">95</h1>
+                                    <span class="text-muted d-block" style="font-size: 0.7rem;">PRESTASI SKOR:</span>
+                                    <h2 class="fw-black text-teal m-0" style="font-weight: 900; font-size: 3rem;" id="pdfScore">95</h2>
                                 </div>
                                 <div class="cert-seal">
                                     <span>BUKTI SAH</span>
@@ -895,51 +797,49 @@
                             </div>
 
                             <!-- TANDA TANGAN DIGITAL GURU -->
-                            <div class="row mt-5 pt-4">
+                            <div class="row mt-4 pt-2">
                                 <div class="col-6">
-                                    <!-- Kode Validasi QR/Keamanan Bottom -->
-                                    <div class="text-start pt-4">
-                                        <small class="text-muted d-block">SISTEM VALIDATOR KODE:</small>
-                                        <span class="fw-bold text-teal small" id="pdfCertCode">SDN3-K5-SECURE-9B1D</span>
+                                    <div class="text-start pt-3">
+                                        <small class="text-muted d-block" style="font-size: 0.65rem;">KODE VALIDATOR:</small>
+                                        <span class="fw-bold text-teal font-monospace" style="font-size: 0.75rem;" id="pdfCertCode">SDN3-K5-SECURE-9B1D</span>
                                     </div>
                                 </div>
                                 <div class="col-6 text-center">
-                                    <small class="text-muted d-block mb-1">Guru Pengampu Kelas V</small>
+                                    <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Guru Pengampu Kelas V</small>
                                     
                                     <!-- Tanda Tangan Guru -->
-                                    <div style="height: 55px; display: flex; align-items: center; justify-content: center; margin: 2px 0;">
-                                        <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 55px; max-width: 140px; object-fit: contain;">
+                                    <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin: 1px 0;">
+                                        <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 48px; max-width: 120px; object-fit: contain;">
                                     </div>
                                     
-                                    <!-- Digital Signature Base Text -->
-                                    <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 2px solid #334155; font-size: 1.05rem;">
+                                    <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 1.5px solid #334155; font-size: 0.85rem;">
                                         Aburrizal H. Lubis, S.Pd.
                                     </div>
-                                    <small class="text-muted d-block">NIP. 199507022020121009</small>
+                                    <small class="text-muted d-block" style="font-size: 0.65rem;">NIP. 199507022020121009</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="alert alert-info small border-0 bg-teal-light text-teal text-start mb-4 py-2 px-3 rounded-3">
-                    <i class="bi bi-info-circle-fill me-2"></i> <strong>Langkah Pengumpulan:</strong><br>
-                    1. Klik tombol <strong>"Unduh File Gambar JPG Bukti"</strong>.<br>
-                    2. Kirimkan file gambar hasil unduhan tersebut ke WhatsApp Bapak Guru.
+                <div class="alert alert-info small border-0 bg-teal-light text-teal text-start mb-3 p-2.5" style="font-size: 0.75rem;">
+                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Cara Mengirim Tugas:</strong><br>
+                    1. Klik tombol <strong>"Unduh Bukti Gambar (JPG)"</strong>.<br>
+                    2. Kirimkan file gambar unduhan ke WA Pak Rizal.
                 </div>
 
                 <!-- TOMBOL UNDUH JPG -->
-                <button type="button" onclick="downloadTamperProofJPG()" class="btn btn-orange btn-lg w-100 rounded-pill py-3 fw-bold mb-3 shadow-sm">
-                    <i class="bi bi-download me-2"></i> 1. Unduh File Gambar JPG Bukti
+                <button type="button" onclick="downloadTamperProofJPG()" class="btn btn-orange w-100 rounded-pill mb-2 text-white">
+                    <i class="bi bi-download me-1"></i> 1. Unduh Bukti Gambar (JPG)
                 </button>
 
                 <!-- TOMBOL KIRIM WA -->
-                <button id="btnSendWA" type="button" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2.5 fw-bold mb-2 shadow-sm d-none">
-                    <i class="bi bi-whatsapp me-2"></i> 2. Kirim via WhatsApp Guru
+                <button id="btnSendWA" type="button" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2 fw-bold mb-2 shadow-sm d-none" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-whatsapp me-1"></i> 2. Kirim via WhatsApp Guru
                 </button>
 
                 <!-- TOMBOL TUTUP MODAL -->
-                <button id="btnCloseQuizResult" type="button" class="btn btn-teal w-100 rounded-pill py-2.5 fw-bold d-none" data-bs-dismiss="modal" onclick="onCloseResultModal()">
+                <button id="btnCloseQuizResult" type="button" class="btn btn-teal w-100 rounded-pill py-2 fw-bold d-none" data-bs-dismiss="modal" onclick="onCloseResultModal()" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
                     Selesai & Tutup <i class="bi bi-check-circle-fill ms-1"></i>
                 </button>
             </div>
@@ -948,10 +848,10 @@
 </div>
 
 <!-- TOAST ALERT NOTIFICATION -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
-    <div id="actionToast" class="toast align-items-center text-white bg-teal-dark border-0 rounded-3 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+<div class="position-fixed bottom-0 start-50 translate-middle-x p-3 w-100" style="z-index: 1055; max-width: 440px;">
+    <div id="actionToast" class="toast align-items-center text-white bg-teal-dark border-0 rounded-3 shadow w-100" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
-            <div class="toast-body d-flex align-items-center gap-2">
+            <div class="toast-body d-flex align-items-center gap-2 py-2 px-3 small">
                 <i class="bi bi-check-circle-fill text-warning fs-5"></i>
                 <span id="toastMessage">Tugas berhasil diunggah!</span>
             </div>
@@ -968,14 +868,13 @@
     let currentStudentData = null; // Menyimpan data pengerjaan terakhir
 
     // Parameter Aturan Waktu Penjadwalan & Timer Kuis
-    let quizStartTime = null;      // Tanggal mulai (Date object)
-    let quizEndTime = null;        // Tanggal berakhir (Date object)
+    let quizStartTime = null;      // Tanggal mulai
+    let quizEndTime = null;        // Tanggal berakhir
     let quizDurationMinutes = 0;   // Durasi kuis (menit)
     let timerIntervalId = null;    // ID interval countdown timer
     let remainingSeconds = 0;      // Sisa waktu berjalan (detik)
 
     // Data Penampung Garis Tarik Hubungan Menjodohkan
-    // Struktur: { [qId]: { [leftIdx]: rightVal } }
     let quizConnections = {};      
     let activeDragConnection = null; // Penampung temporary saat seret garis
 
@@ -988,15 +887,7 @@
     // Panggil fungsi saat window selesai dimuat
     window.onload = function() {
         loadQuizHistory();
-        
-        // Setup listener resisi layar agar garis kanvas menjodohkan digambar ulang otomatis
-        window.addEventListener('resize', () => {
-            importedQuestions.forEach(q => {
-                if (q.tipe === 'MENJODOHKAN') {
-                    resizeCanvasAndRedraw(q.id);
-                }
-            });
-        });
+        loadRekapGuru();
     };
 
     // Fungsi untuk navigasi antar view secara interaktif
@@ -1004,7 +895,8 @@
         const views = {
             'dashboard': document.getElementById('view-dashboard'),
             'materi': document.getElementById('view-materi'),
-            'tugas': document.getElementById('view-tugas')
+            'tugas': document.getElementById('view-tugas'),
+            'rekap': document.getElementById('view-rekap-guru')
         };
 
         // Sembunyikan semua views
@@ -1015,7 +907,10 @@
         });
 
         // Tampilkan view yang dipilih
-        if (views[viewName]) {
+        if (viewName === 'rekap') {
+            views['rekap'].classList.remove('d-none');
+            loadRekapGuru();
+        } else if (views[viewName]) {
             views[viewName].classList.remove('d-none');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -1024,11 +919,7 @@
                 document.getElementById('quizStartPanel').classList.remove('d-none');
                 document.getElementById('quizArea').classList.add('d-none');
                 document.getElementById('quizLoader').classList.add('d-none');
-                
-                // Refresh riwayat kuis
                 loadQuizHistory();
-                
-                // Reset timer jika keluar halaman
                 stopQuizTimer();
             }
         }
@@ -1041,15 +932,26 @@
         const correctPassword = "kelas5"; // Sandi pengunci lokal
 
         if (enteredPassword === correctPassword) {
-            // Sembunyikan lockscreen popup dan tampilkan isi kelas virtual
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             navigateTo('dashboard');
         } else {
-            // Tampilkan pesan error jika salah ketik
             const errorDiv = document.getElementById('passwordError');
             errorDiv.classList.remove('d-none');
             document.getElementById('inputPassword').value = '';
+        }
+    }
+
+    // --- DIALOG AKSES MENU REKAP GURU (Sandi 11223344) ---
+    function promptGuruMenu() {
+        const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
+        if (password === null) return; // Batal
+
+        if (password === "11223344") {
+            navigateTo('rekap');
+            showNotification("Berhasil masuk ke Menu Rekapitulasi Guru.");
+        } else {
+            showNotification("Sandi salah! Akses ditolak.");
         }
     }
 
@@ -1058,18 +960,15 @@
         const index = lowercaseHtml.indexOf(fileName.toLowerCase());
         if (index === -1) return null;
         
-        // Buat jendela pencarian karakter di sekitar nama file "kuis"
         const start = Math.max(0, index - 800);
         const end = Math.min(html.length, index + 800);
         const windowText = html.substring(start, end);
         
-        // 1. Coba cari dengan format standard tautan Google Drive /file/d/ID
         const fileDMatch = windowText.match(/\/file\/d\/([a-zA-Z0-9-_]{28,45})/);
         if (fileDMatch) {
             return fileDMatch[1];
         }
         
-        // 2. Coba cari string ID Google Drive (biasanya 33 karakter) di sekeliling nama file kuis
         const idMatches = windowText.match(/["'\[,]([a-zA-Z0-9-_]{33})["'\]]/g);
         if (idMatches && idMatches.length > 0) {
             for (let m of idMatches) {
@@ -1078,7 +977,6 @@
             }
         }
         
-        // 3. Fallback pencarian ID acak berukuran 33-40 karakter terdekat
         const generalMatches = windowText.match(/([a-zA-Z0-9-_]{33,40})/g);
         if (generalMatches) {
             return generalMatches[0];
@@ -1089,7 +987,6 @@
 
     // Fungsi pembungkus utama saat siswa menekan tombol "Mulai Kuis"
     async function syncAndStartQuiz() {
-        // VALIDASI IDENTITAS WAJIB DI AWAL
         const nameInput = document.getElementById('studentNameInput').value.trim();
         const absenInput = document.getElementById('studentAbsenInput').value.trim();
 
@@ -1114,12 +1011,10 @@
         const quizArea = document.getElementById('quizArea');
         const quizLoader = document.getElementById('quizLoader');
 
-        // Nyalakan Loading Spinner di Tombol Mulai
         btn.disabled = true;
         textSpan.classList.add('d-none');
         spinner.classList.remove('d-none');
         
-        // Transisi tampilan: sembunyikan panel mulai kuis, tunjukkan skeleton loader
         quizStartPanel.classList.add('d-none');
         quizArea.classList.add('d-none');
         quizLoader.classList.remove('d-none');
@@ -1130,8 +1025,6 @@
 
         try {
             const folderId = LOCKED_DRIVE_FOLDER_ID;
-
-            // Panggil embedded folderview dari Google Drive via AllOrigins CORS proxy
             const embeddedFolderUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
             const proxyFolderUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(embeddedFolderUrl)}`;
 
@@ -1141,16 +1034,13 @@
             }
 
             const folderHtml = await folderResponse.text();
-            
-            // Cari file "kuis" dan ambil File ID-nya
             const fileId = extractFileIdFromFolderHtml(folderHtml, "kuis");
 
             if (!fileId) {
-                // FALLBACK: Jika file tidak ditemukan di Google Drive, coba ambil file "kuis.xlsx" langsung dari folder root GitHub Pages Anda
-                console.log("Mencoba mengambil fallback kuis.xlsx lokal dari server hosting GitHub...");
+                console.log("Mencoba mengambil fallback kuis.xlsx lokal...");
                 const localResponse = await fetch('kuis.xlsx');
                 if (!localResponse.ok) {
-                    throw new Error("Kuis di Google Drive tidak ditemukan dan file cadangan lokal di GitHub juga kosong.");
+                    throw new Error("Kuis di Google Drive tidak ditemukan.");
                 }
                 const arrayBuffer = await localResponse.arrayBuffer();
                 await parseExcelData(arrayBuffer);
@@ -1160,25 +1050,22 @@
                 return;
             }
 
-            // Unduh file .xlsx menggunakan Google Spreadsheet API eksportir via AllOrigins Proxy
             const targetUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
             const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
             const response = await fetch(proxyUrl);
             if (!response.ok) {
-                throw new Error("Gagal mengunduh file kuis dari Google Drive.");
+                throw new Error("Gagal mengunduh file kuis.");
             }
             
             const arrayBuffer = await response.arrayBuffer();
             await parseExcelData(arrayBuffer);
 
-            // Matikan skeleton dan periksa akses waktu
             quizLoader.classList.add('d-none');
             processQuizAccess(isManualClick);
 
         } catch (error) {
             console.error(error);
-            // FALLBACK CADANGAN KEDUA: Coba ambil file cadangan kuis.xlsx di server GitHub Pages
             try {
                 const localResponse = await fetch('kuis.xlsx');
                 if (localResponse.ok) {
@@ -1194,7 +1081,7 @@
 
             quizLoader.classList.add('d-none');
             quizStartPanel.classList.remove('d-none');
-            showNotification("Gagal memuat kuis dari awan. Harap unggah manual dari komputer.");
+            showNotification("Gagal memuat kuis.");
         } finally {
             resetStartButton();
         }
@@ -1209,13 +1096,10 @@
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         if (jsonData.length === 0) {
-            throw new Error("Format tabel di dalam berkas kuis Excel tidak sesuai atau kosong!");
+            throw new Error("Berkas kuis Excel tidak sesuai atau kosong!");
         }
 
-        // Ambil data penjadwalan & batas durasi dari baris pertama jika tersedia
         const firstRow = jsonData[0];
-        
-        // Membaca Kolom Waktu Mulai, Waktu Selesai, dan Batas Durasi
         const rawStart = firstRow['Waktu Mulai'] || firstRow['waktu mulai'] || null;
         const rawEnd = firstRow['Waktu Selesai'] || firstRow['waktu selesai'] || null;
         const rawDuration = firstRow['Durasi (Menit)'] || firstRow['durasi'] || firstRow['Durasi'] || 0;
@@ -1238,7 +1122,6 @@
         });
     }
 
-    // Fungsi mengelola logika penguncian akses waktu kuis
     function processQuizAccess(isManualClick) {
         const now = new Date();
         const quizStartPanel = document.getElementById('quizStartPanel');
@@ -1247,24 +1130,22 @@
         const scheduleText = document.getElementById('scheduleText');
         const durationText = document.getElementById('durationText');
 
-        // Tampilkan info jadwal di panel depan
         if (quizStartTime || quizEndTime) {
             alertBox.classList.remove('d-none');
             const formatOption = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
             const startStr = quizStartTime ? quizStartTime.toLocaleDateString('id-ID', formatOption) + " WIB" : "Kapan saja";
             const endStr = quizEndTime ? quizEndTime.toLocaleDateString('id-ID', formatOption) + " WIB" : "Seterusnya";
-            scheduleText.innerHTML = `${startStr} <br class="d-md-none"> s.d <br class="d-md-none"> ${endStr}`;
+            scheduleText.innerHTML = `${startStr} <br> s.d <br> ${endStr}`;
             durationText.innerHTML = `<i class="bi bi-hourglass-split me-1"></i> Batas Waktu Mengerjakan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' Menit' : 'Bebas / Tanpa Batas'}`;
         } else {
             alertBox.classList.add('d-none');
         }
 
-        // Validasi waktu
         if (quizStartTime && now < quizStartTime) {
             quizStartPanel.classList.remove('d-none');
             quizArea.classList.add('d-none');
-            showNotification("Akses Terkunci! Kuis belum masuk jam mulai pengerjaan.");
-            alertBox.className = "alert alert-danger max-w-lg mx-auto py-2.5 px-4 mb-4 text-center";
+            showNotification("Akses Terkunci! Kuis belum dimulai.");
+            alertBox.className = "alert alert-danger mx-auto py-2.5 px-4 mb-3 text-center";
             return;
         }
 
@@ -1272,26 +1153,23 @@
             quizStartPanel.classList.remove('d-none');
             quizArea.classList.add('d-none');
             showNotification("Akses Terkunci! Batas waktu akses kuis sudah ditutup.");
-            alertBox.className = "alert alert-danger max-w-lg mx-auto py-2.5 px-4 mb-4 text-center";
+            alertBox.className = "alert alert-danger mx-auto py-2.5 px-4 mb-3 text-center";
             return;
         }
 
-        // Lolos validasi waktu kuis -> Tampilkan form kuis
-        alertBox.className = "alert alert-success max-w-lg mx-auto py-2.5 px-4 mb-4 text-center";
+        alertBox.className = "alert alert-success mx-auto py-2.5 px-4 mb-3 text-center";
         renderQuiz();
         
         if (isManualClick) {
             showNotification(`Menyiapkan lembar kuis! Batas pengerjaan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' menit' : 'Bebas'}.`);
         }
 
-        // Jalankan countdown timer pengerjaan kuis
         startQuizTimer(quizDurationMinutes);
-        
         quizArea.scrollIntoView({ behavior: 'smooth' });
     }
 
     function startQuizTimer(minutes) {
-        stopQuizTimer(); // Reset interval aktif jika ada
+        stopQuizTimer();
 
         const timerCard = document.getElementById('floatingTimerCard');
         const timerText = document.getElementById('quizTimerText');
@@ -1309,7 +1187,6 @@
             remainingSeconds--;
             updateTimerDisplay();
 
-            // Beri visual peringatan jika sisa waktu di bawah 1 menit (Merah Berkedip)
             if (remainingSeconds <= 60) {
                 document.getElementById('floatingTimerCard').style.borderColor = '#ef4444';
                 timerText.classList.add('text-danger', 'animate-pulse');
@@ -1322,7 +1199,6 @@
         }, 1000);
     }
 
-    // Mematikan interval timer kuis
     function stopQuizTimer() {
         if (timerIntervalId) {
             clearInterval(timerIntervalId);
@@ -1331,7 +1207,6 @@
         document.getElementById('floatingTimerCard').classList.add('d-none');
     }
 
-    // Mengubah sisa waktu detik menjadi format waktu MM:SS
     function updateTimerDisplay() {
         const timerText = document.getElementById('quizTimerText');
         const minutes = Math.floor(remainingSeconds / 60);
@@ -1339,25 +1214,20 @@
         timerText.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Mengirim paksa kuis jika waktu habis
     function autoSubmitQuizOnTimeout() {
         showNotification("Waktu Habis! Semua jawaban Anda dikunci dan dikirim otomatis.");
 
-        // Nonaktifkan form agar tidak bisa dirubah-rubah siswa lagi (Anti-Contek)
         const inputs = document.querySelectorAll('#interactiveQuizForm input, #interactiveQuizForm button, #interactiveQuizForm select');
         inputs.forEach(element => element.disabled = true);
 
-        // Ambil identitas siswa dari awal pendaftaran
         let nameInput = document.getElementById('studentNameInput').value.trim();
         let absenInput = document.getElementById('studentAbsenInput').value.trim();
 
         if (!nameInput) nameInput = "Siswa Tanpa Identitas";
         if (!absenInput) absenInput = "99";
 
-        // Jalankan pemicu pengiriman kuis dengan penanda Waktu Habis
         document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>Waktu Habis! Jawaban Terkirim Otomatis`;
         
-        // Buat event dummy untuk submit kuis
         const fakeEvent = { preventDefault: () => {} };
         submitInteractiveQuiz(fakeEvent);
     }
@@ -1371,105 +1241,42 @@
         spinner.classList.add('d-none');
     }
 
-    // --- SKRIP IMPORT EXCEL MANUAL (CADANGAN OFFLINE) ---
-    function handleExcelImport(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Validasi identitas wajib diisi sebelum import manual
-        const nameInput = document.getElementById('studentNameInput').value.trim();
-        const absenInput = document.getElementById('studentAbsenInput').value.trim();
-        if (!nameInput || !absenInput) {
-            showNotification("Mohon isi Nama Lengkap dan Nomor Absen di panel atas terlebih dahulu!");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            try {
-                const data = new Uint8Array(event.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                
-                if (jsonData.length === 0) {
-                    showNotification("File Excel kosong atau tidak sesuai format!");
-                    return;
-                }
-
-                // Ambil parameter data baris pertama untuk penjadwalan kuis
-                const firstRow = jsonData[0];
-                const rawStart = firstRow['Waktu Mulai'] || firstRow['waktu mulai'] || null;
-                const rawEnd = firstRow['Waktu Selesai'] || firstRow['waktu selesai'] || null;
-                const rawDuration = firstRow['Durasi (Menit)'] || firstRow['durasi'] || firstRow['Durasi'] || 0;
-
-                quizStartTime = rawStart ? new Date(rawStart) : null;
-                quizEndTime = rawEnd ? new Date(rawEnd) : null;
-                quizDurationMinutes = parseInt(rawDuration) || 0;
-
-                importedQuestions = jsonData.map((row, index) => {
-                    return {
-                        id: index + 1,
-                        tipe: (row['Tipe'] || row['tipe'] || 'PG').toString().trim().toUpperCase(),
-                        pertanyaan: row['Pertanyaan'] || row['pertanyaan'] || `Pertanyaan Tanpa Judul ${index + 1}`,
-                        pilihanA: row['Pilihan A'] || row['pilihan a'] || row['A'] || '',
-                        pilihanB: row['Pilihan B'] || row['pilihan b'] || row['B'] || '',
-                        pilihanC: row['Pilihan C'] || row['pilihan c'] || row['C'] || '',
-                        pilihanD: row['Pilihan D'] || row['pilihan d'] || row['D'] || '',
-                        kunciJawaban: (row['Jawaban'] || row['jawaban'] || row['Kunci Jawaban'] || '').toString().trim()
-                    };
-                });
-
-                document.getElementById('quizStartPanel').classList.add('d-none');
-                processQuizAccess(true);
-
-            } catch (error) {
-                console.error(error);
-                showNotification("Gagal membaca file Excel manual.");
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
     function renderQuiz() {
         const questionsContainer = document.getElementById('questionsContainer');
-        questionsContainer.innerHTML = ''; // Kosongkan wadah lama
-        quizConnections = {}; // Reset data koordinat garis menjodohkan
+        questionsContainer.innerHTML = '';
+        quizConnections = {};
 
         importedQuestions.forEach((q, idx) => {
             let questionHtml = '';
 
             if (q.tipe === 'PG') {
-                // TIPE 1: PILIHAN GANDA STANDARD (SINGLE ANSWER)
                 questionHtml = `
                     <div class="card p-3 border shadow-sm rounded-3">
-                        <div class="mb-2"><span class="badge bg-teal-dark">Pilihan Ganda</span></div>
-                        <h6 class="fw-bold text-dark mb-3">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                        <div class="mb-2"><span class="badge bg-teal-dark" style="font-size: 0.7rem;">Pilihan Ganda</span></div>
+                        <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${q.pertanyaan}</h6>
                         
                         <div class="options-group">
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_A')">
+                            <div class="option-container" onclick="selectOption(this, 'option_${q.id}_A')">
                                 <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_A" value="A" required>
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_A">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_A">
                                     <strong>A.</strong> ${q.pilihanA}
                                 </label>
                             </div>
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_B')">
+                            <div class="option-container" onclick="selectOption(this, 'option_${q.id}_B')">
                                 <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_B" value="B">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_B">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_B">
                                     <strong>B.</strong> ${q.pilihanB}
                                 </label>
                             </div>
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_C')">
+                            <div class="option-container" onclick="selectOption(this, 'option_${q.id}_C')">
                                 <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_C" value="C">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_C">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_C">
                                     <strong>C.</strong> ${q.pilihanC}
                                 </label>
                             </div>
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectOption(this, 'option_${q.id}_D')">
+                            <div class="option-container" onclick="selectOption(this, 'option_${q.id}_D')">
                                 <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_D" value="D">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_D">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_D">
                                     <strong>D.</strong> ${q.pilihanD}
                                 </label>
                             </div>
@@ -1477,34 +1284,33 @@
                     </div>
                 `;
             } else if (q.tipe === 'PGK') {
-                // TIPE 2: PILIHAN GANDA KOMPLEKS (MULTIPLE ANSWERS / CHECKBOXES)
                 questionHtml = `
                     <div class="card p-3 border shadow-sm rounded-3">
-                        <div class="mb-2"><span class="badge bg-primary" style="background-color: #4f46e5 !important;">Pilihan Ganda Kompleks (Jawaban > 1)</span></div>
-                        <h6 class="fw-bold text-dark mb-3">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                        <div class="mb-2"><span class="badge bg-primary" style="background-color: #4f46e5 !important; font-size: 0.7rem;">Pilihan Ganda Kompleks</span></div>
+                        <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${q.pertanyaan}</h6>
                         
                         <div class="options-group">
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectMultiOption(this, 'option_${q.id}_A')">
+                            <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_A')">
                                 <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_A" value="A">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_A">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_A">
                                     <strong>A.</strong> ${q.pilihanA}
                                 </label>
                             </div>
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectMultiOption(this, 'option_${q.id}_B')">
+                            <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_B')">
                                 <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_B" value="B">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_B">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_B">
                                     <strong>B.</strong> ${q.pilihanB}
                                 </label>
                             </div>
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectMultiOption(this, 'option_${q.id}_C')">
+                            <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_C')">
                                 <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_C" value="C">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_C">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_C">
                                     <strong>C.</strong> ${q.pilihanC}
                                 </label>
                             </div>
-                            <div class="option-container d-flex align-items-center gap-2" onclick="selectMultiOption(this, 'option_${q.id}_D')">
+                            <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_D')">
                                 <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_D" value="D">
-                                <label class="form-check-label w-100 ps-2" style="cursor: pointer;" for="option_${q.id}_D">
+                                <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_D">
                                     <strong>D.</strong> ${q.pilihanD}
                                 </label>
                             </div>
@@ -1512,7 +1318,6 @@
                     </div>
                 `;
             } else if (q.tipe === 'MENJODOHKAN') {
-                // TIPE 3: MENJODOHKAN TARIK GARIS NYATA (VISUAL LINE MATCHING)
                 const subItems = q.pertanyaan.split(';');
                 const instructionText = subItems[0];
                 const matchingRows = subItems.slice(1);
@@ -1520,8 +1325,8 @@
                 let leftItemsHtml = '';
                 matchingRows.forEach((rowText, rowIdx) => {
                     leftItemsHtml += `
-                        <div class="matching-node-left d-flex align-items-center justify-content-between p-3 mb-3 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_left_${q.id}_${rowIdx}">
-                            <span class="small fw-bold text-dark text-start">${rowText.trim()}</span>
+                        <div class="matching-node-left d-flex align-items-center justify-content-between p-2 mb-2 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_left_${q.id}_${rowIdx}">
+                            <span class="fw-bold text-dark text-start" style="font-size: 0.75rem;">${rowText.trim()}</span>
                             <div class="matching-dot bg-teal-dark" data-q-id="${q.id}" data-node-idx="${rowIdx}" id="dot_left_${q.id}_${rowIdx}"></div>
                         </div>
                     `;
@@ -1537,24 +1342,22 @@
 
                 options.forEach((opt) => {
                     rightItemsHtml += `
-                        <div class="matching-node-right d-flex align-items-center gap-3 p-3 mb-3 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_right_${q.id}_${opt.val}">
+                        <div class="matching-node-right d-flex align-items-center gap-2 p-2 mb-2 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_right_${q.id}_${opt.val}">
                             <div class="matching-dot bg-orange" data-q-id="${q.id}" data-node-val="${opt.val}" id="dot_right_${q.id}_opt_${opt.val}"></div>
-                            <span class="small fw-bold text-dark text-start"><strong>${opt.val}.</strong> ${opt.text}</span>
+                            <span class="fw-bold text-dark text-start" style="font-size: 0.75rem;"><strong>${opt.val}.</strong> ${opt.text}</span>
                         </div>
                     `;
                 });
 
                 questionHtml = `
                     <div class="card p-3 border shadow-sm rounded-3">
-                        <div class="mb-2"><span class="badge bg-warning text-dark">Menjodohkan - Tarik Garis</span></div>
-                        <h6 class="fw-bold text-dark mb-2">Soal ${idx + 1}: ${instructionText}</h6>
-                        <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i> Petunjuk: Sentuh bulatan <strong>Teal (Kiri)</strong> lalu hubungkan atau tarik ke bulatan <strong>Oranye (Kanan)</strong> yang benar!</p>
+                        <div class="mb-2"><span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Menjodohkan</span></div>
+                        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${instructionText}</h6>
+                        <p class="text-muted mb-2" style="font-size: 0.7rem;"><i class="bi bi-info-circle"></i> Hubungkan bulatan <strong>Teal (Kiri)</strong> ke <strong>Oranye (Kanan)</strong>!</p>
                         
-                        <div class="matching-wrapper p-3 bg-light rounded-4 border border-teal-light" id="matching_container_${q.id}">
-                            <!-- Kanvas Hubungan Garis -->
+                        <div class="matching-wrapper p-2 bg-light rounded-4 border border-teal-light" id="matching_container_${q.id}">
                             <canvas class="matching-canvas" id="canvas_${q.id}"></canvas>
-
-                            <div class="row relative z-10 g-4">
+                            <div class="row relative z-10 g-2">
                                 <div class="col-6 d-flex flex-column justify-content-center">
                                     ${leftItemsHtml}
                                 </div>
@@ -1566,15 +1369,14 @@
                     </div>
                 `;
             } else if (q.tipe === 'ISIAN') {
-                // TIPE 4: ISIAN SINGKAT (SHORT ANSWER - AUTO CORRECT DENGAN LEVENSHTEIN & MULTI KEY)
                 questionHtml = `
                     <div class="card p-3 border shadow-sm rounded-3">
-                        <div class="mb-2"><span class="badge bg-success">Isian Singkat</span></div>
-                        <h6 class="fw-bold text-dark mb-3">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                        <div class="mb-2"><span class="badge bg-success" style="font-size: 0.7rem;">Isian Singkat</span></div>
+                        <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${q.pertanyaan}</h6>
                         <div class="mt-2">
                             <div class="input-group">
-                                <span class="input-group-text bg-light text-secondary rounded-start-3 border-teal-light"><i class="bi bi-pencil-square"></i></span>
-                                <input type="text" name="isian_${q.id}" class="form-control rounded-end-3 border-teal-light py-2 px-3" placeholder="Tulis jawaban singkat Anda di sini..." required>
+                                <span class="input-group-text bg-light text-secondary border-teal-light"><i class="bi bi-pencil-square"></i></span>
+                                <input type="text" name="isian_${q.id}" class="form-control border-teal-light py-2 px-3" placeholder="Jawaban singkat..." required style="height: 44px; font-size: 0.85rem;">
                             </div>
                         </div>
                     </div>
@@ -1584,12 +1386,9 @@
             questionsContainer.insertAdjacentHTML('beforeend', questionHtml);
         });
 
-        // Set jumlah pertanyaan di badge header kuis
         document.getElementById('quizQuestionCount').innerText = `${importedQuestions.length} Soal`;
-        // Tampilkan kontainer Kuis
         document.getElementById('quizArea').classList.remove('d-none');
 
-        // Inisialisasi pendengar event penarikan garis di masing-masing soal Menjodohkan
         setTimeout(() => {
             importedQuestions.forEach(q => {
                 if (q.tipe === 'MENJODOHKAN') {
@@ -1599,22 +1398,19 @@
         }, 300);
     }
 
-    // Inisialisasi system tarik garis menjodohkan
     function initMatchingQuiz(qId) {
         const container = document.getElementById(`matching_container_${qId}`);
         const canvas = document.getElementById(`canvas_${qId}`);
         if (!container || !canvas) return;
 
-        // Atur dimensi fisik internal kanvas sesuai ukuran fisik layarnya
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight;
 
         const leftDots = container.querySelectorAll('.matching-node-left .matching-dot');
         const rightDots = container.querySelectorAll('.matching-node-right .matching-dot');
 
-        let selectedLeftDotIdx = null; // Membantu fitur fallback klik-ke-klik
+        let selectedLeftDotIdx = null; 
 
-        // FUNGSI UTAMA MENGHITUNG KOORDINAT TITIK PUSAT SEBUAH ELEMENT RELATIF TERHADAP KANVAS
         function getDotCenter(dotElement) {
             const dotRect = dotElement.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
@@ -1624,16 +1420,14 @@
             };
         }
 
-        // PENDENGAR INPUT DI BULATAN KIRI (TEAL)
         leftDots.forEach(dot => {
             const leftIdx = parseInt(dot.getAttribute('data-node-idx'));
 
             const handleStart = (e) => {
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 const touch = e.touches ? e.touches[0] : e;
                 const containerRect = container.getBoundingClientRect();
 
-                // Bersihkan efek glow lama
                 leftDots.forEach(d => d.classList.remove('active-glow'));
                 dot.classList.add('active-glow');
 
@@ -1653,7 +1447,6 @@
             dot.addEventListener('mousedown', handleStart);
             dot.addEventListener('touchstart', handleStart, { passive: false });
 
-            // Fallback klik bulatan
             dot.addEventListener('click', (e) => {
                 e.preventDefault();
                 selectedLeftDotIdx = leftIdx;
@@ -1662,7 +1455,6 @@
             });
         });
 
-        // PENDENGAR INPUT DI BULATAN KANAN (ORANYE) - KHUSUS UNTUK FALLBACK KLIK KEDUA
         rightDots.forEach(dot => {
             const rightVal = dot.getAttribute('data-node-val');
 
@@ -1672,22 +1464,20 @@
                     if (!quizConnections[qId]) quizConnections[qId] = {};
                     quizConnections[qId][selectedLeftDotIdx] = rightVal;
                     
-                    // Bersihkan glow kiri
                     leftDots.forEach(d => d.classList.remove('active-glow'));
                     selectedLeftDotIdx = null;
 
                     drawConnections(qId);
-                    showNotification("Garis berhasil dihubungkan!");
+                    showNotification("Garis dihubungkan!");
                 } else {
-                    showNotification("Silakan klik salah satu bulatan Teal (Kiri) terlebih dahulu!");
+                    showNotification("Pilih bulatan Kiri (Teal) dulu!");
                 }
             });
         });
 
-        // DRAWING DRAG REALTIME
         const handleMove = (e) => {
             if (!activeDragConnection || activeDragConnection.qId !== qId) return;
-            e.preventDefault();
+            if (e.cancelable) e.preventDefault();
 
             const touch = e.touches ? e.touches[0] : e;
             const containerRect = container.getBoundingClientRect();
@@ -1700,12 +1490,10 @@
 
         const handleEnd = (e) => {
             if (!activeDragConnection || activeDragConnection.qId !== qId) return;
-            e.preventDefault();
-
+            
             const touch = e.changedTouches ? e.changedTouches[0] : e;
             let targetDot = null;
 
-            // Periksa apakah titik pelepasan berada di atas salah satu bulatan kanan (oranye)
             rightDots.forEach(rDot => {
                 const rect = rDot.getBoundingClientRect();
                 if (
@@ -1720,12 +1508,10 @@
                 const rightVal = targetDot.getAttribute('data-node-val');
                 if (!quizConnections[qId]) quizConnections[qId] = {};
                 
-                // Simpan koneksi
                 quizConnections[qId][activeDragConnection.leftIdx] = rightVal;
-                showNotification("Garis berhasil dihubungkan!");
+                showNotification("Garis dihubungkan!");
             }
 
-            // Bersihkan variabel drag
             activeDragConnection = null;
             leftDots.forEach(d => d.classList.remove('active-glow'));
             selectedLeftDotIdx = null;
@@ -1733,14 +1519,12 @@
             drawConnections(qId);
         };
 
-        // Pasangkan Event Listener pada wadah container kuis
         container.addEventListener('mousemove', handleMove);
         container.addEventListener('touchmove', handleMove, { passive: false });
         window.addEventListener('mouseup', handleEnd);
         window.addEventListener('touchend', handleEnd);
     }
 
-    // Merender ulang seluruh garis hubungan menjodohkan yang stabil & seret aktif
     function drawConnections(qId) {
         const container = document.getElementById(`matching_container_${qId}`);
         const canvas = document.getElementById(`canvas_${qId}`);
@@ -1749,7 +1533,6 @@
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. Gambar Garis-Garis yang Sudah Stabil Terhubung
         if (quizConnections[qId]) {
             Object.keys(quizConnections[qId]).forEach(leftIdx => {
                 const rightVal = quizConnections[qId][leftIdx];
@@ -1767,11 +1550,10 @@
                     const endX = rRect.left - cRect.left + rRect.width / 2;
                     const endY = rRect.top - cRect.top + rRect.height / 2;
 
-                    // Desain Garis Teal Cantik dengan Bayangan Glow Elegan
                     ctx.beginPath();
                     ctx.moveTo(startX, startY);
                     ctx.lineTo(endX, endY);
-                    ctx.strokeStyle = '#0f766e'; // teal-dark
+                    ctx.strokeStyle = '#0f766e'; 
                     ctx.lineWidth = 4;
                     ctx.lineCap = 'round';
                     ctx.shadowColor = 'rgba(20, 184, 166, 0.4)';
@@ -1781,34 +1563,21 @@
             });
         }
 
-        // 2. Gambar Garis Seret Aktif (Bila Ada)
         if (activeDragConnection && activeDragConnection.qId === qId) {
             ctx.beginPath();
             ctx.moveTo(activeDragConnection.startX, activeDragConnection.startY);
             ctx.lineTo(activeDragConnection.currentX, activeDragConnection.currentY);
-            ctx.strokeStyle = '#f97316'; // orange-accent
+            ctx.strokeStyle = '#f97316'; 
             ctx.lineWidth = 3;
-            ctx.setLineDash([6, 6]); // Garis putus-putus menarik saat diseret
+            ctx.setLineDash([6, 6]); 
             ctx.lineCap = 'round';
             ctx.shadowColor = 'rgba(249, 115, 22, 0.4)';
             ctx.shadowBlur = 8;
             ctx.stroke();
-            ctx.setLineDash([]); // Kembalikan ke garis lurus
+            ctx.setLineDash([]); 
         }
     }
 
-    // Melakukan penyesuaian dimensi kanvas secara dinamis saat layar diputar/di-resize
-    function resizeCanvasAndRedraw(qId) {
-        const container = document.getElementById(`matching_container_${qId}`);
-        const canvas = document.getElementById(`canvas_${qId}`);
-        if (!container || !canvas) return;
-
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        drawConnections(qId);
-    }
-
-    // Fungsi visual helper saat baris pilihan diklik (Pilihan Ganda)
     function selectOption(element, radioId) {
         const radio = document.getElementById(radioId);
         if (radio && radio.disabled) return;
@@ -1821,7 +1590,6 @@
         element.classList.add('selected');
     }
 
-    // Fungsi visual helper saat baris pilihan diklik (Pilihan Ganda Kompleks)
     function selectMultiOption(element, checkboxId) {
         const checkbox = document.getElementById(checkboxId);
         if (checkbox && checkbox.disabled) return;
@@ -1834,7 +1602,6 @@
         }
     }
 
-    // Menggenerasi Kode Keamanan Hash Unik (Anti manipulasi Gambar)
     function generateSecureCode(name, absen, score) {
         const payload = `${name.toLowerCase().trim()}|${absen}|${score}|${SECRET_CRYPT_SALT}`;
         let hashValue = 0;
@@ -1846,16 +1613,14 @@
         return `SDN3-K5-${absen}-${score}-${checksum}`;
     }
 
-    // --- UTILITIES KOREKSI DINAMIS SOAL ISIAN ---
     function bersihkanJawaban(str) {
         if (!str) return '';
         return str.toString()
             .toLowerCase()
             .trim()
-            .replace(/\s+/g, ' '); // Hapus spasi ganda
+            .replace(/\s+/g, ' '); 
     }
 
-    // Algoritma hitung edit-distance untuk toleransi typo tipis
     function hitungLevenshtein(s1, s2) {
         const a = bersihkanJawaban(s1);
         const b = bersihkanJawaban(s2);
@@ -1875,51 +1640,43 @@
             for (let j = 1; j <= b.length; j++) {
                 const cost = a[i - 1] === b[j - 1] ? 0 : 1;
                 matrix[i][j] = Math.min(
-                    matrix[i - 1][j] + 1,       // Deletion
-                    matrix[i][j - 1] + 1,       // Insertion
-                    matrix[i - 1][j - 1] + cost  // Substitution
+                    matrix[i - 1][j] + 1,       
+                    matrix[i][j - 1] + 1,       
+                    matrix[i - 1][j - 1] + cost  
                 );
             }
         }
         return matrix[a.length][b.length];
     }
 
-    // Melakukan pengecekan isian cerdas bertingkat
     function cekJawabanIsian(inputSiswa, kunciExcel) {
         const inputBersih = bersihkanJawaban(inputSiswa);
         if (!inputBersih) return false;
 
-        // Mendukung beberapa kunci alternatif dengan split pembatas "|"
         const alternatifKunci = kunciExcel.split('|').map(k => bersihkanJawaban(k));
 
         for (let kunci of alternatifKunci) {
-            // Cocok Sempurna
             if (inputBersih === kunci) return true;
 
-            // Toleransi Typo Levenshtein jika panjang kata kunci > 4 karakter
             if (kunci.length > 4) {
                 const jarak = hitungLevenshtein(inputBersih, kunci);
                 if (jarak === 1) {
-                    return true; // Ditoleransi jika salah ketik hanya 1 huruf
+                    return true; 
                 }
             }
         }
         return false;
     }
 
-    // Mengumpulkan, menilai kuis interaktif, dan menyimpan riwayat
     function submitInteractiveQuiz(e) {
         e.preventDefault();
-        
-        // Hentikan timer kuis begitu kuis dikirim secara sukses
         stopQuizTimer();
 
-        // Mengambil identitas siswa dari form start panel yang diisi di awal
         const nameInput = document.getElementById('studentNameInput').value.trim();
         const absenInput = document.getElementById('studentAbsenInput').value.trim();
 
         if (!nameInput || !absenInput) {
-            showNotification("Data siswa tidak lengkap! Silakan hubungi admin.");
+            showNotification("Data siswa tidak lengkap!");
             return;
         }
         
@@ -1953,7 +1710,6 @@
                 const correctKeys = q.kunciJawaban.split(/[;,]/).map(k => k.trim().toUpperCase());
 
                 matchingRows.forEach((_, rowIdx) => {
-                    // Cari jawaban siswa dari map garis kanvas
                     const studentChoice = (quizConnections[q.id] && quizConnections[q.id][rowIdx]) || '';
                     const correctChoice = correctKeys[rowIdx] || '';
 
@@ -1975,18 +1731,15 @@
             }
         });
 
-        // Hitung skor kuis akhir (Skala 100)
         const finalScore = Math.round((correctCount / total) * 100);
         const today = new Date();
         const dateString = today.getDate().toString().padStart(2, '0') + ' ' + 
                            ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][today.getMonth()] + ' ' + 
                            today.getFullYear();
 
-        // Enkripsi kode pembuktian digital
         const certCode = generateSecureCode(nameInput, absenInput, finalScore);
         const certIdNum = "SDN3/V/EVAL/" + today.getFullYear() + "/" + today.getTime().toString().substring(7);
 
-        // Rekam data temporer siswa untuk sertifikat
         currentStudentData = {
             name: nameInput,
             absen: absenInput,
@@ -1996,10 +1749,11 @@
             secureCode: certCode
         };
 
-        // Simpan Hasil pengerjaan ke dalam Local Storage Riwayat
         saveToQuizHistory(currentStudentData);
 
-        // Pasang hasil data ke Template HTML Sertifikat
+        // --- PENYIMPANAN OTOMATIS KE REKAPITULASI (SIMULATOR MODE) ---
+        saveToRekapGuru(currentStudentData);
+
         document.getElementById('pdfName').innerText = nameInput;
         document.getElementById('pdfAbsen').innerText = absenInput;
         document.getElementById('pdfDate').innerText = dateString;
@@ -2007,16 +1761,102 @@
         document.getElementById('pdfCertId').innerText = `Nomor: ${certIdNum}`;
         document.getElementById('pdfCertCode').innerText = certCode;
 
-        // Reset visibilitas tombol modal
         document.getElementById('btnSendWA').classList.add('d-none');
         document.getElementById('btnCloseQuizResult').classList.add('d-none');
 
-        // Buka modal pratinjau hasil
         const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
         resultModal.show();
     }
 
-    // LOCAL STORAGE: Menyimpan riwayat hasil kuis
+    // --- REKAP SIMULASI UNTUK OPERASIONAL MULTI-DEVICE OFFLINE ---
+    function saveToRekapGuru(studentData) {
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        if (rekap) {
+            rekap = JSON.parse(rekap);
+        } else {
+            rekap = [];
+        }
+        rekap.unshift(studentData);
+        localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
+    }
+
+    function loadRekapGuru() {
+        const body = document.getElementById('rekapGuruTableBody');
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+
+        if (!rekap || JSON.parse(rekap).length === 0) {
+            body.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        rekap = JSON.parse(rekap);
+        body.innerHTML = '';
+
+        rekap.forEach(data => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                    <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.secureCode}</small>
+                </td>
+                <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
+                <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    // Modal Pemicu Konfirmasi Kustom untuk Guru
+    function triggerResetRekap() {
+        const title = document.getElementById('confirmModalTitle');
+        const desc = document.getElementById('confirmModalDesc');
+        const btnAction = document.getElementById('btnConfirmModalAction');
+
+        title.innerText = "Hapus Seluruh Rekap?";
+        desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen untuk diganti dengan kuis baru!";
+        
+        btnAction.onclick = function() {
+            localStorage.removeItem('sdn3_rekap_guru');
+            loadRekapGuru();
+            bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+            showNotification("Rekap nilai berhasil di-reset!");
+        };
+
+        const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+        confirmModal.show();
+    }
+
+    function downloadRekapExcel() {
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        if (!rekap || JSON.parse(rekap).length === 0) {
+            showNotification("Belum ada data nilai siswa untuk diunduh!");
+            return;
+        }
+
+        rekap = JSON.parse(rekap);
+        const formatData = rekap.map((item, index) => {
+            return {
+                "No": index + 1,
+                "Nama Lengkap Siswa": item.name.toUpperCase(),
+                "Nomor Absen": parseInt(item.absen),
+                "Nilai Kuis": parseInt(item.score),
+                "Tanggal Mengerjakan": item.date,
+                "Kode Keamanan Sertifikat": item.secureCode
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(formatData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "RekapNilaiKuis");
+
+        XLSX.writeFile(workbook, "REKAP_NILAI_KUIS_KELAS_V_SDN3.xlsx");
+        showNotification("Berhasil mengunduh berkas rekap Excel!");
+    }
+
     function saveToQuizHistory(studentData) {
         let history = localStorage.getItem('sdn3_quiz_history');
         if (history) {
@@ -2025,14 +1865,11 @@
             history = [];
         }
 
-        // Tambah ke riwayat teratas
         history.unshift(studentData);
         localStorage.setItem('sdn3_quiz_history', JSON.stringify(history));
-        
-        loadQuizHistory(); // Refresh tampilan tabel riwayat
+        loadQuizHistory();
     }
 
-    // LOCAL STORAGE: Memuat dan merender riwayat kuis ke dalam tabel HTML
     function loadQuizHistory() {
         const historyBody = document.getElementById('quizHistoryBody');
         let history = localStorage.getItem('sdn3_quiz_history');
@@ -2040,7 +1877,7 @@
         if (!history || JSON.parse(history).length === 0) {
             historyBody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-3">Belum ada riwayat pengerjaan kuis siswa.</td>
+                    <td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td>
                 </tr>
             `;
             return;
@@ -2052,14 +1889,14 @@
         history.forEach((data, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><small class="text-muted"><i class="bi bi-calendar-check me-1"></i> ${data.date}</small></td>
-                <td><span class="fw-bold text-dark">${data.name.toUpperCase()}</span></td>
-                <td class="text-center"><span class="badge bg-secondary rounded-pill px-2.5">${data.absen}</span></td>
-                <td class="text-center"><strong class="text-teal">${data.score}</strong> <small class="text-muted">/100</small></td>
-                <td><code style="font-size: 0.75rem;">${data.secureCode}</code></td>
+                <td>
+                    <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                    <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.date}</small>
+                </td>
+                <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-teal d-inline-flex align-items-center gap-1" onclick="viewSpecificHistoryCert(${index})">
-                        <i class="bi bi-eye"></i> Lihat & JPG
+                    <button class="btn btn-sm btn-teal py-1 px-2.5 rounded-pill" onclick="viewSpecificHistoryCert(${index})" style="font-size: 0.75rem; height: auto;">
+                        <i class="bi bi-eye"></i> Lihat
                     </button>
                 </td>
             `;
@@ -2067,16 +1904,25 @@
         });
     }
 
-    // LOCAL STORAGE: Menghapus semua riwayat pengerjaan
     function clearQuizHistory() {
-        if (confirm("Apakah Anda yakin ingin menghapus seluruh riwayat pengerjaan kuis di perangkat ini?")) {
+        const title = document.getElementById('confirmModalTitle');
+        const desc = document.getElementById('confirmModalDesc');
+        const btnAction = document.getElementById('btnConfirmModalAction');
+
+        title.innerText = "Hapus Riwayat Kuis?";
+        desc.innerText = "Tindakan ini akan membersihkan seluruh bukti riwayat pengerjaan lokal di HP ini!";
+        
+        btnAction.onclick = function() {
             localStorage.removeItem('sdn3_quiz_history');
             loadQuizHistory();
-            showNotification("Riwayat pengerjaan berhasil dibersihkan!");
-        }
+            bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+            showNotification("Riwayat kuis berhasil dibersihkan!");
+        };
+
+        const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+        confirmModal.show();
     }
 
-    // Membuka kembali bukti hasil belajar dari riwayat kuis
     function viewSpecificHistoryCert(index) {
         let history = localStorage.getItem('sdn3_quiz_history');
         if (!history) return;
@@ -2086,7 +1932,6 @@
 
         currentStudentData = data;
 
-        // Pasang kembali isian data ke pratinjau
         document.getElementById('pdfName').innerText = data.name;
         document.getElementById('pdfAbsen').innerText = data.absen;
         document.getElementById('pdfDate').innerText = data.date;
@@ -2094,8 +1939,7 @@
         document.getElementById('pdfCertId').innerText = `Nomor: ${data.certId}`;
         document.getElementById('pdfCertCode').innerText = data.secureCode;
 
-        // Atur agar tombol "Kirim WA" dan "Selesai" langsung bisa dipakai
-        document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-archive-fill text-teal me-2"></i>Bukti Hasil Belajar (Arsip)`;
+        document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-archive-fill text-teal me-2"></i>Bukti Belajar (Arsip)`;
         document.getElementById('btnSendWA').classList.remove('d-none');
         document.getElementById('btnCloseQuizResult').classList.remove('d-none');
 
@@ -2103,33 +1947,25 @@
         resultModal.show();
     }
 
-    // Fungsi dijalankan saat menutup modal pratinjau sertifikat
     function onCloseResultModal() {
-        // Kembalikan tampilan tugas ke panel mulai
         document.getElementById('quizStartPanel').classList.remove('d-none');
         document.getElementById('quizArea').classList.add('d-none');
-        // Bersihkan isian form kuis
         resetImportedQuiz();
     }
 
-    // Fungsi untuk mengubah template HTML menjadi file JPG yang tidak bisa dirusak
     function downloadTamperProofJPG() {
         if (!currentStudentData) return;
 
-        showNotification("Mempersiapkan render lembar gambar JPG resmi...");
+        showNotification("Mempersiapkan gambar JPG...");
         const element = document.getElementById('pdfCertificateTemplate');
         
-        // Aturan spesifikasi ekspor JPG beresolusi terkompresi ideal (Sekitar 150 KB - 200 KB)
-        // Kita menggunakan scale 1.5 (jernih dan responsif) serta quality compression 0.80.
         html2canvas(element, {
             scale: 1.5, 
             useCORS: true,
             backgroundColor: "#ffffff"
         }).then(canvas => {
-            // Konversi canvas menjadi Data URL berformat image/jpeg dengan kompresi 0.80 (menghasilkan berkas ~150-200 KB)
             const imgData = canvas.toDataURL('image/jpeg', 0.80);
             
-            // Trigger download otomatis file JPG
             const downloadLink = document.createElement('a');
             downloadLink.href = imgData;
             downloadLink.download = `BUKTI_KUIS_${currentStudentData.absen}_${currentStudentData.name.replace(/\s+/g, '_').toUpperCase()}_[${currentStudentData.score}].jpg`;
@@ -2137,18 +1973,16 @@
             downloadLink.click();
             document.body.removeChild(downloadLink);
 
-            showNotification("Bukti hasil gambar JPG berhasil diunduh ke perangkat Anda!");
+            showNotification("Gambar JPG berhasil diunduh!");
             
-            // Aktifkan tombol Kirim WhatsApp & Selesai Tutup setelah unduh selesai
             document.getElementById('btnSendWA').classList.remove('d-none');
             document.getElementById('btnCloseQuizResult').classList.remove('d-none');
         }).catch(err => {
             console.error(err);
-            showNotification("Gagal menghasilkan gambar JPG. Silakan ulangi!");
+            showNotification("Gagal mengunduh gambar.");
         });
     }
 
-    // Fungsi komunikasi mengarahkan siswa ke WhatsApp setelah mengunduh berkas
     function contactTeacherWA() {
         if (!currentStudentData) return;
 
@@ -2161,33 +1995,27 @@ Halo Bapak Aburrizal Hamdani Lubis, S.Pd. Saya sudah menyelesaikan kuis kelas.
 🔢 *No. Absen* : ${currentStudentData.absen}
 🎯 *Skor Kuis* : *${currentStudentData.score} / 100*
 
-_File Bukti Gambar JPG asli yang tidak bisa diedit sudah saya unduh dan saya lampirkan bersama pesan WhatsApp ini._`;
+_File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
 
         const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
         window.open(waUrl, '_blank');
     }
 
-    // Mengosongkan kuis hasil import
     function resetImportedQuiz() {
-        // Cek jika timer sudah selesai, dilarang bersihkan jawaban
         if (remainingSeconds <= 0 && quizDurationMinutes > 0) {
-            showNotification("Kuis sudah berakhir, tidak bisa mengubah atau membersihkan lembar jawaban!");
+            showNotification("Kuis sudah berakhir!");
             return;
         }
 
-        // Reset pilihan radio
         const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]');
         radios.forEach(r => r.checked = false);
 
-        // Reset checkbox pilihan kompleks
         const checkboxes = document.querySelectorAll('#interactiveQuizForm input[type="checkbox"]');
         checkboxes.forEach(c => c.checked = false);
 
-        // Reset input isian singkat
         const textInputs = document.querySelectorAll('#interactiveQuizForm input[type="text"]');
         textInputs.forEach(i => i.value = '');
 
-        // Reset map koordinat garis menjodohkan
         quizConnections = {};
         importedQuestions.forEach(q => {
             if (q.tipe === 'MENJODOHKAN') {
@@ -2195,150 +2023,19 @@ _File Bukti Gambar JPG asli yang tidak bisa diedit sudah saya unduh dan saya lam
             }
         });
         
-        // Bersihkan style pilihan ter-highlight
         const selectedOptions = document.querySelectorAll('#interactiveQuizForm .option-container');
         selectedOptions.forEach(o => o.classList.remove('selected'));
 
-        showNotification("Jawaban Anda berhasil dibersihkan. Silakan ulangi pengerjaan!");
+        showNotification("Jawaban dibersihkan!");
     }
 
-    // Mengunduh file Excel contoh template terjadwal agar guru mengetahui strukturnya
-    function downloadTemplate() {
-        const todayStr = "2026-06-13"; // Sesuai tahun sistem aktif saat ini
-
-        const templateData = [
-            {
-                "Waktu Mulai": `${todayStr} 08:00`,
-                "Waktu Selesai": `${todayStr} 23:59`,
-                "Durasi (Menit)": 15,
-                "Tipe": "PG",
-                "Pertanyaan": "Berapakah hasil dari 1/2 ditambah 1/4?",
-                "Pilihan A": "2/4",
-                "Pilihan B": "3/4",
-                "Pilihan C": "1/3",
-                "Pilihan D": "3/8",
-                "Jawaban": "B"
-            },
-            {
-                "Waktu Mulai": "",
-                "Waktu Selesai": "",
-                "Durasi (Menit)": "",
-                "Tipe": "PGK",
-                "Pertanyaan": "Manakah di antara bilangan berikut yang merupakan bilangan prima? (Pilih semua yang benar)",
-                "Pilihan A": "2",
-                "Pilihan B": "4",
-                "Pilihan C": "5",
-                "Pilihan D": "9",
-                "Jawaban": "A;C"
-            },
-            {
-                "Waktu Mulai": "",
-                "Waktu Selesai": "",
-                "Durasi (Menit)": "",
-                "Tipe": "MENJODOHKAN",
-                "Pertanyaan": "Cocokkan nama provinsi dengan ibukotanya masing-masing:; 1. Jawa Timur; 2. Jawa Barat; 3. Jawa Tengah",
-                "Pilihan A": "Bandung",
-                "Pilihan B": "Surabaya",
-                "Pilihan C": "Semarang",
-                "Pilihan D": "Yogyakarta",
-                "Jawaban": "B;A;C"
-            },
-            {
-                "Waktu Mulai": "",
-                "Waktu Selesai": "",
-                "Durasi (Menit)": "",
-                "Tipe": "ISIAN",
-                "Pertanyaan": "SD Negeri 3 Ngantru bertempat di wilayah kecamatan?",
-                "Pilihan A": "",
-                "Pilihan B": "",
-                "Pilihan C": "",
-                "Pilihan D": "",
-                "Jawaban": "Ngantru | Kecamatan Ngantru | Kec. Ngantru"
-            }
-        ];
-
-        // Buat file Excel sederhana
-        const worksheet = XLSX.utils.json_to_sheet(templateData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "FormatKuis");
-
-        // Unduh otomatis
-        XLSX.writeFile(workbook, "Template_Kuis_Multi_Tipe_KelasV.xlsx");
-        showNotification("Template kuis Excel dengan 4 tipe soal telah berhasil diunduh!");
-    }
-
-    // Inisialisasi Toast Bootstrap
     const toastElement = document.getElementById('actionToast');
     const toast = new bootstrap.Toast(toastElement);
     const toastMsgSpan = document.getElementById('toastMessage');
 
-    // Tampilkan Toast Notifikasi
     function showNotification(message) {
         toastMsgSpan.innerText = message;
         toast.show();
-    }
-
-    // Modal Pemicu Tugas Bawaan
-    let currentTugasName = "";
-    function showSubmitModal(tugasName) {
-        currentTugasName = tugasName;
-        document.getElementById('modalTugasTitle').innerText = "Kumpul: " + tugasName;
-        const modal = new bootstrap.Modal(document.getElementById('submitTugasModal'));
-        modal.show();
-    }
-
-    // Submit Tugas Simulasi dengan Pop-up Pratinjau Gambar / File Cerdas
-    function submitTugasSimulasi(e) {
-        e.preventDefault();
-        
-        const modalElement = document.getElementById('submitTugasModal');
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        modal.hide();
-        
-        const fileInput = document.getElementById('tugasFile');
-        const file = fileInput.files[0];
-        
-        const previewImg = document.getElementById('tugasPreviewImage');
-        const previewFallback = document.getElementById('tugasPreviewFallback');
-        const fallbackName = document.getElementById('tugasFallbackName');
-        
-        if (file) {
-            const fileName = file.name;
-            // Cek apakah berkas merupakan tipe gambar
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    previewImg.src = event.target.result;
-                    previewImg.style.display = 'inline-block';
-                    previewFallback.style.display = 'none';
-                    
-                    // Tampilkan pop-up modal pratinjau tugas yang terkirim
-                    const pratinjauModal = new bootstrap.Modal(document.getElementById('pratinjauTugasModal'));
-                    pratinjauModal.show();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Berkas non-gambar (Misalnya PDF)
-                previewImg.style.display = 'none';
-                previewFallback.style.display = 'block';
-                fallbackName.innerText = fileName;
-                
-                // Tampilkan pop-up modal pratinjau tugas yang terkirim
-                const pratinjauModal = new bootstrap.Modal(document.getElementById('pratinjauTugasModal'));
-                pratinjauModal.show();
-            }
-        } else {
-            // Skenario cadangan jika berkas kosong
-            previewImg.style.display = 'none';
-            previewFallback.style.display = 'block';
-            fallbackName.innerText = "Tidak ada berkas yang dilampirkan";
-            
-            const pratinjauModal = new bootstrap.Modal(document.getElementById('pratinjauTugasModal'));
-            pratinjauModal.show();
-        }
-
-        document.getElementById('tugasForm').reset();
-        showNotification("Sukses mengirimkan tugas " + currentTugasName + " ke Bapak Guru!");
     }
 </script>
 

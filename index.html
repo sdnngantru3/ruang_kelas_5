@@ -16,13 +16,6 @@
     <!-- html2canvas untuk merender sertifikat menjadi gambar JPG beresolusi tinggi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <script type="module">
-        // Inisialisasi Firebase akan disuntikkan secara otomatis oleh lingkungan hosting
-        // Namun kita tetap menyediakan objek konfigurasi kosong sebagai fallback aman
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    </script>
-
     <style>
         :root {
             --teal-dark: #0f766e;
@@ -863,6 +856,227 @@
 <!-- Bootstrap 5 Bundle with Popper JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- MODUL UTAMA FIREBASE CLOUD & LOGIKA APLIKASI -->
+<script type="module">
+    // Mengimpor fungsi-fungsi dari Firebase resmi gstatic CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Global parameters
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'sdn3-ngantru-v';
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let isCloudActive = false;
+    let unsubscribeCloud = null;
+
+    // Inisialisasi Firebase & Autentikasi sesuai Aturan 3
+    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+            const firebaseConfig = JSON.parse(__firebase_config);
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+
+            initAuth();
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    isCloudActive = true;
+                    const statusBadge = document.getElementById('db-status-badge');
+                    if (statusBadge) {
+                        statusBadge.innerText = "Mode Awan Aktif (Tersinkronisasi)";
+                        statusBadge.className = "text-success block text-[10px] font-bold";
+                    }
+                    // Sinkronisasi data awan ke antarmuka guru
+                    listenToRekapCloud();
+                }
+            });
+        } catch (e) {
+            console.error("Firebase Gagal Memulai: ", e);
+        }
+    }
+
+    // Fungsi pengamat perubahan rekap nilai pada awan (Aturan 2 - Tanpa query rumit)
+    function listenToRekapCloud() {
+        if (!isCloudActive || !db || !currentUser) return;
+
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
+
+        if (unsubscribeCloud) unsubscribeCloud();
+
+        unsubscribeCloud = onSnapshot(colRef, (snapshot) => {
+            let cloudData = [];
+            snapshot.forEach(doc => {
+                cloudData.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Menyortir data terbaru di memori HP agar hemat daya & mematuhi aturan 2
+            cloudData.sort((a, b) => {
+                const idA = a.certId || '';
+                const idB = b.certId || '';
+                return idB.localeCompare(idA);
+            });
+
+            // Amankan data ke penyimpanan lokal cadangan
+            localStorage.setItem('sdn3_rekap_guru', JSON.stringify(cloudData));
+            
+            // Perbarui tabel pada HP Guru
+            renderRekapTable(cloudData);
+        }, (err) => {
+            console.error("Gagal mendengarkan perubahan awan:", err);
+            // Fallback kembali ke penyimpanan lokal
+            loadRekapGuru();
+        });
+    }
+
+    // Fungsi render tabel internal
+    function renderRekapTable(dataList) {
+        const body = document.getElementById('rekapGuruTableBody');
+        if (!body) return;
+
+        if (!dataList || dataList.length === 0) {
+            body.innerHTML = `
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        body.innerHTML = '';
+        dataList.forEach(data => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                    <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.secureCode}</small>
+                </td>
+                <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
+                <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
+            `;
+            body.appendChild(tr);
+        });
+    }
+
+    // Fungsi penyimpanan data rekap nilai baru (Ke Awan & Lokal sekaligus)
+    async function saveToRekapGuru(studentData) {
+        // 1. Simpan di local storage cadangan
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        rekap = rekap ? JSON.parse(rekap) : [];
+        rekap.unshift(studentData);
+        localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
+
+        // 2. Simpan di Firestore Awan (Aturan 1 - Jalur Ketat)
+        if (isCloudActive && db && currentUser) {
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
+                await addDoc(colRef, {
+                    ...studentData,
+                    userId: currentUser.uid,
+                    uploadedAt: new Date().toISOString()
+                });
+                console.log("Berhasil mencatat nilai ke awan!");
+            } catch (err) {
+                console.error("Gagal mengirim ke awan:", err);
+            }
+        }
+    }
+
+    // Fungsi memuat data lokal sebagai cadangan
+    function loadRekapGuru() {
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        rekap = rekap ? JSON.parse(rekap) : [];
+        renderRekapTable(rekap);
+    }
+
+    // Fungsi menghapus database awan (Aturan 1 & 3)
+    async function triggerResetRekap() {
+        const title = document.getElementById('confirmModalTitle');
+        const desc = document.getElementById('confirmModalDesc');
+        const btnAction = document.getElementById('btnConfirmModalAction');
+
+        title.innerText = "Hapus Seluruh Rekap?";
+        desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen dari awan dan memori HP!";
+        
+        btnAction.onclick = async function() {
+            // Hapus data lokal terlebih dahulu
+            localStorage.removeItem('sdn3_rekap_guru');
+            
+            if (isCloudActive && db && currentUser) {
+                showNotification("Sedang menghapus data dari awan...");
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
+                    const querySnapshot = await getDocs(colRef);
+                    
+                    const deletePromises = [];
+                    querySnapshot.forEach((documentSnapshot) => {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai', documentSnapshot.id);
+                        deletePromises.push(deleteDoc(docRef));
+                    });
+                    
+                    await Promise.all(deletePromises);
+                    showNotification("Rekap nilai berhasil dihapus dari awan!");
+                } catch (e) {
+                    console.error("Gagal membersihkan awan:", e);
+                    showNotification("Gagal membersihkan database awan sepenuhnya.", false);
+                }
+            } else {
+                showNotification("Rekap nilai lokal berhasil di-reset!");
+            }
+            
+            loadRekapGuru();
+            bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+        };
+
+        const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+        confirmModal.show();
+    }
+
+    function downloadRekapExcel() {
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        if (!rekap || JSON.parse(rekap).length === 0) {
+            showNotification("Belum ada data nilai siswa untuk diunduh!");
+            return;
+        }
+
+        rekap = JSON.parse(rekap);
+        const formatData = rekap.map((item, index) => {
+            return {
+                "No": index + 1,
+                "Nama Lengkap Siswa": item.name.toUpperCase(),
+                "Nomor Absen": parseInt(item.absen),
+                "Nilai Kuis": parseInt(item.score),
+                "Tanggal Mengerjakan": item.date,
+                "Kode Keamanan Sertifikat": item.secureCode
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(formatData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "RekapNilaiKuis");
+
+        XLSX.writeFile(workbook, "REKAP_NILAI_KUIS_KELAS_V_SDN3.xlsx");
+        showNotification("Berhasil mengunduh berkas rekap Excel!");
+    }
+
+    // Mengikat fungsi ke jendela peramban (window) agar tetap dapat diakses dari tag HTML
+    window.saveToRekapGuru = saveToRekapGuru;
+    window.loadRekapGuru = loadRekapGuru;
+    window.triggerResetRekap = triggerResetRekap;
+    window.downloadRekapExcel = downloadRekapExcel;
+</script>
+
 <script>
     let importedQuestions = [];
     let currentStudentData = null; // Menyimpan data pengerjaan terakhir
@@ -887,7 +1101,9 @@
     // Panggil fungsi saat window selesai dimuat
     window.onload = function() {
         loadQuizHistory();
-        loadRekapGuru();
+        if (typeof window.loadRekapGuru === "function") {
+            window.loadRekapGuru();
+        }
     };
 
     // Fungsi untuk navigasi antar view secara interaktif
@@ -909,7 +1125,9 @@
         // Tampilkan view yang dipilih
         if (viewName === 'rekap') {
             views['rekap'].classList.remove('d-none');
-            loadRekapGuru();
+            if (typeof window.loadRekapGuru === "function") {
+                window.loadRekapGuru();
+            }
         } else if (views[viewName]) {
             views[viewName].classList.remove('d-none');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1751,8 +1969,10 @@
 
         saveToQuizHistory(currentStudentData);
 
-        // --- PENYIMPANAN OTOMATIS KE REKAPITULASI (SIMULATOR MODE) ---
-        saveToRekapGuru(currentStudentData);
+        // --- PENYIMPANAN OTOMATIS KE REKAPITULASI FIREBASE AWAN ATAU LOKAL ---
+        if (typeof window.saveToRekapGuru === "function") {
+            window.saveToRekapGuru(currentStudentData);
+        }
 
         document.getElementById('pdfName').innerText = nameInput;
         document.getElementById('pdfAbsen').innerText = absenInput;
@@ -1766,95 +1986,6 @@
 
         const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
         resultModal.show();
-    }
-
-    // --- REKAP SIMULASI UNTUK OPERASIONAL MULTI-DEVICE OFFLINE ---
-    function saveToRekapGuru(studentData) {
-        let rekap = localStorage.getItem('sdn3_rekap_guru');
-        if (rekap) {
-            rekap = JSON.parse(rekap);
-        } else {
-            rekap = [];
-        }
-        rekap.unshift(studentData);
-        localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
-    }
-
-    function loadRekapGuru() {
-        const body = document.getElementById('rekapGuruTableBody');
-        let rekap = localStorage.getItem('sdn3_rekap_guru');
-
-        if (!rekap || JSON.parse(rekap).length === 0) {
-            body.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td>
-                </tr>
-            `;
-            return;
-        }
-
-        rekap = JSON.parse(rekap);
-        body.innerHTML = '';
-
-        rekap.forEach(data => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
-                    <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.secureCode}</small>
-                </td>
-                <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
-                <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
-            `;
-            body.appendChild(tr);
-        });
-    }
-
-    // Modal Pemicu Konfirmasi Kustom untuk Guru
-    function triggerResetRekap() {
-        const title = document.getElementById('confirmModalTitle');
-        const desc = document.getElementById('confirmModalDesc');
-        const btnAction = document.getElementById('btnConfirmModalAction');
-
-        title.innerText = "Hapus Seluruh Rekap?";
-        desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen untuk diganti dengan kuis baru!";
-        
-        btnAction.onclick = function() {
-            localStorage.removeItem('sdn3_rekap_guru');
-            loadRekapGuru();
-            bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
-            showNotification("Rekap nilai berhasil di-reset!");
-        };
-
-        const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
-        confirmModal.show();
-    }
-
-    function downloadRekapExcel() {
-        let rekap = localStorage.getItem('sdn3_rekap_guru');
-        if (!rekap || JSON.parse(rekap).length === 0) {
-            showNotification("Belum ada data nilai siswa untuk diunduh!");
-            return;
-        }
-
-        rekap = JSON.parse(rekap);
-        const formatData = rekap.map((item, index) => {
-            return {
-                "No": index + 1,
-                "Nama Lengkap Siswa": item.name.toUpperCase(),
-                "Nomor Absen": parseInt(item.absen),
-                "Nilai Kuis": parseInt(item.score),
-                "Tanggal Mengerjakan": item.date,
-                "Kode Keamanan Sertifikat": item.secureCode
-            };
-        });
-
-        const worksheet = XLSX.utils.json_to_sheet(formatData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "RekapNilaiKuis");
-
-        XLSX.writeFile(workbook, "REKAP_NILAI_KUIS_KELAS_V_SDN3.xlsx");
-        showNotification("Berhasil mengunduh berkas rekap Excel!");
     }
 
     function saveToQuizHistory(studentData) {
@@ -1872,6 +2003,8 @@
 
     function loadQuizHistory() {
         const historyBody = document.getElementById('quizHistoryBody');
+        if (!historyBody) return;
+
         let history = localStorage.getItem('sdn3_quiz_history');
         
         if (!history || JSON.parse(history).length === 0) {
@@ -1895,7 +2028,7 @@
                 </td>
                 <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-teal py-1 px-2.5 rounded-pill" onclick="viewSpecificHistoryCert(${index})" style="font-size: 0.75rem; height: auto;">
+                    <button class="btn btn-sm btn-teal py-1 px-2.5 rounded-pill text-white" onclick="viewSpecificHistoryCert(${index})" style="font-size: 0.75rem; height: auto;">
                         <i class="bi bi-eye"></i> Lihat
                     </button>
                 </td>
@@ -2037,6 +2170,19 @@ _File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
         toastMsgSpan.innerText = message;
         toast.show();
     }
+
+    // Mengaitkan fungsi umum agar dapat berjalan di tag HTML
+    window.navigateTo = navigateTo;
+    window.checkPassword = checkPassword;
+    window.promptGuruMenu = promptGuruMenu;
+    window.syncAndStartQuiz = syncAndStartQuiz;
+    window.downloadTamperProofJPG = downloadTamperProofJPG;
+    window.contactTeacherWA = contactTeacherWA;
+    window.clearQuizHistory = clearQuizHistory;
+    window.viewSpecificHistoryCert = viewSpecificHistoryCert;
+    window.onCloseResultModal = onCloseResultModal;
+    window.selectOption = selectOption;
+    window.selectMultiOption = selectMultiOption;
 </script>
 
 </body>

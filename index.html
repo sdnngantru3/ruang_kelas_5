@@ -368,7 +368,7 @@
         <div class="text-teal mb-3">
             <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
         </div>
-        <h4 class="fw-bold text-dark mb-1">Akses Terbatass</h4>
+        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
         <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
         
         <form onsubmit="checkPassword(event)">
@@ -663,6 +663,25 @@
                 <i class="bi bi-arrow-left me-1"></i> Tutup Menu Guru
             </button>
             <span class="badge bg-danger rounded-pill px-2.5 py-1 text-xs">Akses Khusus</span>
+        </div>
+
+        <!-- FIREBASE AUTO-CONFIGURATOR CARD FOR GITHUB PAGES (MUNCUL JIKA MODE LOKAL AKTIF) -->
+        <div id="firebaseConfigCard" class="card custom-card p-3 mb-3 border-warning bg-warning bg-opacity-10 d-none">
+            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-cloud-slash-fill text-warning me-1"></i>Awan Belum Aktif di GitHub Pages</h6>
+            <p class="text-muted mb-3" style="font-size: 0.72rem; line-height: 1.35;">
+                Agar nilai siswa otomatis tersinkronisasi nirkabel ke HP Anda secara langsung, Bapak/Ibu hanya perlu menempelkan (*paste*) konfigurasi Firebase Anda di bawah ini, lalu klik tombol simpan.
+            </p>
+            <div class="space-y-2">
+                <textarea id="firebaseConfigInput" class="form-control font-monospace w-100" style="font-size: 0.72rem; height: 110px;" placeholder='Tempel kode Firebase di sini...&#10;&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: "AIzaSy...",&#10;  ...&#10;};'></textarea>
+                <button onclick="applyAndDownloadConfiguredHTML()" class="btn btn-warning btn-sm w-100 rounded-pill py-2 fw-extrabold mt-2 text-dark">
+                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Terapkan & Unduh index.html Siap Pakai
+                </button>
+                <div class="mt-2 text-center">
+                    <a href="https://firebase.google.com/" target="_blank" class="text-teal text-decoration-none small fw-semibold block mt-1" style="font-size: 0.7rem;">
+                        <i class="bi bi-question-circle"></i> Buka Google Firebase Console (Gratis)
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="card custom-card p-3 mb-3">
@@ -2307,7 +2326,85 @@ _File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
         } catch (error) {
             console.error("Gagal menyambungkan Firebase kustom:", error);
         }
+    } else {
+        // Tampilkan konfigurator visual di Menu Guru jika apiKey masih bawaan (bukan milik guru asli)
+        const configCard = document.getElementById('firebaseConfigCard');
+        if (configCard) {
+            configCard.classList.remove('d-none');
+        }
     }
+
+    // Fungsi otomatis untuk mengurai inputan kustom Guru dan mendownload index.html hasil rakitan
+    async function applyAndDownloadConfiguredHTML() {
+        const configInput = document.getElementById('firebaseConfigInput').value.trim();
+        if (!configInput) {
+            alert("Mohon tempelkan konfigurasi objek Firebase Anda terlebih dahulu!");
+            return;
+        }
+
+        try {
+            // Isolasi objek JSON jika guru menyalin string panjang "const firebaseConfig = { ... }"
+            let jsonString = configInput;
+            if (jsonString.includes('{')) {
+                jsonString = jsonString.substring(jsonString.indexOf('{'), jsonString.lastIndexOf('}') + 1);
+            }
+
+            // Validasi format objek secara aman menggunakan fungsi anonim
+            const parsedConfig = new Function(`return ${jsonString}`)();
+
+            if (!parsedConfig.apiKey || !parsedConfig.projectId) {
+                alert("Konfigurasi tidak lengkap! Pastikan mengandung parameter 'apiKey' dan 'projectId'.");
+                return;
+            }
+
+            // Ambil seluruh kode sumber halaman web saat ini
+            let sourceHTML = "";
+            try {
+                const response = await fetch(window.location.href);
+                sourceHTML = await response.text();
+            } catch (err) {
+                // Fallback jika dibuka luring
+                sourceHTML = document.documentElement.outerHTML;
+            }
+
+            // Cari block deklarasi objek GURU_FIREBASE_CONFIG di dalam kode sumber
+            const targetPattern = /const GURU_FIREBASE_CONFIG = \{[\s\S]*?\};/;
+            const replacementText = `const GURU_FIREBASE_CONFIG = {
+        apiKey: "${parsedConfig.apiKey}",
+        authDomain: "${parsedConfig.authDomain || ''}",
+        projectId: "${parsedConfig.projectId}",
+        storageBucket: "${parsedConfig.storageBucket || ''}",
+        messagingSenderId: "${parsedConfig.messagingSenderId || ''}",
+        appId: "${parsedConfig.appId || ''}"
+    };`;
+
+            if (sourceHTML.match(targetPattern)) {
+                sourceHTML = sourceHTML.replace(targetPattern, replacementText);
+            } else {
+                alert("Gagal memproses kode sumber secara otomatis. Hubungi pengembang.");
+                return;
+            }
+
+            // Proses trigger pengunduhan berkas HTML kustom ke penyimpanan lokal
+            const blob = new Blob([sourceHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "index.html";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert("Hebat! Berkas 'index.html' baru berhasil diunduh. Silakan upload file ini ke akun GitHub Pages Anda untuk mengaktifkan koneksi awan secara otomatis!");
+        } catch (err) {
+            console.error(err);
+            alert("Gagal membaca struktur konfigurasi. Pastikan Anda menyalin kode konfigurasi dari konsol Firebase dengan benar.");
+        }
+    }
+
+    // Mengaitkan fungsi perakit ke objek window global
+    window.applyAndDownloadConfiguredHTML = applyAndDownloadConfiguredHTML;
 </script>
 
 </body>

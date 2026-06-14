@@ -68,12 +68,24 @@
             display: none;
             padding-bottom: 80px;
         }
-        .bg-teal-dark { background-color: var(--teal-dark) !important; }
-        .bg-teal-light { background-color: var(--teal-light) !important; }
-        .text-teal { color: var(--teal-dark) !important; }
-        .text-orange { color: var(--orange-accent) !important; }
-        .bg-orange-light { background-color: var(--orange-light) !important; }
-        .border-teal-light { border-color: var(--teal-light) !important; }
+        .bg-teal-dark {
+            background-color: var(--teal-dark) !important;
+        }
+        .bg-teal-light {
+            background-color: var(--teal-light) !important;
+        }
+        .text-teal {
+            color: var(--teal-dark) !important;
+        }
+        .text-orange {
+            color: var(--orange-accent) !important;
+        }
+        .bg-orange-light {
+            background-color: var(--orange-light) !important;
+        }
+        .border-teal-light {
+            border-color: var(--teal-light) !important;
+        }
         .btn-teal {
             background-color: var(--teal-dark);
             color: white;
@@ -86,7 +98,10 @@
             justify-content: center;
             transition: var(--transition-smooth);
         }
-        .btn-teal:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-teal:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
         .btn-outline-teal {
             border: 2px solid var(--teal-dark);
             color: var(--teal-dark);
@@ -99,7 +114,10 @@
             justify-content: center;
             transition: var(--transition-smooth);
         }
-        .btn-outline-teal:active { background-color: var(--teal-light); transform: scale(0.96); }
+        .btn-outline-teal:active {
+            background-color: var(--teal-light);
+            transform: scale(0.96);
+        }
         .btn-orange {
             background-color: var(--orange-accent);
             color: white;
@@ -113,7 +131,10 @@
             transition: var(--transition-smooth);
             box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
         }
-        .btn-orange:active { transform: scale(0.96); box-shadow: none; }
+        .btn-orange:active {
+            transform: scale(0.96);
+            box-shadow: none;
+        }
         .custom-card {
             border: none;
             border-radius: 20px;
@@ -129,10 +150,19 @@
             border: 1.5px solid transparent;
             position: relative;
         }
-        .interactive-menu-card:active { transform: scale(0.97); background-color: #f8fafc; }
-        .interactive-menu-card.menu-materi { border-bottom: 5px solid var(--teal-medium); }
-        .interactive-menu-card.menu-tugas { border-bottom: 5px solid var(--orange-accent); }
-        .interactive-menu-card.menu-lain { border-bottom: 5px solid var(--bs-primary); }
+        .interactive-menu-card:active {
+            transform: scale(0.97);
+            background-color: #f8fafc;
+        }
+        .interactive-menu-card.menu-materi {
+            border-bottom: 5px solid var(--teal-medium);
+        }
+        .interactive-menu-card.menu-tugas {
+            border-bottom: 5px solid var(--orange-accent);
+        }
+        .interactive-menu-card.menu-lain {
+            border-bottom: 5px solid var(--bs-primary);
+        }
         .class-banner {
             background: linear-gradient(135deg, var(--teal-dark) 0%, #115e59 100%);
             border-radius: 20px;
@@ -151,7 +181,9 @@
             align-items: center;
             transition: var(--transition-smooth);
         }
-        .option-container:active { background-color: var(--teal-light); }
+        .option-container:active {
+            background-color: var(--teal-light);
+        }
         .option-container.selected {
             background-color: var(--teal-light);
             border-color: var(--teal-dark);
@@ -183,8 +215,14 @@
             cursor: pointer;
             z-index: 10;
         }
-        .matching-dot.bg-teal-dark { background-color: var(--teal-dark) !important; background: var(--teal-dark) !important; }
-        .matching-dot.bg-orange { background-color: var(--orange-accent) !important; background: var(--orange-accent) !important; }
+        .matching-dot.bg-teal-dark {
+            background-color: var(--teal-dark) !important;
+            background: var(--teal-dark) !important;
+        }
+        .matching-dot.bg-orange {
+            background-color: var(--orange-accent) !important;
+            background: var(--orange-accent) !important;
+        }
         .matching-dot:active, .matching-dot.active-glow {
             transform: scale(1.4);
             box-shadow: 0 0 14px rgba(20, 184, 166, 0.9) !important;
@@ -270,11 +308,24 @@
             100% { background-position: -200% 0; }
         }
         @media (max-width: 575.98px) {
-            .modal-dialog { margin: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
-            .modal-content { border-radius: 20px !important; }
-            .modal-body { padding: 1.25rem 1rem !important; }
-            .modal-header, .modal-footer { padding: 0.75rem 1rem !important; }
-            #tugasPreviewImage { max-height: 180px !important; object-fit: contain; width: 100%; }
+            .modal-dialog {
+                margin: 0.5rem !important;
+                max-width: calc(100% - 1rem) !important;
+            }
+            .modal-content {
+                border-radius: 20px !important;
+            }
+            .modal-body {
+                padding: 1.25rem 1rem !important;
+            }
+            .modal-header, .modal-footer {
+                padding: 0.75rem 1rem !important;
+            }
+            #tugasPreviewImage {
+                max-height: 180px !important;
+                object-fit: contain;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -286,8 +337,9 @@
         <div class="text-teal mb-3">
             <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
         </div>
-        <h4 class="fw-bold text-dark mb-1">Akses Terbatass</h4>
+        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
         <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
+        
         <form onsubmit="checkPassword(event)">
             <div class="mb-3">
                 <input type="password" id="inputPassword" class="form-control text-center rounded-3 border-teal-light" placeholder="Masukkan Password" required>
@@ -325,6 +377,7 @@
                     <p class="mb-0 opacity-90 small">Kec. Ngantang, Kab. Malang</p>
                 </div>
             </div>
+            
             <div class="mt-3 pt-3 border-top border-white border-opacity-10 d-flex align-items-center gap-2">
                 <div class="bg-white rounded-circle p-0.5" style="width: 32px; height: 32px; min-width: 32px;">
                     <img src="foto guru.png" alt="Aburrizal Hamdani Lubis, S.Pd" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
@@ -354,6 +407,7 @@
                     <i class="bi bi-chevron-right text-teal"></i>
                 </div>
             </div>
+
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-tugas p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('tugas')">
                     <div class="d-flex align-items-center gap-3">
@@ -368,6 +422,7 @@
                     <i class="bi bi-chevron-right text-orange"></i>
                 </div>
             </div>
+
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-lain p-3 d-flex flex-row align-items-center justify-content-between" onclick="window.location.href='lain-lain.html'">
                     <div class="d-flex align-items-center gap-3">
@@ -401,7 +456,9 @@
                 <h6 class="fw-bold text-teal mb-0"><i class="bi bi-folder-symlink-fill me-1"></i>Materi Google Drive</h6>
                 <span class="badge bg-teal-dark small" style="font-size: 0.65rem;">Kelas V</span>
             </div>
-            <p class="text-muted mb-0 small">Di bawah ini adalah berkas materi pembelajaran format PDF dari Google Drive kelas. Anda dapat mengkliknya langsung untuk membaca.</p>
+            <p class="text-muted mb-0 small">
+                Di bawah ini adalah berkas materi pembelajaran format PDF dari Google Drive kelas. Anda dapat mengkliknya langsung untuk membaca.
+            </p>
         </div>
 
         <div class="alert alert-warning border-0 rounded-4 p-3 mb-3 d-flex align-items-start bg-orange-light">
@@ -455,7 +512,7 @@
             </div>
             
             <div id="quizScheduleAlert" class="alert alert-secondary d-none border-0 rounded-4 py-2 px-3 mb-3 text-center">
-                <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis:</span>
+                <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis Akses:</span>
                 <span class="small text-muted d-block" id="scheduleText">-</span>
                 <span class="small text-orange fw-bold d-block mt-1" id="durationText">-</span>
             </div>
@@ -509,6 +566,7 @@
 
                 <form id="interactiveQuizForm" onsubmit="submitInteractiveQuiz(event)">
                     <div id="questionsContainer" class="d-flex flex-column gap-3"></div>
+
                     <div class="text-end pt-3 border-top mt-3">
                         <button type="submit" id="btnSubmitQuizForm" class="btn btn-orange w-100 rounded-pill text-white">
                             <i class="bi bi-send-check-fill me-1"></i> Kirim Jawaban
@@ -534,7 +592,8 @@
                             <th class="text-center">Aksi</th>
                          </tr>
                     </thead>
-                    <tbody id="quizHistoryBody" style="font-size: 0.8rem;"></tbody>
+                    <tbody id="quizHistoryBody" style="font-size: 0.8rem;">
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -577,7 +636,8 @@
                             <th class="text-center">Tanggal & Jam</th>
                         </tr>
                     </thead>
-                    <tbody id="rekapGuruTableBody" style="font-size: 0.8rem;"></tbody>
+                    <tbody id="rekapGuruTableBody" style="font-size: 0.8rem;">
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -638,10 +698,19 @@
                             <div class="my-3 small" style="line-height: 1.6; font-size: 0.85rem;">
                                 <p class="mb-2">Dengan ini, sistem pembelajaran portal digital menyatakan bahwa siswa di bawah ini:</p>
                                 <table class="table table-borderless ms-2 mb-2" style="width: 90%;">
-                                    <tr><td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td><td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td></tr>
-                                    <tr><td class="fw-bold p-0">Nomor Absen</td><td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td></tr>
-                                    <tr><td class="fw-bold p-0">Tanggal Ujian</td><td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td></tr>
-                                </table>
+                                    <tr>
+                                        <td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td>
+                                        <td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold p-0">Nomor Absen</td>
+                                        <td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold p-0">Tanggal Ujian</td>
+                                        <td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td>
+                                    </tr>
+                                 </table>
                                 <p class="mt-2 mb-0">Telah menyelesaikan evaluasi belajar mandiri terintegrasi secara jujur dengan hasil prestasi:</p>
                             </div>
 
@@ -717,14 +786,12 @@
 
 <script>
 // ============================================================
-// KONFIGURASI GOOGLE SHEETS API (TAMBAHAN BARU)
+// KONFIGURASI GOOGLE SHEETS API
 // ============================================================
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzSAAvjQzxSYSezovc3HUrLFaWaA2b-v_oPh55O6P-Bnsel0_ygBWXf0JRyOTUzuyJSHw/exec";
-
-// KEY untuk menyimpan state kuis di localStorage (fitur lanjutkan kuis)
 const STORAGE_KEY = "sdn3_quiz_current_state";
 
-// Variabel global (ASLI)
+// Variabel global
 let importedQuestions = [];
 let currentStudentData = null;
 let quizStartTime = null;
@@ -734,13 +801,13 @@ let timerIntervalId = null;
 let remainingSeconds = 0;
 let quizConnections = {};
 let activeDragConnection = null;
-let isQuizSubmitted = false; // TAMBAHAN untuk cegah submit ganda
+let isQuizSubmitted = false;
 
 const LOCKED_DRIVE_FOLDER_ID = "1vy-RR8BtBeGtvPRcyFTYP91fPEoG6QgB";
 const SECRET_CRYPT_SALT = "SDN3_NGANTRU_SUPER_SECRET_SALT_2026_MATH5";
 
 // ============================================================
-// FUNGSI MENYIMPAN STATE KUIS (FITUR LANJUTKAN KUIS)
+// FUNGSI MENYIMPAN STATE KUIS
 // ============================================================
 function saveQuizState() {
     if (isQuizSubmitted) return;
@@ -790,7 +857,6 @@ function saveQuizState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-// Fungsi memuat state kuis yang tersimpan
 function loadQuizState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return false;
@@ -899,8 +965,41 @@ function startQuizTimerFromRemaining(seconds) {
     }, 1000);
 }
 
+function stopQuizTimer() {
+    if (timerIntervalId) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+    }
+    document.getElementById('floatingTimerCard').classList.add('d-none');
+}
+
+function updateTimerDisplay() {
+    const timerText = document.getElementById('quizTimerText');
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
+    timerText.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function autoSubmitQuizOnTimeout() {
+    showNotification("Waktu Habis! Semua jawaban Anda dikunci dan dikirim otomatis.");
+
+    const inputs = document.querySelectorAll('#interactiveQuizForm input, #interactiveQuizForm button, #interactiveQuizForm select');
+    inputs.forEach(element => element.disabled = true);
+
+    let nameInput = document.getElementById('studentNameInput').value.trim();
+    let absenInput = document.getElementById('studentAbsenInput').value.trim();
+
+    if (!nameInput) nameInput = "Siswa Tanpa Identitas";
+    if (!absenInput) absenInput = "99";
+
+    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>Waktu Habis! Jawaban Terkirim Otomatis`;
+    
+    const fakeEvent = { preventDefault: () => {} };
+    submitInteractiveQuiz(fakeEvent);
+}
+
 // ============================================================
-// FUNGSI KIRIM KE GOOGLE SHEETS (TAMBAHAN BARU)
+// FUNGSI KIRIM KE GOOGLE SHEETS
 // ============================================================
 async function saveToGoogleSheets(studentData) {
     try {
@@ -950,7 +1049,164 @@ async function saveToGoogleSheets(studentData) {
 }
 
 // ============================================================
-// SUBMIT KUIS DENGAN POPUP UNDUH WAJIB (DI MODIFIKASI)
+// FUNGSI DRAW CONNECTIONS YANG DISEMPURNAKAN (MENJODOHKAN)
+// ============================================================
+function drawConnections(qId) {
+    const container = document.getElementById(`matching_container_${qId}`);
+    const canvas = document.getElementById(`canvas_${qId}`);
+    if (!container || !canvas) return;
+
+    // Update ukuran canvas sesuai container
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (!quizConnections || !quizConnections[qId]) return;
+    
+    // Gambar semua garis yang tersimpan
+    Object.keys(quizConnections[qId]).forEach(leftIdx => {
+        const rightVal = quizConnections[qId][leftIdx];
+        
+        const leftDot = document.getElementById(`dot_left_${qId}_${leftIdx}`);
+        const rightDot = document.getElementById(`dot_right_${qId}_opt_${rightVal}`);
+        
+        if (leftDot && rightDot) {
+            const leftRect = leftDot.getBoundingClientRect();
+            const rightRect = rightDot.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            const startX = leftRect.left + leftRect.width/2 - containerRect.left;
+            const startY = leftRect.top + leftRect.height/2 - containerRect.top;
+            const endX = rightRect.left + rightRect.width/2 - containerRect.left;
+            const endY = rightRect.top + rightRect.height/2 - containerRect.top;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = '#0f766e';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            // Gambar panah kecil di ujung
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const arrowSize = 8;
+            const arrowX = endX - 12 * Math.cos(angle);
+            const arrowY = endY - 12 * Math.sin(angle);
+            
+            ctx.beginPath();
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(arrowX - arrowSize * Math.cos(angle - Math.PI/6), arrowY - arrowSize * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(arrowX - arrowSize * Math.cos(angle + Math.PI/6), arrowY - arrowSize * Math.sin(angle + Math.PI/6));
+            ctx.fillStyle = '#0f766e';
+            ctx.fill();
+        }
+    });
+}
+
+// ============================================================
+// FUNGSI INIT MATCHING QUIZ YANG DISEMPURNAKAN
+// ============================================================
+function initMatchingQuiz(qId) {
+    const container = document.getElementById(`matching_container_${qId}`);
+    if (!container) return;
+    
+    const leftDots = container.querySelectorAll('.matching-node-left .matching-dot');
+    const rightDots = container.querySelectorAll('.matching-node-right .matching-dot');
+    
+    let selectedLeftIdx = null;
+    
+    // Event untuk left dots (warna teal)
+    leftDots.forEach(dot => {
+        // Hapus event listener lama
+        const newDot = dot.cloneNode(true);
+        dot.parentNode.replaceChild(newDot, dot);
+        
+        const leftIdx = newDot.getAttribute('data-node-idx');
+        
+        newDot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Hapus active dari semua left dot
+            document.querySelectorAll(`#matching_container_${qId} .matching-node-left .matching-dot`).forEach(d => {
+                d.classList.remove('active-glow');
+            });
+            newDot.classList.add('active-glow');
+            selectedLeftIdx = leftIdx;
+        });
+        
+        newDot.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll(`#matching_container_${qId} .matching-node-left .matching-dot`).forEach(d => {
+                d.classList.remove('active-glow');
+            });
+            newDot.classList.add('active-glow');
+            selectedLeftIdx = leftIdx;
+        });
+    });
+    
+    // Event untuk right dots (warna oranye)
+    rightDots.forEach(dot => {
+        const newDot = dot.cloneNode(true);
+        dot.parentNode.replaceChild(newDot, dot);
+        
+        const rightVal = newDot.getAttribute('data-node-val');
+        
+        newDot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (selectedLeftIdx !== null) {
+                if (!quizConnections) quizConnections = {};
+                if (!quizConnections[qId]) quizConnections[qId] = {};
+                quizConnections[qId][selectedLeftIdx] = rightVal;
+                
+                // Hapus active glow
+                document.querySelectorAll(`#matching_container_${qId} .matching-node-left .matching-dot`).forEach(d => {
+                    d.classList.remove('active-glow');
+                });
+                selectedLeftIdx = null;
+                
+                // Gambar ulang garis
+                drawConnections(qId);
+                showNotification("Berhasil dihubungkan!");
+                
+                // Simpan state
+                saveQuizState();
+            } else {
+                showNotification("Klik bulatan kiri (warna Teal) terlebih dahulu!");
+            }
+        });
+        
+        newDot.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (selectedLeftIdx !== null) {
+                if (!quizConnections) quizConnections = {};
+                if (!quizConnections[qId]) quizConnections[qId] = {};
+                quizConnections[qId][selectedLeftIdx] = rightVal;
+                
+                document.querySelectorAll(`#matching_container_${qId} .matching-node-left .matching-dot`).forEach(d => {
+                    d.classList.remove('active-glow');
+                });
+                selectedLeftIdx = null;
+                
+                drawConnections(qId);
+                showNotification("Berhasil dihubungkan!");
+                saveQuizState();
+            } else {
+                showNotification("Klik bulatan kiri (warna Teal) terlebih dahulu!");
+            }
+        });
+    });
+    
+    // Gambar garis yang sudah ada
+    setTimeout(() => drawConnections(qId), 100);
+}
+
+// ============================================================
+// SUBMIT KUIS
 // ============================================================
 async function submitInteractiveQuiz(e) {
     e.preventDefault();
@@ -1054,7 +1310,6 @@ async function submitInteractiveQuiz(e) {
     showNotification("⚠️ Silakan unduh gambar bukti terlebih dahulu!");
 }
 
-// Override fungsi downloadTamperProofJPG - setelah unduh, baru muncul tombol keluar
 window.downloadTamperProofJPG = function() {
     if (!currentStudentData) return;
     
@@ -1085,7 +1340,6 @@ window.downloadTamperProofJPG = function() {
     });
 };
 
-// Reset setelah modal ditutup
 window.onCloseResultModal = function() {
     if (!isQuizSubmitted) return;
     document.getElementById('quizStartPanel').classList.remove('d-none');
@@ -1094,7 +1348,6 @@ window.onCloseResultModal = function() {
     localStorage.removeItem(STORAGE_KEY);
 };
 
-// Modifikasi syncAndStartQuiz agar memuat state jika ada
 window.syncAndStartQuiz = async function() {
     if (loadQuizState()) {
         showNotification("Melanjutkan kuis yang belum selesai...");
@@ -1114,7 +1367,7 @@ window.syncAndStartQuiz = async function() {
 };
 
 // ============================================================
-// SELURUH FUNGSI ASLI ANDA (TIDAK BERUBAH)
+// FUNGSI ASLI (TIDAK DIUBAH)
 // ============================================================
 
 function extractFileIdFromFolderHtml(html, fileName = "kuis") {
@@ -1346,39 +1599,6 @@ function startQuizTimer(minutes) {
     }, 1000);
 }
 
-function stopQuizTimer() {
-    if (timerIntervalId) {
-        clearInterval(timerIntervalId);
-        timerIntervalId = null;
-    }
-    document.getElementById('floatingTimerCard').classList.add('d-none');
-}
-
-function updateTimerDisplay() {
-    const timerText = document.getElementById('quizTimerText');
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = remainingSeconds % 60;
-    timerText.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
-function autoSubmitQuizOnTimeout() {
-    showNotification("Waktu Habis! Semua jawaban Anda dikunci dan dikirim otomatis.");
-
-    const inputs = document.querySelectorAll('#interactiveQuizForm input, #interactiveQuizForm button, #interactiveQuizForm select');
-    inputs.forEach(element => element.disabled = true);
-
-    let nameInput = document.getElementById('studentNameInput').value.trim();
-    let absenInput = document.getElementById('studentAbsenInput').value.trim();
-
-    if (!nameInput) nameInput = "Siswa Tanpa Identitas";
-    if (!absenInput) absenInput = "99";
-
-    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>Waktu Habis! Jawaban Terkirim Otomatis`;
-    
-    const fakeEvent = { preventDefault: () => {} };
-    submitInteractiveQuiz(fakeEvent);
-}
-
 function resetStartButton() {
     const btn = document.getElementById('btnStartQuiz');
     const textSpan = document.getElementById('startText');
@@ -1545,200 +1765,6 @@ function renderQuiz() {
     }, 300);
 }
 
-function initMatchingQuiz(qId) {
-    const container = document.getElementById(`matching_container_${qId}`);
-    const canvas = document.getElementById(`canvas_${qId}`);
-    if (!container || !canvas) return;
-
-    function resizeAndDraw() {
-        const rect = container.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-        canvas.style.width = rect.width + 'px';
-        canvas.style.height = rect.height + 'px';
-        drawConnections(qId);
-    }
-    
-    window.addEventListener('resize', () => setTimeout(resizeAndDraw, 100));
-    setTimeout(resizeAndDraw, 100);
-
-    const leftDots = container.querySelectorAll('.matching-node-left .matching-dot');
-    const rightDots = container.querySelectorAll('.matching-node-right .matching-dot');
-
-    let selectedLeftDotIdx = null; 
-
-    function getDotCenter(dotElement) {
-        const dotRect = dotElement.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        return {
-            x: dotRect.left - containerRect.left + dotRect.width / 2,
-            y: dotRect.top - containerRect.top + dotRect.height / 2
-        };
-    }
-
-    leftDots.forEach(dot => {
-        const leftIdx = parseInt(dot.getAttribute('data-node-idx'));
-
-        const handleStart = (e) => {
-            if (e.cancelable) e.preventDefault();
-            const touch = e.touches ? e.touches[0] : e;
-            const containerRect = container.getBoundingClientRect();
-
-            leftDots.forEach(d => d.classList.remove('active-glow'));
-            dot.classList.add('active-glow');
-
-            selectedLeftDotIdx = leftIdx;
-
-            const center = getDotCenter(dot);
-            activeDragConnection = {
-                qId: qId,
-                leftIdx: leftIdx,
-                startX: center.x,
-                startY: center.y,
-                currentX: touch.clientX - containerRect.left,
-                currentY: touch.clientY - containerRect.top
-            };
-        };
-
-        dot.addEventListener('mousedown', handleStart);
-        dot.addEventListener('touchstart', handleStart, { passive: false });
-
-        dot.addEventListener('click', (e) => {
-            e.preventDefault();
-            selectedLeftDotIdx = leftIdx;
-            leftDots.forEach(d => d.classList.remove('active-glow'));
-            dot.classList.add('active-glow');
-        });
-    });
-
-    rightDots.forEach(dot => {
-        const rightVal = dot.getAttribute('data-node-val');
-
-        dot.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (selectedLeftDotIdx !== null) {
-                if (!quizConnections[qId]) quizConnections[qId] = {};
-                quizConnections[qId][selectedLeftDotIdx] = rightVal;
-                
-                leftDots.forEach(d => d.classList.remove('active-glow'));
-                selectedLeftDotIdx = null;
-
-                drawConnections(qId);
-                showNotification("Garis dihubungkan!");
-                saveQuizState();
-            } else {
-                showNotification("Pilih bulatan Kiri (Teal) dulu!");
-            }
-        });
-    });
-
-    const handleMove = (e) => {
-        if (!activeDragConnection || activeDragConnection.qId !== qId) return;
-        if (e.cancelable) e.preventDefault();
-
-        const touch = e.touches ? e.touches[0] : e;
-        const containerRect = container.getBoundingClientRect();
-
-        activeDragConnection.currentX = touch.clientX - containerRect.left;
-        activeDragConnection.currentY = touch.clientY - containerRect.top;
-
-        drawConnections(qId);
-    };
-
-    const handleEnd = (e) => {
-        if (!activeDragConnection || activeDragConnection.qId !== qId) return;
-        
-        const touch = e.changedTouches ? e.changedTouches[0] : e;
-        let targetDot = null;
-
-        rightDots.forEach(rDot => {
-            const rect = rDot.getBoundingClientRect();
-            if (
-                touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                touch.clientY >= rect.top && touch.clientY <= rect.bottom
-            ) {
-                targetDot = rDot;
-            }
-        });
-
-        if (targetDot) {
-            const rightVal = targetDot.getAttribute('data-node-val');
-            if (!quizConnections[qId]) quizConnections[qId] = {};
-            
-            quizConnections[qId][activeDragConnection.leftIdx] = rightVal;
-            showNotification("Garis dihubungkan!");
-            saveQuizState();
-        }
-
-        activeDragConnection = null;
-        leftDots.forEach(d => d.classList.remove('active-glow'));
-        selectedLeftDotIdx = null;
-
-        drawConnections(qId);
-    };
-
-    container.addEventListener('mousemove', handleMove);
-    container.addEventListener('touchmove', handleMove, { passive: false });
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchend', handleEnd);
-}
-
-function drawConnections(qId) {
-    const container = document.getElementById(`matching_container_${qId}`);
-    const canvas = document.getElementById(`canvas_${qId}`);
-    if (!container || !canvas) return;
-
-    const rect = container.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (quizConnections[qId]) {
-        Object.keys(quizConnections[qId]).forEach(leftIdx => {
-            const rightVal = quizConnections[qId][leftIdx];
-
-            const leftDot = document.getElementById(`dot_left_${qId}_${leftIdx}`);
-            const rightDot = document.getElementById(`dot_right_${qId}_opt_${rightVal}`);
-
-            if (leftDot && rightDot) {
-                const lRect = leftDot.getBoundingClientRect();
-                const rRect = rightDot.getBoundingClientRect();
-                const cRect = container.getBoundingClientRect();
-
-                const startX = lRect.left - cRect.left + lRect.width / 2;
-                const startY = lRect.top - cRect.top + lRect.height / 2;
-                const endX = rRect.left - cRect.left + rRect.width / 2;
-                const endY = rRect.top - cRect.top + rRect.height / 2;
-
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(endX, endY);
-                ctx.strokeStyle = '#0f766e';
-                ctx.lineWidth = 4;
-                ctx.lineCap = 'round';
-                ctx.shadowColor = 'rgba(20, 184, 166, 0.4)';
-                ctx.shadowBlur = 6;
-                ctx.stroke();
-            }
-        });
-    }
-
-    if (activeDragConnection && activeDragConnection.qId === qId) {
-        ctx.beginPath();
-        ctx.moveTo(activeDragConnection.startX, activeDragConnection.startY);
-        ctx.lineTo(activeDragConnection.currentX, activeDragConnection.currentY);
-        ctx.strokeStyle = '#f97316';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([6, 6]);
-        ctx.lineCap = 'round';
-        ctx.shadowColor = 'rgba(249, 115, 22, 0.4)';
-        ctx.shadowBlur = 8;
-        ctx.stroke();
-        ctx.setLineDash([]);
-    }
-}
-
 function selectOption(element, radioId) {
     const radio = document.getElementById(radioId);
     if (radio && radio.disabled) return;
@@ -1851,7 +1877,11 @@ function loadQuizHistory() {
     let history = localStorage.getItem('sdn3_quiz_history');
     
     if (!history || JSON.parse(history).length === 0) {
-        historyBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td></tr>`;
+        historyBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td>
+            </tr>
+        `;
         return;
     }
 
@@ -1944,7 +1974,11 @@ window.loadRekapGuru = function() {
     let rekap = localStorage.getItem('sdn3_rekap_guru');
     
     if (!rekap || JSON.parse(rekap).length === 0) {
-        body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk. Selesaikan kuis untuk mengisi rekap.</td></tr>`;
+        body.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk. Selesaikan kuis untuk mengisi rekap.</td>
+            </tr>
+        `;
         return;
     }
     

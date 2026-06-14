@@ -17,6 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
+        /* [STYLE ANDA TETAP SAMA - TIDAK BERUBAH] */
         :root {
             --teal-dark: #0f766e;
             --teal-medium: #14b8a6;
@@ -33,7 +34,6 @@
             background-color: #f1f5f9;
             color: #334155;
             overflow-x: hidden;
-            /* Membuat tampilan web terasa pas seperti aplikasi HP Android */
             max-width: 480px;
             margin: 0 auto;
             min-height: 100vh;
@@ -41,7 +41,6 @@
             position: relative;
         }
 
-        /* --- STYLING UNTUK PASSWORD LOCKSCREEN (MOBILE APP DESIGN) --- */
         #passwordOverlay {
             position: fixed;
             top: 0;
@@ -66,13 +65,10 @@
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        /* Menyembunyikan konten utama sebelum password benar */
         #mainContent {
             display: none;
             padding-bottom: 80px;
         }
-
-        /* Teal & Orange Theme Custom Classes */
         .bg-teal-dark {
             background-color: var(--teal-dark) !important;
         }
@@ -91,8 +87,6 @@
         .border-teal-light {
             border-color: var(--teal-light) !important;
         }
-
-        /* Android Native Style Buttons */
         .btn-teal {
             background-color: var(--teal-dark);
             color: white;
@@ -142,8 +136,6 @@
             transform: scale(0.96);
             box-shadow: none;
         }
-
-        /* Custom Mobile Cards */
         .custom-card {
             border: none;
             border-radius: 20px;
@@ -152,8 +144,6 @@
             margin-bottom: 16px;
             border: 1px solid rgba(15, 118, 110, 0.05);
         }
-
-        /* Interactive Menu Cards (HP Android Touch Style) */
         .interactive-menu-card {
             cursor: pointer;
             transition: var(--transition-smooth);
@@ -174,8 +164,6 @@
         .interactive-menu-card.menu-lain {
             border-bottom: 5px solid var(--bs-primary);
         }
-
-        /* Banner Kelas Ringkas */
         .class-banner {
             background: linear-gradient(135deg, var(--teal-dark) 0%, #115e59 100%);
             border-radius: 20px;
@@ -183,8 +171,6 @@
             position: relative;
             box-shadow: 0 8px 24px rgba(15, 118, 110, 0.1);
         }
-
-        /* Quiz UI Mobile-first Styles */
         .option-container {
             border: 1px solid #e2e8f0;
             border-radius: 14px;
@@ -204,8 +190,6 @@
             border-color: var(--teal-dark);
             font-weight: 700;
         }
-
-        /* UI Menjodohkan Tarik Garis (HP Android Responsive Canvas) */
         .matching-wrapper {
             position: relative;
             min-height: 250px;
@@ -221,8 +205,6 @@
             pointer-events: none;
             z-index: 5;
         }
-        
-        /* Bulatan Tarik Garis Lebih Mudah Ditekan di HP */
         .matching-dot {
             display: block !important;
             width: 26px !important;
@@ -246,8 +228,6 @@
             transform: scale(1.4);
             box-shadow: 0 0 14px rgba(20, 184, 166, 0.9) !important;
         }
-
-        /* --- PERBAIKAN PRATINJAU GOOGLE DRIVE AGAR 100% PRESISI DI HP --- */
         .drive-iframe-wrapper {
             width: 100%;
             height: 480px;
@@ -256,7 +236,7 @@
             border: 1px solid #cbd5e1;
             background-color: #ffffff;
             position: relative;
-            -webkit-overflow-scrolling: touch; /* Mulus di peramban seluler iOS/Android */
+            -webkit-overflow-scrolling: touch;
         }
         .drive-iframe-wrapper iframe {
             position: absolute;
@@ -267,8 +247,6 @@
             border: none !important;
             outline: none !important;
         }
-
-        /* Floating Timer Layout Mobile */
         .floating-timer-card {
             position: sticky;
             top: 8px;
@@ -279,8 +257,6 @@
             border-radius: 16px;
             box-shadow: 0 8px 20px rgba(249, 115, 22, 0.15);
         }
-
-        /* --- STYLING UTAMA PREVIEW BUKTI DI HP ANDROID --- */
         #pdfCertificateTemplate {
             width: 595px;
             padding: 30px;
@@ -310,8 +286,6 @@
             background-color: var(--orange-light);
             font-size: 0.8rem;
         }
-
-        /* Desain UI Lembaran Form Android */
         .form-control {
             height: 48px;
             border-radius: 14px;
@@ -324,8 +298,6 @@
             border-color: var(--teal-medium);
             box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15);
         }
-
-        /* Skeleton Loading */
         .skeleton-loader {
             background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
             background-size: 200% 100%;
@@ -336,8 +308,6 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
-
-        /* Media Query HP Android Presisi */
         @media (max-width: 575.98px) {
             .modal-dialog {
                 margin: 0.5rem !important;
@@ -368,7 +338,7 @@
         <div class="text-teal mb-3">
             <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
         </div>
-        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
+        <h4 class="fw-bold text-dark mb-1">Akses Terbatasss</h4>
         <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
         
         <form onsubmit="checkPassword(event)">
@@ -386,21 +356,17 @@
     
     <!-- SUBVIEW: DASHBOARD / TAMPILAN AWAL -->
     <div id="view-dashboard" class="fade-in-view">
-        <!-- Header & Breadcrumb HP Style -->
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <span class="fw-bold text-dark small">
                 <i class="bi bi-house-door-fill text-teal me-1"></i>Portal Kelas V
             </span>
-            <!-- Tombol Rahasia Akses Guru dengan Sandi 11223344 -->
             <button onclick="promptGuruMenu()" class="btn btn-sm btn-outline-teal rounded-pill px-2.5 py-1 text-xs" style="height: auto;">
                 <i class="bi bi-person-badge-fill me-1"></i>Menu Guru
             </button>
         </div>
 
-        <!-- HEADER BANNER KELAS SDN 3 NGANTRU -->
         <div class="class-banner p-3 text-white mb-3 position-relative">
             <div class="d-flex align-items-center gap-3">
-                <!-- Logo SDN 3 Ngantru -->
                 <div class="bg-white rounded-circle p-1.5 shadow-sm d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; min-width: 72px;">
                     <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/100x100/0f766e/ffffff?text=SDN3';" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
@@ -413,7 +379,6 @@
                 </div>
             </div>
             
-            <!-- Profil Singkat Guru Bawah -->
             <div class="mt-3 pt-3 border-top border-white border-opacity-10 d-flex align-items-center gap-2">
                 <div class="bg-white rounded-circle p-0.5" style="width: 32px; height: 32px; min-width: 32px;">
                     <img src="foto guru.png" alt="Aburrizal Hamdani Lubis, S.Pd" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
@@ -425,12 +390,10 @@
             </div>
         </div>
 
-        <!-- MENU UTAMA INTERAKTIF -->
         <div class="row g-2 mb-3">
             <div class="col-12">
                 <h6 class="fw-bold mb-2 text-dark px-1"><i class="bi bi-grid-1x2-fill text-teal me-1"></i>Menu Utama Kelas</h6>
             </div>
-            <!-- Menu 1: MATERI -->
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-materi p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('materi')">
                     <div class="d-flex align-items-center gap-3">
@@ -446,7 +409,6 @@
                 </div>
             </div>
 
-            <!-- Menu 2: TUGAS -->
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-tugas p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('tugas')">
                     <div class="d-flex align-items-center gap-3">
@@ -462,7 +424,6 @@
                 </div>
             </div>
 
-            <!-- Menu 3: LAIN-LAIN -->
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-lain p-3 d-flex flex-row align-items-center justify-content-between" onclick="window.location.href='lain-lain.html'">
                     <div class="d-flex align-items-center gap-3">
@@ -480,9 +441,8 @@
         </div>
     </div>
 
-    <!-- SUBVIEW: MATERI BELAJAR (Google Drive Integration) -->
+    <!-- SUBVIEW: MATERI BELAJAR -->
     <div id="view-materi" class="fade-in-view d-none">
-        <!-- Back Navigation -->
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
                 <i class="bi bi-arrow-left me-1"></i> Kembali
@@ -502,7 +462,6 @@
             </p>
         </div>
 
-        <!-- Warning Alert / Tip HP -->
         <div class="alert alert-warning border-0 rounded-4 p-3 mb-3 d-flex align-items-start bg-orange-light">
             <i class="bi bi-info-circle-fill text-orange fs-5 me-2 mt-0.5"></i>
             <div class="small">
@@ -513,7 +472,6 @@
             </div>
         </div>
 
-        <!-- IFRAME GOOGLE DRIVE FOLDER - DIJAMIN PRESISI 100% -->
         <div class="card custom-card p-1.5 mb-3">
             <div class="drive-iframe-wrapper">
                 <iframe src="https://drive.google.com/embeddedfolderview?id=1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V#list" allow="autoplay"></iframe>
@@ -523,14 +481,12 @@
 
     <!-- SUBVIEW: TUGAS & UJIAN -->
     <div id="view-tugas" class="fade-in-view d-none">
-        <!-- Back Navigation -->
         <div class="mb-3">
             <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
                 <i class="bi bi-arrow-left me-1"></i> Kembali
             </button>
         </div>
 
-        <!-- LAYAR START KUIS SEDERHANA + FORM IDENTITAS SISWA -->
         <div id="quizStartPanel" class="card custom-card p-3 mb-3 border-0 bg-teal-light">
             <div class="text-center">
                 <div class="mx-auto bg-white rounded-circle shadow-sm p-3 mb-2 d-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
@@ -542,7 +498,6 @@
                 </p>
             </div>
 
-            <!-- IDENTITAS SISWA -->
             <div class="card p-3 border border-teal-light bg-white rounded-4 shadow-sm mb-3">
                 <h6 class="fw-bold text-teal mb-2 small"><i class="bi bi-person-badge-fill me-1"></i>Lengkapi Identitas Siswa</h6>
                 <div class="row g-2">
@@ -557,7 +512,6 @@
                 </div>
             </div>
             
-            <!-- Alert Informasi Waktu Kuis -->
             <div id="quizScheduleAlert" class="alert alert-secondary d-none border-0 rounded-4 py-2 px-3 mb-3 text-center">
                 <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis Akses:</span>
                 <span class="small text-muted d-block" id="scheduleText">-</span>
@@ -572,7 +526,6 @@
             </div>
         </div>
 
-        <!-- SKELETON LOADER -->
         <div id="quizLoader" class="d-none mb-3">
             <div class="card custom-card p-3">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
@@ -591,10 +544,8 @@
             </div>
         </div>
 
-        <!-- AREA KUIS DINAMIS YANG DI-IMPORT -->
         <div id="quizArea" class="d-none mb-3">
             
-            <!-- STICKY FLOATING TIMEOUT TIMER CARD -->
             <div id="floatingTimerCard" class="floating-timer-card p-2 mb-3 d-none">
                 <div class="d-flex justify-content-between align-items-center px-1">
                     <div class="d-flex align-items-center gap-1.5">
@@ -615,11 +566,8 @@
                     </div>
                 </div>
 
-                <!-- Kontainer Soal -->
                 <form id="interactiveQuizForm" onsubmit="submitInteractiveQuiz(event)">
-                    <div id="questionsContainer" class="d-flex flex-column gap-3">
-                        <!-- Soal kuis dimuat dinamis -->
-                    </div>
+                    <div id="questionsContainer" class="d-flex flex-column gap-3"></div>
 
                     <div class="text-end pt-3 border-top mt-3">
                         <button type="submit" id="btnSubmitQuizForm" class="btn btn-orange w-100 rounded-pill text-white">
@@ -630,7 +578,6 @@
             </div>
         </div>
 
-        <!-- RIWAYAT MENGERJAKAN KUIS (LOCAL STORAGE) -->
         <div class="card custom-card p-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-teal me-1"></i>Riwayat Hasil Belajar</h6>
@@ -647,16 +594,13 @@
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="quizHistoryBody" style="font-size: 0.8rem;">
-                        <!-- Riwayat kuis dimuat dinamis -->
-                    </tbody>
+                    <tbody id="quizHistoryBody" style="font-size: 0.8rem;"></tbody>
                 </table>
             </div>
         </div>
-
     </div>
 
-    <!-- SUBVIEW BARU: REKAPITULASI DATA MENU GURU -->
+    <!-- SUBVIEW: REKAPITULASI DATA MENU GURU -->
     <div id="view-rekap-guru" class="fade-in-view d-none">
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 btn-sm fw-semibold" onclick="navigateTo('dashboard')">
@@ -665,38 +609,18 @@
             <span class="badge bg-danger rounded-pill px-2.5 py-1 text-xs">Akses Khusus</span>
         </div>
 
-        <!-- FIREBASE AUTO-CONFIGURATOR CARD FOR GITHUB PAGES (MUNCUL JIKA MODE LOKAL AKTIF) -->
-        <div id="firebaseConfigCard" class="card custom-card p-3 mb-3 border-warning bg-warning bg-opacity-10 d-none">
-            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-cloud-slash-fill text-warning me-1"></i>Awan Belum Aktif di GitHub Pages</h6>
-            <p class="text-muted mb-3" style="font-size: 0.72rem; line-height: 1.35;">
-                Agar nilai siswa otomatis tersinkronisasi nirkabel ke HP Anda secara langsung, Bapak/Ibu hanya perlu menempelkan (*paste*) konfigurasi Firebase Anda di bawah ini, lalu klik tombol simpan.
-            </p>
-            <div class="space-y-2">
-                <textarea id="firebaseConfigInput" class="form-control font-monospace w-100" style="font-size: 0.72rem; height: 110px;" placeholder='Tempel kode Firebase di sini...&#10;&#10;Contoh:&#10;const firebaseConfig = {&#10;  apiKey: "AIzaSy...",&#10;  ...&#10;};'></textarea>
-                <button onclick="applyAndDownloadConfiguredHTML()" class="btn btn-warning btn-sm w-100 rounded-pill py-2 fw-extrabold mt-2 text-dark">
-                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> Terapkan & Unduh index.html Siap Pakai
-                </button>
-                <div class="mt-2 text-center">
-                    <a href="https://firebase.google.com/" target="_blank" class="text-teal text-decoration-none small fw-semibold block mt-1" style="font-size: 0.7rem;">
-                        <i class="bi bi-question-circle"></i> Buka Google Firebase Console (Gratis)
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <div class="card custom-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                     <h6 class="fw-bold text-teal mb-0"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i>Rekap Nilai Siswa</h6>
-                    <small class="text-muted block text-[10px]" id="db-status-badge">Mode lokal aktif. Tidak terhubung database cloud.</small>
+                    <small class="text-muted block text-[10px]" id="db-status-badge">Mode Google Sheets • Siap Menerima Data</small>
                 </div>
-                <!-- Tombol Reset Lembar Rekap -->
                 <button onclick="triggerResetRekap()" class="btn btn-sm btn-danger rounded-pill px-2.5 py-1 text-xs" style="height: auto;">
                     <i class="bi bi-trash-fill"></i> Reset
                 </button>
             </div>
             <p class="text-muted mb-3 small" style="font-size: 0.75rem;">
-                Berikut adalah rekapitulasi nilai kuis siswa yang dikirimkan secara langsung dari HP siswa secara nirkabel.
+                Berikut adalah rekapitulasi nilai kuis siswa yang dikirimkan secara langsung dari HP siswa ke Google Sheets.
             </p>
             <button onclick="downloadRekapExcel()" class="btn btn-teal w-100 rounded-pill btn-sm mb-1 text-white">
                 <i class="bi bi-download me-1"></i> Unduh Berkas Rekap Excel
@@ -715,17 +639,16 @@
                     </thead>
                     <tbody id="rekapGuruTableBody" style="font-size: 0.8rem;">
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td>
+                            <td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk. Selesaikan kuis untuk mengisi rekap.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
 </div>
 
-<!-- DIALOG KONFIRMASI KUSTOM (MODAL PENGGANTI CONFIRM BROWSER) -->
+<!-- DIALOG KONFIRMASI KUSTOM -->
 <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 340px; margin: 1.5rem auto;">
         <div class="modal-content border-0 rounded-4 shadow-lg">
@@ -744,7 +667,7 @@
     </div>
 </div>
 
-<!-- MODAL UNDUH BUKTI & KIRIM WA (PILIHAN DUA LANGKAH) -->
+<!-- MODAL UNDUH BUKTI & KIRIM WA -->
 <div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0">
@@ -759,11 +682,9 @@
                 <h6 class="fw-bold mb-1" id="quizResultTitle">Pengerjaan Disimpan!</h6>
                 <p class="text-muted small mb-3" style="font-size: 0.75rem;">Pratinjau bukti belajar resmi ananda di bawah ini. Geser ke samping jika terpotong, lalu tekan tombol unduh.</p>
 
-                <!-- AREA PRATINJAU SERTIFIKAT (HP Android Scrollable & Scaled Container) -->
                 <div class="border rounded-4 p-2 bg-secondary bg-opacity-10 mb-3 text-start d-flex justify-content-start overflow-auto" style="max-height: 320px; -webkit-overflow-scrolling: touch;">
                     <div style="min-width: 595px; width: 595px; flex-shrink: 0; display: inline-block;">
                         <div id="pdfCertificateTemplate">
-                            <!-- HEADER KOP SURAT SEKOLAH -->
                             <div class="cert-header text-center d-flex align-items-center justify-content-center gap-2">
                                 <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid" style="width: 56px; height: 56px; object-fit: contain;">
                                 <div>
@@ -781,23 +702,13 @@
                             <div class="my-3 small" style="line-height: 1.6; font-size: 0.85rem;">
                                 <p class="mb-2">Dengan ini, sistem pembelajaran portal digital menyatakan bahwa siswa di bawah ini:</p>
                                 <table class="table table-borderless ms-2 mb-2" style="width: 90%;">
-                                    <tr>
-                                        <td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td>
-                                        <td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold p-0">Nomor Absen</td>
-                                        <td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold p-0">Tanggal Ujian</td>
-                                        <td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td>
-                                    </tr>
+                                    <tr><td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td><td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td></tr>
+                                    <tr><td class="fw-bold p-0">Nomor Absen</td><td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td></tr>
+                                    <tr><td class="fw-bold p-0">Tanggal Ujian</td><td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td></tr>
                                 </table>
                                 <p class="mt-2 mb-0">Telah menyelesaikan evaluasi belajar mandiri terintegrasi secara jujur dengan hasil prestasi:</p>
                             </div>
 
-                            <!-- SKOR BESAR JAMINAN AMAN -->
                             <div class="d-flex align-items-center justify-content-around my-4">
                                 <div>
                                     <span class="text-muted d-block" style="font-size: 0.7rem;">PRESTASI SKOR:</span>
@@ -808,7 +719,6 @@
                                 </div>
                             </div>
 
-                            <!-- TANDA TANGAN DIGITAL GURU -->
                             <div class="row mt-4 pt-2">
                                 <div class="col-6">
                                     <div class="text-start pt-3">
@@ -819,7 +729,6 @@
                                 <div class="col-6 text-center">
                                     <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Guru Pengampu Kelas V</small>
                                     
-                                    <!-- Tanda Tangan Guru -->
                                     <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin: 1px 0;">
                                         <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 48px; max-width: 120px; object-fit: contain;">
                                     </div>
@@ -840,17 +749,14 @@
                     2. Kirimkan file gambar unduhan ke WA Pak Rizal.
                 </div>
 
-                <!-- TOMBOL UNDUH JPG -->
                 <button type="button" onclick="downloadTamperProofJPG()" class="btn btn-orange w-100 rounded-pill mb-2 text-white">
                     <i class="bi bi-download me-1"></i> 1. Unduh Bukti Gambar (JPG)
                 </button>
 
-                <!-- TOMBOL KIRIM WA -->
                 <button id="btnSendWA" type="button" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2 fw-bold mb-2 shadow-sm d-none" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
                     <i class="bi bi-whatsapp me-1"></i> 2. Kirim via WhatsApp Guru
                 </button>
 
-                <!-- TOMBOL TUTUP MODAL -->
                 <button id="btnCloseQuizResult" type="button" class="btn btn-teal w-100 rounded-pill py-2.5 fw-bold d-none" data-bs-dismiss="modal" onclick="onCloseResultModal()" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
                     Selesai & Tutup <i class="bi bi-check-circle-fill ms-1"></i>
                 </button>
@@ -876,35 +782,182 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    // ============================================================
+    // KONFIGURASI GOOGLE SHEETS API
+    // ============================================================
+    const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzxQ3cwfZLs9NFs9mhQ3wECiFvVLdm3resb7VKDBNwPU3_ro85TdUXpPsepKym_y5voWA/exec";
+    
+    // Variabel global
     let importedQuestions = [];
-    let currentStudentData = null; // Menyimpan data pengerjaan terakhir
+    let currentStudentData = null;
+    let quizStartTime = null;
+    let quizEndTime = null;
+    let quizDurationMinutes = 0;
+    let timerIntervalId = null;
+    let remainingSeconds = 0;
+    let quizConnections = {};
+    let activeDragConnection = null;
 
-    // Parameter Aturan Waktu Penjadwalan & Timer Kuis
-    let quizStartTime = null;      // Tanggal mulai
-    let quizEndTime = null;        // Tanggal berakhir
-    let quizDurationMinutes = 0;   // Durasi kuis (menit)
-    let timerIntervalId = null;    // ID interval countdown timer
-    let remainingSeconds = 0;      // Sisa waktu berjalan (detik)
-
-    // Data Penampung Garis Tarik Hubungan Menjodohkan
-    let quizConnections = {};      
-    let activeDragConnection = null; // Penampung temporary saat seret garis
-
-    // Tautan Folder Google Drive yang DIKUNCI / LOCKED
     const LOCKED_DRIVE_FOLDER_ID = "1vy-RR8BtBeGtvPRcyFTYP91fPEoG6QgB";
-
-    // Garam Kunci Rahasia untuk membuat kode identifikasi digital aman
     const SECRET_CRYPT_SALT = "SDN3_NGANTRU_SUPER_SECRET_SALT_2026_MATH5";
 
-    // Panggil fungsi saat window selesai dimuat
+    // ============================================================
+    // FUNGSI KIRIM KE GOOGLE SHEETS
+    // ============================================================
+    async function saveToGoogleSheets(studentData) {
+        try {
+            const payload = {
+                nama: studentData.name,
+                absen: studentData.absen,
+                skor: studentData.score,
+                tanggal: studentData.date,
+                waktu: new Date().toLocaleString('id-ID'),
+                sertifikat_id: studentData.certId,
+                kode_validasi: studentData.secureCode
+            };
+
+            const response = await fetch(GOOGLE_SHEETS_API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+
+            console.log("Data terkirim ke Google Sheets:", payload);
+            showNotification("✅ Nilai tersimpan ke Google Sheets!");
+            
+            // Simpan juga ke localStorage untuk rekap lokal
+            let rekap = localStorage.getItem('sdn3_rekap_guru');
+            rekap = rekap ? JSON.parse(rekap) : [];
+            rekap.unshift(studentData);
+            localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
+            
+            // Refresh tampilan rekap guru
+            if (typeof window.loadRekapGuru === 'function') {
+                window.loadRekapGuru();
+            }
+            
+            return true;
+        } catch (error) {
+            console.error("Gagal kirim ke Google Sheets:", error);
+            showNotification("⚠️ Gagal menyimpan ke Google Sheets, namun data tersimpan di lokal.");
+            
+            // Tetap simpan ke lokal jika gagal
+            let rekap = localStorage.getItem('sdn3_rekap_guru');
+            rekap = rekap ? JSON.parse(rekap) : [];
+            rekap.unshift(studentData);
+            localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
+            
+            return false;
+        }
+    }
+
+    // ============================================================
+    // FUNGSI LOAD REKAP DARI LOCALSTORAGE
+    // ============================================================
+    window.loadRekapGuru = function() {
+        const body = document.getElementById('rekapGuruTableBody');
+        if (!body) return;
+        
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        
+        if (!rekap || JSON.parse(rekap).length === 0) {
+            body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk. Selesaikan kuis untuk mengisi rekap.</td></tr>`;
+            return;
+        }
+        
+        rekap = JSON.parse(rekap);
+        body.innerHTML = '';
+        
+        rekap.forEach(data => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                    <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen}</small>
+                </td>
+                <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
+                <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
+            `;
+            body.appendChild(tr);
+        });
+    };
+    
+    // ============================================================
+    // FUNGSI SAVE KE REKAP (OVERLOAD)
+    // ============================================================
+    window.saveToRekapGuru = async function(studentData) {
+        await saveToGoogleSheets(studentData);
+    };
+    
+    // ============================================================
+    // FUNGSI RESET REKAP
+    // ============================================================
+    window.triggerResetRekap = function() {
+        const title = document.getElementById('confirmModalTitle');
+        const desc = document.getElementById('confirmModalDesc');
+        const btnAction = document.getElementById('btnConfirmModalAction');
+        
+        title.innerText = "Hapus Seluruh Rekap?";
+        desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen dari memori HP ini! Data di Google Sheets tetap aman.";
+        
+        btnAction.onclick = function() {
+            localStorage.removeItem('sdn3_rekap_guru');
+            window.loadRekapGuru();
+            bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+            showNotification("Rekap nilai lokal berhasil dihapus!");
+        };
+        
+        const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+        confirmModal.show();
+    };
+    
+    // ============================================================
+    // FUNGSI UNDUH EXCEL
+    // ============================================================
+    window.downloadRekapExcel = function() {
+        let rekap = localStorage.getItem('sdn3_rekap_guru');
+        if (!rekap || JSON.parse(rekap).length === 0) {
+            showNotification("Tidak ada data untuk diunduh!");
+            return;
+        }
+        
+        rekap = JSON.parse(rekap);
+        
+        const worksheetData = [
+            ["No", "Nama Siswa", "Nomor Absen", "Skor", "Tanggal", "ID Sertifikat", "Kode Validasi"]
+        ];
+        
+        rekap.forEach((data, index) => {
+            worksheetData.push([
+                index + 1,
+                data.name,
+                data.absen,
+                data.score,
+                data.date,
+                data.certId || "-",
+                data.secureCode || "-"
+            ]);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Rekap_Nilai_Siswa");
+        
+        XLSX.writeFile(wb, `Rekap_Nilai_Kelas_V_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+        showNotification("File Excel berhasil diunduh!");
+    };
+    
+    // ============================================================
+    // FUNGSI UTAMA WEBSITE
+    // ============================================================
     window.onload = function() {
         loadQuizHistory();
-        if (typeof window.loadRekapGuru === "function") {
-            window.loadRekapGuru();
-        }
+        window.loadRekapGuru();
     };
-
-    // Fungsi untuk navigasi antar view secara interaktif
+    
     function navigateTo(viewName) {
         const views = {
             'dashboard': document.getElementById('view-dashboard'),
@@ -912,25 +965,19 @@
             'tugas': document.getElementById('view-tugas'),
             'rekap': document.getElementById('view-rekap-guru')
         };
-
-        // Sembunyikan semua views
+        
         Object.keys(views).forEach(key => {
             if (views[key]) {
                 views[key].classList.add('d-none');
             }
         });
-
-        // Tampilkan view yang dipilih
+        
         if (viewName === 'rekap') {
             views['rekap'].classList.remove('d-none');
-            if (typeof window.loadRekapGuru === "function") {
-                window.loadRekapGuru();
-            }
+            window.loadRekapGuru();
         } else if (views[viewName]) {
             views[viewName].classList.remove('d-none');
             window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Ketika membuka subview tugas, kembalikan panel "Mulai Kuis" ke tampilan awal
             if (viewName === 'tugas') {
                 document.getElementById('quizStartPanel').classList.remove('d-none');
                 document.getElementById('quizArea').classList.add('d-none');
@@ -940,13 +987,12 @@
             }
         }
     }
-
-    // --- SKRIP CEK PASSWORD LOKAL ---
+    
     function checkPassword(e) {
         e.preventDefault();
         const enteredPassword = document.getElementById('inputPassword').value;
-        const correctPassword = "kelas5"; // Sandi pengunci lokal
-
+        const correctPassword = "kelas5";
+        
         if (enteredPassword === correctPassword) {
             document.getElementById('passwordOverlay').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
@@ -957,12 +1003,10 @@
             document.getElementById('inputPassword').value = '';
         }
     }
-
-    // --- DIALOG AKSES MENU REKAP GURU (Sandi 11223344) ---
+    
     function promptGuruMenu() {
         const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
-        if (password === null) return; // Batal
-
+        if (password === null) return;
         if (password === "11223344") {
             navigateTo('rekap');
             showNotification("Berhasil masuk ke Menu Rekapitulasi Guru.");
@@ -970,7 +1014,7 @@
             showNotification("Sandi salah! Akses ditolak.");
         }
     }
-
+    
     function extractFileIdFromFolderHtml(html, fileName = "kuis") {
         const lowercaseHtml = html.toLowerCase();
         const index = lowercaseHtml.indexOf(fileName.toLowerCase());
@@ -1000,12 +1044,11 @@
         
         return null;
     }
-
-    // Fungsi pembungkus utama saat siswa menekan tombol "Mulai Kuis"
+    
     async function syncAndStartQuiz() {
         const nameInput = document.getElementById('studentNameInput').value.trim();
         const absenInput = document.getElementById('studentAbsenInput').value.trim();
-
+        
         if (!nameInput || !absenInput) {
             showNotification("Mohon isi Nama Lengkap dan Nomor Absen terlebih dahulu!");
             if (!nameInput) {
@@ -1015,10 +1058,10 @@
             }
             return;
         }
-
+        
         await syncQuizFromDrive(true);
     }
-
+    
     async function syncQuizFromDrive(isManualClick = false) {
         const btn = document.getElementById('btnStartQuiz');
         const textSpan = document.getElementById('startText');
@@ -1026,7 +1069,7 @@
         const quizStartPanel = document.getElementById('quizStartPanel');
         const quizArea = document.getElementById('quizArea');
         const quizLoader = document.getElementById('quizLoader');
-
+        
         btn.disabled = true;
         textSpan.classList.add('d-none');
         spinner.classList.remove('d-none');
@@ -1034,28 +1077,26 @@
         quizStartPanel.classList.add('d-none');
         quizArea.classList.add('d-none');
         quizLoader.classList.remove('d-none');
-
+        
         if (isManualClick) {
             showNotification("Mengunduh lembar kuis terjadwal dari Google Drive...");
         }
-
-        // TAMBAHKAN PENANGKAL CACHE DINAMIS (ANTI-CACHE TIMESTAMPS)
+        
         const timestamp = Date.now();
-
+        
         try {
             const folderId = LOCKED_DRIVE_FOLDER_ID;
             const embeddedFolderUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
-            // AllOrigins anti-cache parameter
             const proxyFolderUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(embeddedFolderUrl)}&_=${timestamp}`;
-
+            
             const folderResponse = await fetch(proxyFolderUrl);
             if (!folderResponse.ok) {
                 throw new Error("Gagal mengakses folder via proksi.");
             }
-
+            
             const folderHtml = await folderResponse.text();
             const fileId = extractFileIdFromFolderHtml(folderHtml, "kuis");
-
+            
             if (!fileId) {
                 console.log("Mencoba mengambil fallback kuis.xlsx lokal dari GitHub dengan penangkal cache...");
                 const localResponse = await fetch(`kuis.xlsx?_=${timestamp}`);
@@ -1069,11 +1110,10 @@
                 processQuizAccess(isManualClick);
                 return;
             }
-
-            // Google Drive file export anti-cache parameter
+            
             const targetUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
             const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}&_=${timestamp}`;
-
+            
             const response = await fetch(proxyUrl);
             if (!response.ok) {
                 throw new Error("Gagal mengunduh file kuis.");
@@ -1081,14 +1121,13 @@
             
             const arrayBuffer = await response.arrayBuffer();
             await parseExcelData(arrayBuffer);
-
+            
             quizLoader.classList.add('d-none');
             processQuizAccess(isManualClick);
-
+            
         } catch (error) {
             console.error(error);
             try {
-                // Fallback dengan anti-cache parameter
                 const localResponse = await fetch(`kuis.xlsx?_=${timestamp}`);
                 if (localResponse.ok) {
                     const arrayBuffer = await localResponse.arrayBuffer();
@@ -1100,7 +1139,7 @@
             } catch (localErr) {
                 console.error("Gagal memuat file kuis cadangan lokal.", localErr);
             }
-
+            
             quizLoader.classList.add('d-none');
             quizStartPanel.classList.remove('d-none');
             showNotification("Gagal memuat kuis.");
@@ -1108,7 +1147,7 @@
             resetStartButton();
         }
     }
-
+    
     async function parseExcelData(arrayBuffer) {
         const data = new Uint8Array(arrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
@@ -1116,20 +1155,20 @@
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
+        
         if (jsonData.length === 0) {
             throw new Error("Berkas kuis Excel tidak sesuai atau kosong!");
         }
-
+        
         const firstRow = jsonData[0];
         const rawStart = firstRow['Waktu Mulai'] || firstRow['waktu mulai'] || null;
         const rawEnd = firstRow['Waktu Selesai'] || firstRow['waktu selesai'] || null;
         const rawDuration = firstRow['Durasi (Menit)'] || firstRow['durasi'] || firstRow['Durasi'] || 0;
-
+        
         quizStartTime = rawStart ? new Date(rawStart) : null;
         quizEndTime = rawEnd ? new Date(rawEnd) : null;
         quizDurationMinutes = parseInt(rawDuration) || 0;
-
+        
         importedQuestions = jsonData.map((row, index) => {
             return {
                 id: index + 1,
@@ -1143,7 +1182,7 @@
             };
         });
     }
-
+    
     function processQuizAccess(isManualClick) {
         const now = new Date();
         const quizStartPanel = document.getElementById('quizStartPanel');
@@ -1151,7 +1190,7 @@
         const alertBox = document.getElementById('quizScheduleAlert');
         const scheduleText = document.getElementById('scheduleText');
         const durationText = document.getElementById('durationText');
-
+        
         if (quizStartTime || quizEndTime) {
             alertBox.classList.remove('d-none');
             const formatOption = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -1162,7 +1201,7 @@
         } else {
             alertBox.classList.add('d-none');
         }
-
+        
         if (quizStartTime && now < quizStartTime) {
             quizStartPanel.classList.remove('d-none');
             quizArea.classList.add('d-none');
@@ -1170,7 +1209,7 @@
             alertBox.className = "alert alert-danger mx-auto py-2.5 px-4 mb-3 text-center";
             return;
         }
-
+        
         if (quizEndTime && now > quizEndTime) {
             quizStartPanel.classList.remove('d-none');
             quizArea.classList.add('d-none');
@@ -1178,49 +1217,49 @@
             alertBox.className = "alert alert-danger mx-auto py-2.5 px-4 mb-3 text-center";
             return;
         }
-
+        
         alertBox.className = "alert alert-success mx-auto py-2.5 px-4 mb-3 text-center";
         renderQuiz();
         
         if (isManualClick) {
             showNotification(`Menyiapkan lembar kuis! Batas pengerjaan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' menit' : 'Bebas'}.`);
         }
-
+        
         startQuizTimer(quizDurationMinutes);
         quizArea.scrollIntoView({ behavior: 'smooth' });
     }
-
+    
     function startQuizTimer(minutes) {
         stopQuizTimer();
-
+        
         const timerCard = document.getElementById('floatingTimerCard');
         const timerText = document.getElementById('quizTimerText');
-
+        
         if (!minutes || minutes <= 0) {
             timerCard.classList.add('d-none');
             return;
         }
-
+        
         timerCard.classList.remove('d-none');
         remainingSeconds = minutes * 60;
         updateTimerDisplay();
-
+        
         timerIntervalId = setInterval(() => {
             remainingSeconds--;
             updateTimerDisplay();
-
+            
             if (remainingSeconds <= 60) {
                 document.getElementById('floatingTimerCard').style.borderColor = '#ef4444';
                 timerText.classList.add('text-danger', 'animate-pulse');
             }
-
+            
             if (remainingSeconds <= 0) {
                 stopQuizTimer();
                 autoSubmitQuizOnTimeout();
             }
         }, 1000);
     }
-
+    
     function stopQuizTimer() {
         if (timerIntervalId) {
             clearInterval(timerIntervalId);
@@ -1228,32 +1267,32 @@
         }
         document.getElementById('floatingTimerCard').classList.add('d-none');
     }
-
+    
     function updateTimerDisplay() {
         const timerText = document.getElementById('quizTimerText');
         const minutes = Math.floor(remainingSeconds / 60);
         const seconds = remainingSeconds % 60;
         timerText.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
-
+    
     function autoSubmitQuizOnTimeout() {
         showNotification("Waktu Habis! Semua jawaban Anda dikunci dan dikirim otomatis.");
-
+        
         const inputs = document.querySelectorAll('#interactiveQuizForm input, #interactiveQuizForm button, #interactiveQuizForm select');
         inputs.forEach(element => element.disabled = true);
-
+        
         let nameInput = document.getElementById('studentNameInput').value.trim();
         let absenInput = document.getElementById('studentAbsenInput').value.trim();
-
+        
         if (!nameInput) nameInput = "Siswa Tanpa Identitas";
         if (!absenInput) absenInput = "99";
-
+        
         document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>Waktu Habis! Jawaban Terkirim Otomatis`;
         
         const fakeEvent = { preventDefault: () => {} };
         submitInteractiveQuiz(fakeEvent);
     }
-
+    
     function resetStartButton() {
         const btn = document.getElementById('btnStartQuiz');
         const textSpan = document.getElementById('startText');
@@ -1262,15 +1301,15 @@
         textSpan.classList.remove('d-none');
         spinner.classList.add('d-none');
     }
-
+    
     function renderQuiz() {
         const questionsContainer = document.getElementById('questionsContainer');
         questionsContainer.innerHTML = '';
         quizConnections = {};
-
+        
         importedQuestions.forEach((q, idx) => {
             let questionHtml = '';
-
+            
             if (q.tipe === 'PG') {
                 questionHtml = `
                     <div class="card p-3 border shadow-sm rounded-3">
@@ -1343,7 +1382,7 @@
                 const subItems = q.pertanyaan.split(';');
                 const instructionText = subItems[0];
                 const matchingRows = subItems.slice(1);
-
+                
                 let leftItemsHtml = '';
                 matchingRows.forEach((rowText, rowIdx) => {
                     leftItemsHtml += `
@@ -1353,7 +1392,7 @@
                         </div>
                     `;
                 });
-
+                
                 let rightItemsHtml = '';
                 const options = [
                     { val: 'A', text: q.pilihanA },
@@ -1361,7 +1400,7 @@
                     { val: 'C', text: q.pilihanC },
                     { val: 'D', text: q.pilihanD }
                 ].filter(o => o.text !== '');
-
+                
                 options.forEach((opt) => {
                     rightItemsHtml += `
                         <div class="matching-node-right d-flex align-items-center gap-2 p-2 mb-2 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_right_${q.id}_${opt.val}">
@@ -1370,7 +1409,7 @@
                         </div>
                     `;
                 });
-
+                
                 questionHtml = `
                     <div class="card p-3 border shadow-sm rounded-3">
                         <div class="mb-2"><span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Menjodohkan</span></div>
@@ -1404,13 +1443,13 @@
                     </div>
                 `;
             }
-
+            
             questionsContainer.insertAdjacentHTML('beforeend', questionHtml);
         });
-
+        
         document.getElementById('quizQuestionCount').innerText = `${importedQuestions.length} Soal`;
         document.getElementById('quizArea').classList.remove('d-none');
-
+        
         setTimeout(() => {
             importedQuestions.forEach(q => {
                 if (q.tipe === 'MENJODOHKAN') {
@@ -1419,20 +1458,20 @@
             });
         }, 300);
     }
-
+    
     function initMatchingQuiz(qId) {
         const container = document.getElementById(`matching_container_${qId}`);
         const canvas = document.getElementById(`canvas_${qId}`);
         if (!container || !canvas) return;
-
+        
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight;
-
+        
         const leftDots = container.querySelectorAll('.matching-node-left .matching-dot');
         const rightDots = container.querySelectorAll('.matching-node-right .matching-dot');
-
-        let selectedLeftDotIdx = null; 
-
+        
+        let selectedLeftDotIdx = null;
+        
         function getDotCenter(dotElement) {
             const dotRect = dotElement.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
@@ -1441,20 +1480,20 @@
                 y: dotRect.top - containerRect.top + dotRect.height / 2
             };
         }
-
+        
         leftDots.forEach(dot => {
             const leftIdx = parseInt(dot.getAttribute('data-node-idx'));
-
+            
             const handleStart = (e) => {
                 if (e.cancelable) e.preventDefault();
                 const touch = e.touches ? e.touches[0] : e;
                 const containerRect = container.getBoundingClientRect();
-
+                
                 leftDots.forEach(d => d.classList.remove('active-glow'));
                 dot.classList.add('active-glow');
-
+                
                 selectedLeftDotIdx = leftIdx;
-
+                
                 const center = getDotCenter(dot);
                 activeDragConnection = {
                     qId: qId,
@@ -1465,10 +1504,10 @@
                     currentY: touch.clientY - containerRect.top
                 };
             };
-
+            
             dot.addEventListener('mousedown', handleStart);
             dot.addEventListener('touchstart', handleStart, { passive: false });
-
+            
             dot.addEventListener('click', (e) => {
                 e.preventDefault();
                 selectedLeftDotIdx = leftIdx;
@@ -1476,10 +1515,10 @@
                 dot.classList.add('active-glow');
             });
         });
-
+        
         rightDots.forEach(dot => {
             const rightVal = dot.getAttribute('data-node-val');
-
+            
             dot.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (selectedLeftDotIdx !== null) {
@@ -1488,7 +1527,7 @@
                     
                     leftDots.forEach(d => d.classList.remove('active-glow'));
                     selectedLeftDotIdx = null;
-
+                    
                     drawConnections(qId);
                     showNotification("Garis dihubungkan!");
                 } else {
@@ -1496,26 +1535,26 @@
                 }
             });
         });
-
+        
         const handleMove = (e) => {
             if (!activeDragConnection || activeDragConnection.qId !== qId) return;
             if (e.cancelable) e.preventDefault();
-
+            
             const touch = e.touches ? e.touches[0] : e;
             const containerRect = container.getBoundingClientRect();
-
+            
             activeDragConnection.currentX = touch.clientX - containerRect.left;
             activeDragConnection.currentY = touch.clientY - containerRect.top;
-
+            
             drawConnections(qId);
         };
-
+        
         const handleEnd = (e) => {
             if (!activeDragConnection || activeDragConnection.qId !== qId) return;
             
             const touch = e.changedTouches ? e.changedTouches[0] : e;
             let targetDot = null;
-
+            
             rightDots.forEach(rDot => {
                 const rect = rDot.getBoundingClientRect();
                 if (
@@ -1525,7 +1564,7 @@
                     targetDot = rDot;
                 }
             });
-
+            
             if (targetDot) {
                 const rightVal = targetDot.getAttribute('data-node-val');
                 if (!quizConnections[qId]) quizConnections[qId] = {};
@@ -1533,49 +1572,49 @@
                 quizConnections[qId][activeDragConnection.leftIdx] = rightVal;
                 showNotification("Garis dihubungkan!");
             }
-
+            
             activeDragConnection = null;
             leftDots.forEach(d => d.classList.remove('active-glow'));
             selectedLeftDotIdx = null;
-
+            
             drawConnections(qId);
         };
-
+        
         container.addEventListener('mousemove', handleMove);
         container.addEventListener('touchmove', handleMove, { passive: false });
         window.addEventListener('mouseup', handleEnd);
         window.addEventListener('touchend', handleEnd);
     }
-
+    
     function drawConnections(qId) {
         const container = document.getElementById(`matching_container_${qId}`);
         const canvas = document.getElementById(`canvas_${qId}`);
         if (!container || !canvas) return;
-
+        
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+        
         if (quizConnections[qId]) {
             Object.keys(quizConnections[qId]).forEach(leftIdx => {
                 const rightVal = quizConnections[qId][leftIdx];
-
+                
                 const leftDot = document.getElementById(`dot_left_${qId}_${leftIdx}`);
                 const rightDot = document.getElementById(`dot_right_${qId}_opt_${rightVal}`);
-
+                
                 if (leftDot && rightDot) {
                     const lRect = leftDot.getBoundingClientRect();
                     const rRect = rightDot.getBoundingClientRect();
                     const cRect = container.getBoundingClientRect();
-
+                    
                     const startX = lRect.left - cRect.left + lRect.width / 2;
                     const startY = lRect.top - cRect.top + lRect.height / 2;
                     const endX = rRect.left - cRect.left + rRect.width / 2;
                     const endY = rRect.top - cRect.top + rRect.height / 2;
-
+                    
                     ctx.beginPath();
                     ctx.moveTo(startX, startY);
                     ctx.lineTo(endX, endY);
-                    ctx.strokeStyle = '#0f766e'; 
+                    ctx.strokeStyle = '#0f766e';
                     ctx.lineWidth = 4;
                     ctx.lineCap = 'round';
                     ctx.shadowColor = 'rgba(20, 184, 166, 0.4)';
@@ -1584,26 +1623,26 @@
                 }
             });
         }
-
+        
         if (activeDragConnection && activeDragConnection.qId === qId) {
             ctx.beginPath();
             ctx.moveTo(activeDragConnection.startX, activeDragConnection.startY);
             ctx.lineTo(activeDragConnection.currentX, activeDragConnection.currentY);
-            ctx.strokeStyle = '#f97316'; 
+            ctx.strokeStyle = '#f97316';
             ctx.lineWidth = 3;
-            ctx.setLineDash([6, 6]); 
+            ctx.setLineDash([6, 6]);
             ctx.lineCap = 'round';
             ctx.shadowColor = 'rgba(249, 115, 22, 0.4)';
             ctx.shadowBlur = 8;
             ctx.stroke();
-            ctx.setLineDash([]); 
+            ctx.setLineDash([]);
         }
     }
-
+    
     function selectOption(element, radioId) {
         const radio = document.getElementById(radioId);
         if (radio && radio.disabled) return;
-
+        
         const parent = element.closest('.options-group');
         parent.querySelectorAll('.option-container').forEach(el => el.classList.remove('selected'));
         if(radio) {
@@ -1611,12 +1650,11 @@
         }
         element.classList.add('selected');
     }
-
-    // Centang tipe multi opsi
+    
     function selectMultiOption(element, checkboxId) {
         const checkbox = document.getElementById(checkboxId);
         if (checkbox && checkbox.disabled) return;
-
+        
         checkbox.checked = !checkbox.checked;
         if (checkbox.checked) {
             element.classList.add('selected');
@@ -1624,7 +1662,7 @@
             element.classList.remove('selected');
         }
     }
-
+    
     function generateSecureCode(name, absen, score) {
         const payload = `${name.toLowerCase().trim()}|${absen}|${score}|${SECRET_CRYPT_SALT}`;
         let hashValue = 0;
@@ -1635,23 +1673,22 @@
         const checksum = Math.abs(hashValue).toString(16).toUpperCase().substring(0, 5);
         return `SDN3-K5-${absen}-${score}-${checksum}`;
     }
-
+    
     function bersihkanJawaban(str) {
         if (!str) return '';
         return str.toString()
             .toLowerCase()
             .trim()
-            .replace(/\s+/g, ' '); 
+            .replace(/\s+/g, ' ');
     }
-
-    // Koreksi cerdas Levenshtein Distance
+    
     function hitungLevenshtein(s1, s2) {
         const a = bersihkanJawaban(s1);
         const b = bersihkanJawaban(s2);
         if (a === b) return 0;
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
-
+        
         const matrix = [];
         for (let i = 0; i <= a.length; i++) {
             matrix[i] = [i];
@@ -1659,46 +1696,46 @@
         for (let j = 0; j <= b.length; j++) {
             matrix[0][j] = j;
         }
-
+        
         for (let i = 1; i <= a.length; i++) {
             for (let j = 1; j <= b.length; j++) {
                 const cost = a[i - 1] === b[j - 1] ? 0 : 1;
                 matrix[i][j] = Math.min(
-                    matrix[i - 1][j] + 1,       
-                    matrix[i][j - 1] + 1,       
-                    matrix[i - 1][j - 1] + cost  
+                    matrix[i - 1][j] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j - 1] + cost
                 );
             }
         }
         return matrix[a.length][b.length];
     }
-
+    
     function cekJawabanIsian(inputSiswa, kunciExcel) {
         const inputBersih = bersihkanJawaban(inputSiswa);
         if (!inputBersih) return false;
-
+        
         const alternatifKunci = kunciExcel.split('|').map(k => bersihkanJawaban(k));
-
+        
         for (let kunci of alternatifKunci) {
             if (inputBersih === kunci) return true;
-
+            
             if (kunci.length > 4) {
                 const jarak = hitungLevenshtein(inputBersih, kunci);
                 if (jarak === 1) {
-                    return true; 
+                    return true;
                 }
             }
         }
         return false;
     }
-
-    function submitInteractiveQuiz(e) {
+    
+    async function submitInteractiveQuiz(e) {
         e.preventDefault();
         stopQuizTimer();
-
+        
         const nameInput = document.getElementById('studentNameInput').value.trim();
         const absenInput = document.getElementById('studentAbsenInput').value.trim();
-
+        
         if (!nameInput || !absenInput) {
             showNotification("Data siswa tidak lengkap!");
             return;
@@ -1706,7 +1743,7 @@
         
         let correctCount = 0;
         const total = importedQuestions.length || 1;
-
+        
         importedQuestions.forEach(q => {
             if (q.tipe === 'PG') {
                 const selectedRadio = document.querySelector(`input[name="soal_${q.id}"]:checked`);
@@ -1732,38 +1769,38 @@
                 
                 let isMatchAll = true;
                 const correctKeys = q.kunciJawaban.split(/[;,]/).map(k => k.trim().toUpperCase());
-
+                
                 matchingRows.forEach((_, rowIdx) => {
                     const studentChoice = (quizConnections[q.id] && quizConnections[q.id][rowIdx]) || '';
                     const correctChoice = correctKeys[rowIdx] || '';
-
+                    
                     if (studentChoice.toUpperCase() !== correctChoice.toUpperCase()) {
                         isMatchAll = false;
                     }
                 });
-
+                
                 if (isMatchAll) {
                     correctCount++;
                 }
             } else if (q.tipe === 'ISIAN') {
                 const isianInput = document.querySelector(`input[name="isian_${q.id}"]`);
                 const studentText = isianInput ? isianInput.value : '';
-
+                
                 if (cekJawabanIsian(studentText, q.kunciJawaban)) {
                     correctCount++;
                 }
             }
         });
-
+        
         const finalScore = Math.round((correctCount / total) * 100);
         const today = new Date();
         const dateString = today.getDate().toString().padStart(2, '0') + ' ' + 
                            ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][today.getMonth()] + ' ' + 
                            today.getFullYear();
-
+        
         const certCode = generateSecureCode(nameInput, absenInput, finalScore);
         const certIdNum = "SDN3/V/EVAL/" + today.getFullYear() + "/" + today.getTime().toString().substring(7);
-
+        
         currentStudentData = {
             name: nameInput,
             absen: absenInput,
@@ -1772,28 +1809,26 @@
             certId: certIdNum,
             secureCode: certCode
         };
-
+        
         saveToQuizHistory(currentStudentData);
-
-        // --- PENYIMPANAN OTOMATIS KE REKAPITULASI FIREBASE AWAN ATAU LOKAL ---
-        if (typeof window.saveToRekapGuru === "function") {
-            window.saveToRekapGuru(currentStudentData);
-        }
-
+        
+        // SIMPAN KE GOOGLE SHEETS
+        await saveToGoogleSheets(currentStudentData);
+        
         document.getElementById('pdfName').innerText = nameInput;
         document.getElementById('pdfAbsen').innerText = absenInput;
         document.getElementById('pdfDate').innerText = dateString;
         document.getElementById('pdfScore').innerText = finalScore;
         document.getElementById('pdfCertId').innerText = `Nomor: ${certIdNum}`;
         document.getElementById('pdfCertCode').innerText = certCode;
-
+        
         document.getElementById('btnSendWA').classList.add('d-none');
         document.getElementById('btnCloseQuizResult').classList.add('d-none');
-
+        
         const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
         resultModal.show();
     }
-
+    
     function saveToQuizHistory(studentData) {
         let history = localStorage.getItem('sdn3_quiz_history');
         if (history) {
@@ -1801,30 +1836,26 @@
         } else {
             history = [];
         }
-
+        
         history.unshift(studentData);
         localStorage.setItem('sdn3_quiz_history', JSON.stringify(history));
         loadQuizHistory();
     }
-
+    
     function loadQuizHistory() {
         const historyBody = document.getElementById('quizHistoryBody');
         if (!historyBody) return;
-
+        
         let history = localStorage.getItem('sdn3_quiz_history');
         
         if (!history || JSON.parse(history).length === 0) {
-            historyBody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td>
-                </tr>
-            `;
+            historyBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td></tr>`;
             return;
         }
-
+        
         history = JSON.parse(history);
         historyBody.innerHTML = '';
-
+        
         history.forEach((data, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -1842,12 +1873,12 @@
             historyBody.appendChild(tr);
         });
     }
-
+    
     function clearQuizHistory() {
         const title = document.getElementById('confirmModalTitle');
         const desc = document.getElementById('confirmModalDesc');
         const btnAction = document.getElementById('btnConfirmModalAction');
-
+        
         title.innerText = "Hapus Riwayat Kuis?";
         desc.innerText = "Tindakan ini akan membersihkan seluruh bukti riwayat pengerjaan lokal di HP ini!";
         
@@ -1857,49 +1888,49 @@
             bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
             showNotification("Riwayat kuis berhasil dibersihkan!");
         };
-
+        
         const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
         confirmModal.show();
     }
-
+    
     function viewSpecificHistoryCert(index) {
         let history = localStorage.getItem('sdn3_quiz_history');
         if (!history) return;
         history = JSON.parse(history);
         const data = history[index];
         if (!data) return;
-
+        
         currentStudentData = data;
-
+        
         document.getElementById('pdfName').innerText = data.name;
         document.getElementById('pdfAbsen').innerText = data.absen;
         document.getElementById('pdfDate').innerText = data.date;
         document.getElementById('pdfScore').innerText = data.score;
         document.getElementById('pdfCertId').innerText = `Nomor: ${data.certId}`;
         document.getElementById('pdfCertCode').innerText = data.secureCode;
-
+        
         document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-archive-fill text-teal me-2"></i>Bukti Belajar (Arsip)`;
         document.getElementById('btnSendWA').classList.remove('d-none');
         document.getElementById('btnCloseQuizResult').classList.remove('d-none');
-
+        
         const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
         resultModal.show();
     }
-
+    
     function onCloseResultModal() {
         document.getElementById('quizStartPanel').classList.remove('d-none');
         document.getElementById('quizArea').classList.add('d-none');
         resetImportedQuiz();
     }
-
+    
     function downloadTamperProofJPG() {
         if (!currentStudentData) return;
-
+        
         showNotification("Mempersiapkan gambar JPG...");
         const element = document.getElementById('pdfCertificateTemplate');
         
         html2canvas(element, {
-            scale: 1.5, 
+            scale: 1.5,
             useCORS: true,
             backgroundColor: "#ffffff"
         }).then(canvas => {
@@ -1911,7 +1942,7 @@
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
-
+            
             showNotification("Gambar JPG berhasil diunduh!");
             
             document.getElementById('btnSendWA').classList.remove('d-none');
@@ -1921,10 +1952,10 @@
             showNotification("Gagal mengunduh gambar.");
         });
     }
-
+    
     function contactTeacherWA() {
         if (!currentStudentData) return;
-
+        
         const waText = 
 `🏆 *BUKTI HASIL KUIS KELAS V - SDN 3 NGANTRU* 🏆
 
@@ -1935,26 +1966,26 @@ Halo Bapak Aburrizal Hamdani Lubis, S.Pd. Saya sudah menyelesaikan kuis kelas.
 🎯 *Skor Kuis* : *${currentStudentData.score} / 100*
 
 _File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
-
+        
         const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
         window.open(waUrl, '_blank');
     }
-
+    
     function resetImportedQuiz() {
         if (remainingSeconds <= 0 && quizDurationMinutes > 0) {
             showNotification("Kuis sudah berakhir!");
             return;
         }
-
+        
         const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]');
         radios.forEach(r => r.checked = false);
-
+        
         const checkboxes = document.querySelectorAll('#interactiveQuizForm input[type="checkbox"]');
         checkboxes.forEach(c => c.checked = false);
-
+        
         const textInputs = document.querySelectorAll('#interactiveQuizForm input[type="text"]');
         textInputs.forEach(i => i.value = '');
-
+        
         quizConnections = {};
         importedQuestions.forEach(q => {
             if (q.tipe === 'MENJODOHKAN') {
@@ -1964,20 +1995,20 @@ _File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
         
         const selectedOptions = document.querySelectorAll('#interactiveQuizForm .option-container');
         selectedOptions.forEach(o => o.classList.remove('selected'));
-
+        
         showNotification("Jawaban dibersihkan!");
     }
-
+    
     const toastElement = document.getElementById('actionToast');
     const toast = new bootstrap.Toast(toastElement);
     const toastMsgSpan = document.getElementById('toastMessage');
-
+    
     function showNotification(message) {
         toastMsgSpan.innerText = message;
         toast.show();
     }
-
-    // Mengaitkan fungsi umum agar dapat berjalan di tag HTML
+    
+    // Expose functions to global scope
     window.navigateTo = navigateTo;
     window.checkPassword = checkPassword;
     window.promptGuruMenu = promptGuruMenu;
@@ -1989,208 +2020,6 @@ _File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
     window.onCloseResultModal = onCloseResultModal;
     window.selectOption = selectOption;
     window.selectMultiOption = selectMultiOption;
-</script>
-
-<!-- MODUL KEDUA: FIREBASE CONFIG BRIDGE UNTUK GITHUB PAGES -->
-<script type="module">
-    // Mengimpor fungsi-fungsi dari Firebase resmi gstatic CDN
-    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    
-    // Kredensial Firebase Proyek Personal Aktif Anda (Menggunakan Kunci yang Diberikan)
-    const GURU_FIREBASE_CONFIG = {
-        apiKey: "AIzaSyBwXFZ3mFX1bdQ77tjBFeBQ8cVIZZJGRNg",
-        authDomain: "ruang-kelas-e6dc1.firebaseapp.com",
-        projectId: "ruang-kelas-e6dc1",
-        storageBucket: "ruang-kelas-e6dc1.firebasestorage.app",
-        messagingSenderId: "14312258334",
-        appId: "1:14312258334:web:44bc677811a30e4e90a70f",
-        measurementId: "G-HJTPBYWZZT"
-    };
-
-    const appId = 'sdn3-ngantru-v';
-
-    try {
-        // Melakukan pengecekan getApps() sebelum initializeApp untuk menghindari error duplikasi inisialisasi aplikasi [DEFAULT]
-        const app = getApps().length === 0 ? initializeApp(GURU_FIREBASE_CONFIG) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        await signInAnonymously(auth);
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const statusBadge = document.getElementById('db-status-badge');
-                if (statusBadge) {
-                    statusBadge.innerText = "Mode Awan Aktif (Tersinkronisasi)";
-                    statusBadge.className = "text-success block text-[10px] font-bold";
-                }
-
-                // Sembunyikan konfigurator manual karena mode awan otomatis aktif
-                const configCard = document.getElementById('firebaseConfigCard');
-                if (configCard) {
-                    configCard.classList.add('d-none');
-                }
-
-                // Sinkronisasi data awan ke antarmuka guru
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
-                onSnapshot(colRef, (snapshot) => {
-                    let cloudData = [];
-                    snapshot.forEach(doc => {
-                        cloudData.push({ id: doc.id, ...doc.data() });
-                    });
-                    cloudData.sort((a, b) => (b.certId || '').localeCompare(a.certId || ''));
-                    localStorage.setItem('sdn3_rekap_guru', JSON.stringify(cloudData));
-                    
-                    // Perbarui tabel pada HP Guru
-                    const body = document.getElementById('rekapGuruTableBody');
-                    if (body) {
-                        if (cloudData.length === 0) {
-                            body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td></tr>`;
-                        } else {
-                            body.innerHTML = '';
-                            cloudData.forEach(data => {
-                                const tr = document.createElement('tr');
-                                tr.innerHTML = `
-                                    <td>
-                                        <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
-                                        <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.secureCode}</small>
-                                    </td>
-                                    <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
-                                    <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
-                                `;
-                                body.appendChild(tr);
-                            });
-                        }
-                    }
-                });
-
-                // Set up fungsi global override agar saveToRekapGuru menyimpan langsung ke database Anda
-                window.saveToRekapGuru = async (studentData) => {
-                    let rekap = localStorage.getItem('sdn3_rekap_guru');
-                    rekap = rekap ? JSON.parse(rekap) : [];
-                    rekap.unshift(studentData);
-                    localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
-
-                    try {
-                        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
-                        await addDoc(colRef, {
-                            ...studentData,
-                            userId: user.uid,
-                            uploadedAt: new Date().toISOString()
-                        });
-                    } catch (err) {
-                        console.error("Gagal mengirim data ke awan: ", err);
-                    }
-                };
-
-                window.triggerResetRekap = async () => {
-                    const title = document.getElementById('confirmModalTitle');
-                    const desc = document.getElementById('confirmModalDesc');
-                    const btnAction = document.getElementById('btnConfirmModalAction');
-
-                    title.innerText = "Hapus Seluruh Rekap?";
-                    desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen dari awan dan memori HP!";
-                    
-                    btnAction.onclick = async function() {
-                        localStorage.removeItem('sdn3_rekap_guru');
-                        try {
-                            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai');
-                            const querySnapshot = await getDocs(colRef);
-                            const deletePromises = [];
-                            querySnapshot.forEach((docSnap) => {
-                                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rekap_nilai', docSnap.id);
-                                deletePromises.push(deleteDoc(docRef));
-                            });
-                            await Promise.all(deletePromises);
-                            window.showNotification("Rekap nilai berhasil dihapus dari awan!");
-                        } catch (e) {
-                            console.error(e);
-                        }
-                        bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
-                    };
-                    const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
-                    confirmModal.show();
-                };
-            }
-        });
-    } catch (error) {
-        console.error("Gagal menyambungkan Firebase kustom:", error);
-    }
-
-    // Fungsi otomatis untuk mengurai inputan kustom Guru dan mendownload index.html hasil rakitan
-    async function applyAndDownloadConfiguredHTML() {
-        const configInput = document.getElementById('firebaseConfigInput').value.trim();
-        if (!configInput) {
-            alert("Mohon tempelkan konfigurasi objek Firebase Anda terlebih dahulu!");
-            return;
-        }
-
-        try {
-            // Isolasi objek JSON jika guru menyalin string panjang "const firebaseConfig = { ... }"
-            let jsonString = configInput;
-            if (jsonString.includes('{')) {
-                jsonString = jsonString.substring(jsonString.indexOf('{'), jsonString.lastIndexOf('}') + 1);
-            }
-
-            // Validasi format objek secara aman menggunakan fungsi anonim
-            const parsedConfig = new Function(`return ${jsonString}`)();
-
-            if (!parsedConfig.apiKey || !parsedConfig.projectId) {
-                alert("Konfigurasi tidak lengkap! Pastikan mengandung parameter 'apiKey' dan 'projectId'.");
-                return;
-            }
-
-            // Ambil seluruh kode sumber halaman web saat ini
-            let sourceHTML = "";
-            try {
-                const response = await fetch(window.location.href);
-                sourceHTML = await response.text();
-            } catch (err) {
-                // Fallback jika dibuka luring
-                sourceHTML = document.documentElement.outerHTML;
-            }
-
-            // Cari block deklarasi objek GURU_FIREBASE_CONFIG di dalam kode sumber
-            const targetPattern = /const GURU_FIREBASE_CONFIG = \{[\s\S]*?\};/;
-            const replacementText = `const GURU_FIREBASE_CONFIG = {
-        apiKey: "${parsedConfig.apiKey}",
-        authDomain: "${parsedConfig.authDomain || ''}",
-        projectId: "${parsedConfig.projectId}",
-        storageBucket: "${parsedConfig.storageBucket || ''}",
-        messagingSenderId: "${parsedConfig.messagingSenderId || ''}",
-        appId: "${parsedConfig.appId || ''}",
-        measurementId: "${parsedConfig.measurementId || ''}"
-    };`;
-
-            if (sourceHTML.match(targetPattern)) {
-                sourceHTML = sourceHTML.replace(targetPattern, replacementText);
-            } else {
-                alert("Gagal memproses kode sumber secara otomatis. Hubungi pengembang.");
-                return;
-            }
-
-            // Proses trigger pengunduhan berkas HTML kustom ke penyimpanan lokal
-            const blob = new Blob([sourceHTML], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "index.html";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            alert("Hebat! Berkas 'index.html' baru berhasil diunduh. Silakan upload file ini ke akun GitHub Pages Anda untuk mengaktifkan koneksi awan secara otomatis!");
-        } catch (err) {
-            console.error(err);
-            alert("Gagal membaca struktur konfigurasi. Pastikan Anda menyalin kode konfigurasi dari konsol Firebase dengan benar.");
-        }
-    }
-
-    // Mengikat fungsi perakit ke objek window global
-    window.applyAndDownloadConfiguredHTML = applyAndDownloadConfiguredHTML;
 </script>
 
 </body>

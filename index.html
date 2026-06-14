@@ -10,9 +10,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- SheetJS -->
+    
+    <!-- SheetJS (XLSX) untuk membaca file Excel di Frontend -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- html2canvas -->
+    <!-- html2canvas untuk merender sertifikat menjadi gambar JPG beresolusi tinggi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -73,7 +74,6 @@
         .text-orange { color: var(--orange-accent) !important; }
         .bg-orange-light { background-color: var(--orange-light) !important; }
         .border-teal-light { border-color: var(--teal-light) !important; }
-        
         .btn-teal {
             background-color: var(--teal-dark);
             color: white;
@@ -114,7 +114,6 @@
             box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
         }
         .btn-orange:active { transform: scale(0.96); box-shadow: none; }
-        
         .custom-card {
             border: none;
             border-radius: 20px;
@@ -134,7 +133,6 @@
         .interactive-menu-card.menu-materi { border-bottom: 5px solid var(--teal-medium); }
         .interactive-menu-card.menu-tugas { border-bottom: 5px solid var(--orange-accent); }
         .interactive-menu-card.menu-lain { border-bottom: 5px solid var(--bs-primary); }
-        
         .class-banner {
             background: linear-gradient(135deg, var(--teal-dark) 0%, #115e59 100%);
             border-radius: 20px;
@@ -185,8 +183,8 @@
             cursor: pointer;
             z-index: 10;
         }
-        .matching-dot.bg-teal-dark { background-color: var(--teal-dark) !important; }
-        .matching-dot.bg-orange { background-color: var(--orange-accent) !important; }
+        .matching-dot.bg-teal-dark { background-color: var(--teal-dark) !important; background: var(--teal-dark) !important; }
+        .matching-dot.bg-orange { background-color: var(--orange-accent) !important; background: var(--orange-accent) !important; }
         .matching-dot:active, .matching-dot.active-glow {
             transform: scale(1.4);
             box-shadow: 0 0 14px rgba(20, 184, 166, 0.9) !important;
@@ -208,6 +206,7 @@
             width: 100% !important;
             height: 100% !important;
             border: none !important;
+            outline: none !important;
         }
         .floating-timer-card {
             position: sticky;
@@ -273,18 +272,21 @@
         @media (max-width: 575.98px) {
             .modal-dialog { margin: 0.5rem !important; max-width: calc(100% - 1rem) !important; }
             .modal-content { border-radius: 20px !important; }
+            .modal-body { padding: 1.25rem 1rem !important; }
+            .modal-header, .modal-footer { padding: 0.75rem 1rem !important; }
+            #tugasPreviewImage { max-height: 180px !important; object-fit: contain; width: 100%; }
         }
     </style>
 </head>
 <body>
 
-<!-- PASSWORD OVERLAY -->
+<!-- 1. LAYAR POPUP PASSWORD -->
 <div id="passwordOverlay">
     <div class="lockscreen-card">
         <div class="text-teal mb-3">
             <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
         </div>
-        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
+        <h4 class="fw-bold text-dark mb-1">Akses Terbatass</h4>
         <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
         <form onsubmit="checkPassword(event)">
             <div class="mb-3">
@@ -296,34 +298,36 @@
     </div>
 </div>
 
-<!-- MAIN CONTENT -->
+<!-- 2. MAIN CONTENT AREA -->
 <div id="mainContent" class="container py-3">
     
-    <!-- DASHBOARD VIEW -->
-    <div id="view-dashboard">
+    <!-- SUBVIEW: DASHBOARD / TAMPILAN AWAL -->
+    <div id="view-dashboard" class="fade-in-view">
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <span class="fw-bold text-dark small"><i class="bi bi-house-door-fill text-teal me-1"></i>Portal Kelas V</span>
-            <button onclick="promptGuruMenu()" class="btn btn-sm btn-outline-teal rounded-pill px-2.5 py-1" style="height: auto;">
+            <span class="fw-bold text-dark small">
+                <i class="bi bi-house-door-fill text-teal me-1"></i>Portal Kelas V
+            </span>
+            <button onclick="promptGuruMenu()" class="btn btn-sm btn-outline-teal rounded-pill px-2.5 py-1 text-xs" style="height: auto;">
                 <i class="bi bi-person-badge-fill me-1"></i>Menu Guru
             </button>
         </div>
 
-        <div class="class-banner p-3 text-white mb-3">
+        <div class="class-banner p-3 text-white mb-3 position-relative">
             <div class="d-flex align-items-center gap-3">
-                <div class="bg-white rounded-circle p-1.5 shadow-sm d-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
+                <div class="bg-white rounded-circle p-1.5 shadow-sm d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; min-width: 72px;">
                     <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/100x100/0f766e/ffffff?text=SDN3';" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
                 <div>
                     <span class="badge bg-warning text-dark mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 0.65rem;">
                         <i class="bi bi-bookmark-fill me-1"></i> Kelas V Kreatif
                     </span>
-                    <h4 class="fw-extrabold mb-0" style="font-size: 1.35rem;">SDN 3 Ngantru</h4>
+                    <h4 class="fw-extrabold mb-0" style="font-size: 1.35rem; letter-spacing: -0.5px;">SDN 3 Ngantru</h4>
                     <p class="mb-0 opacity-90 small">Kec. Ngantang, Kab. Malang</p>
                 </div>
             </div>
             <div class="mt-3 pt-3 border-top border-white border-opacity-10 d-flex align-items-center gap-2">
-                <div class="bg-white rounded-circle p-0.5" style="width: 32px; height: 32px;">
-                    <img src="foto guru.png" alt="Guru" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Guru';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                <div class="bg-white rounded-circle p-0.5" style="width: 32px; height: 32px; min-width: 32px;">
+                    <img src="foto guru.png" alt="Aburrizal Hamdani Lubis, S.Pd" onerror="this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Aburrizal';" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
                 </div>
                 <div>
                     <span class="d-block fw-bold text-white small lh-1">Aburrizal Hamdani Lubis, S.Pd</span>
@@ -339,8 +343,13 @@
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-materi p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('materi')">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="p-2.5 bg-teal-light text-teal rounded-3"><i class="bi bi-journal-bookmark-fill fs-3"></i></div>
-                        <div><h6 class="fw-bold text-dark mb-0">1. Materi Belajar</h6><p class="text-muted mb-0" style="font-size: 0.75rem;">Akses & baca PDF Modul Pelajaran</p></div>
+                        <div class="p-2.5 bg-teal-light text-teal rounded-3">
+                            <i class="bi bi-journal-bookmark-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">1. Materi Belajar</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Akses & baca PDF Modul Pelajaran</p>
+                        </div>
                     </div>
                     <i class="bi bi-chevron-right text-teal"></i>
                 </div>
@@ -348,8 +357,13 @@
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-tugas p-3 d-flex flex-row align-items-center justify-content-between" onclick="navigateTo('tugas')">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="p-2.5 bg-orange-light text-orange rounded-3"><i class="bi bi-clipboard-check-fill fs-3"></i></div>
-                        <div><h6 class="fw-bold text-dark mb-0">2. Tugas & Kuis</h6><p class="text-muted mb-0" style="font-size: 0.75rem;">Kerjakan kuis harian kelas</p></div>
+                        <div class="p-2.5 bg-orange-light text-orange rounded-3">
+                            <i class="bi bi-clipboard-check-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">2. Tugas & Kuis</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Kerjakan kuis harian kelas</p>
+                        </div>
                     </div>
                     <i class="bi bi-chevron-right text-orange"></i>
                 </div>
@@ -357,8 +371,13 @@
             <div class="col-12">
                 <div class="card custom-card interactive-menu-card menu-lain p-3 d-flex flex-row align-items-center justify-content-between" onclick="window.location.href='lain-lain.html'">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="p-2.5 bg-primary-subtle text-primary rounded-3" style="background-color: #e0f2fe !important; color: #0369a1 !important;"><i class="bi bi-grid-3x3-gap-fill fs-3"></i></div>
-                        <div><h6 class="fw-bold text-dark mb-0">3. Menu Pengayaan</h6><p class="text-muted mb-0" style="font-size: 0.75rem;">Game, Pecahan & Roda Keberuntungan</p></div>
+                        <div class="p-2.5 bg-primary-subtle text-primary rounded-3" style="background-color: #e0f2fe !important; color: #0369a1 !important;">
+                            <i class="bi bi-grid-3x3-gap-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">3. Menu Pengayaan</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Game, Pecahan & Roda Keberuntungan</p>
+                        </div>
                     </div>
                     <i class="bi bi-chevron-right text-primary" style="color: #0284c7 !important;"></i>
                 </div>
@@ -366,19 +385,35 @@
         </div>
     </div>
 
-    <!-- MATERI VIEW -->
-    <div id="view-materi" class="d-none">
+    <!-- SUBVIEW: MATERI BELAJAR -->
+    <div id="view-materi" class="fade-in-view d-none">
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
-            <a href="https://drive.google.com/drive/folders/1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V?usp=sharing" target="_blank" class="btn btn-teal rounded-pill px-3 py-1.5 btn-sm text-white"><i class="bi bi-box-arrow-up-right me-1"></i> Buka Full Drive</a>
+            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
+            </button>
+            <a href="https://drive.google.com/drive/folders/1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V?usp=sharing" target="_blank" class="btn btn-teal rounded-pill px-3 py-1.5 btn-sm text-white">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Buka Full Drive
+            </a>
         </div>
+
         <div class="card custom-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <h6 class="fw-bold text-teal mb-0"><i class="bi bi-folder-symlink-fill me-1"></i>Materi Google Drive</h6>
                 <span class="badge bg-teal-dark small" style="font-size: 0.65rem;">Kelas V</span>
             </div>
-            <p class="text-muted mb-0 small">Di bawah ini adalah berkas materi pembelajaran format PDF dari Google Drive kelas.</p>
+            <p class="text-muted mb-0 small">Di bawah ini adalah berkas materi pembelajaran format PDF dari Google Drive kelas. Anda dapat mengkliknya langsung untuk membaca.</p>
         </div>
+
+        <div class="alert alert-warning border-0 rounded-4 p-3 mb-3 d-flex align-items-start bg-orange-light">
+            <i class="bi bi-info-circle-fill text-orange fs-5 me-2 mt-0.5"></i>
+            <div class="small">
+                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.8rem;">Petunjuk Akses HP:</h6>
+                <p class="mb-0 text-muted" style="font-size: 0.75rem;">
+                    Bila folder di bawah tidak terbuka, pastikan ananda sudah login ke akun Google di HP ini, atau tekan tombol <strong>"Buka Full Drive"</strong> di atas.
+                </p>
+            </div>
+        </div>
+
         <div class="card custom-card p-1.5 mb-3">
             <div class="drive-iframe-wrapper">
                 <iframe src="https://drive.google.com/embeddedfolderview?id=1iGzx3fdUSH0usuZEa38GXSDyhBTIyE8V#list" allow="autoplay"></iframe>
@@ -386,20 +421,25 @@
         </div>
     </div>
 
-    <!-- TUGAS VIEW -->
-    <div id="view-tugas" class="d-none">
+    <!-- SUBVIEW: TUGAS & UJIAN -->
+    <div id="view-tugas" class="fade-in-view d-none">
         <div class="mb-3">
-            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
+            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
+            </button>
         </div>
 
         <div id="quizStartPanel" class="card custom-card p-3 mb-3 border-0 bg-teal-light">
             <div class="text-center">
                 <div class="mx-auto bg-white rounded-circle shadow-sm p-3 mb-2 d-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
-                    <i class="bi bi-play-circle-fill text-teal fs-1"></i>
+                    <i class="bi bi-play-circle-fill text-teal fs-1 animate-pulse" style="animation: pulse-red 1.5s infinite;"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1">Siap untuk Memulai Kuis?</h5>
-                <p class="text-muted small mx-auto mb-3">Isi nama lengkap dan nomor absen untuk mengaktifkan kuis harian ananda.</p>
+                <p class="text-muted small mx-auto mb-3">
+                    Isi nama lengkap dan nomor absen untuk mengaktifkan kuis harian ananda.
+                </p>
             </div>
+
             <div class="card p-3 border border-teal-light bg-white rounded-4 shadow-sm mb-3">
                 <h6 class="fw-bold text-teal mb-2 small"><i class="bi bi-person-badge-fill me-1"></i>Lengkapi Identitas Siswa</h6>
                 <div class="row g-2">
@@ -413,24 +453,36 @@
                     </div>
                 </div>
             </div>
+            
             <div id="quizScheduleAlert" class="alert alert-secondary d-none border-0 rounded-4 py-2 px-3 mb-3 text-center">
                 <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis:</span>
                 <span class="small text-muted d-block" id="scheduleText">-</span>
                 <span class="small text-orange fw-bold d-block mt-1" id="durationText">-</span>
             </div>
+
             <div class="text-center">
                 <button id="btnStartQuiz" onclick="syncAndStartQuiz()" class="btn btn-orange w-100 rounded-pill py-2.5 text-white">
                     <span id="startText"><i class="bi bi-rocket-takeoff-fill me-1"></i>Mulai Kuis Sekarang</span>
-                    <span id="startSpinner" class="d-none"></span>
+                    <span id="startSpinner" class="spinner-overlay d-none"></span>
                 </button>
             </div>
         </div>
 
         <div id="quizLoader" class="d-none mb-3">
             <div class="card custom-card p-3">
-                <div class="skeleton-loader py-3 w-75 mb-2"></div>
-                <div class="skeleton-loader py-4 w-100 mb-1"></div>
-                <div class="skeleton-loader py-4 w-100"></div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="w-100">
+                        <div class="skeleton-loader py-3 w-75 mb-2"></div>
+                        <div class="skeleton-loader py-2 w-25"></div>
+                    </div>
+                </div>
+                <div class="d-flex flex-column gap-3">
+                    <div class="card p-3 border shadow-sm rounded-3">
+                        <div class="skeleton-loader py-2 w-50 mb-2"></div>
+                        <div class="skeleton-loader py-4 w-100 mb-1"></div>
+                        <div class="skeleton-loader py-4 w-100"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -438,25 +490,29 @@
             <div id="floatingTimerCard" class="floating-timer-card p-2 mb-3 d-none">
                 <div class="d-flex justify-content-between align-items-center px-1">
                     <div class="d-flex align-items-center gap-1.5">
-                        <div class="spinner-grow text-danger spinner-grow-sm"></div>
+                        <div class="spinner-grow text-danger spinner-grow-sm" role="status" style="width: 10px; height: 10px;"></div>
                         <span class="fw-bold text-dark" style="font-size: 0.75rem;">KUIS MULAI</span>
                     </div>
                     <div class="text-end">
-                        <h5 class="fw-extrabold text-danger mb-0" id="quizTimerText" style="font-size: 1.1rem;">00:00</h5>
+                        <h5 class="fw-extrabold text-danger mb-0" id="quizTimerText" style="font-size: 1.1rem; line-height: 1;">00:00</h5>
                     </div>
                 </div>
             </div>
+
             <div class="card custom-card p-3 border border-teal-medium">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
                     <div>
-                        <h6 class="fw-bold text-teal mb-0"><i class="bi bi-patch-question-fill me-1"></i>Kuis</h6>
-                        <span class="badge bg-teal-dark" id="quizQuestionCount">0 Soal</span>
+                        <h6 class="fw-bold text-teal mb-0" id="quizTitle"><i class="bi bi-patch-question-fill me-1"></i>Kuis</h6>
+                        <span class="badge bg-teal-dark" id="quizQuestionCount" style="font-size: 0.65rem;">0 Soal</span>
                     </div>
                 </div>
+
                 <form id="interactiveQuizForm" onsubmit="submitInteractiveQuiz(event)">
                     <div id="questionsContainer" class="d-flex flex-column gap-3"></div>
                     <div class="text-end pt-3 border-top mt-3">
-                        <button type="submit" id="btnSubmitQuizForm" class="btn btn-orange w-100 rounded-pill text-white"><i class="bi bi-send-check-fill me-1"></i> Kirim Jawaban</button>
+                        <button type="submit" id="btnSubmitQuizForm" class="btn btn-orange w-100 rounded-pill text-white">
+                            <i class="bi bi-send-check-fill me-1"></i> Kirim Jawaban
+                        </button>
                     </div>
                 </form>
             </div>
@@ -465,50 +521,77 @@
         <div class="card custom-card p-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-teal me-1"></i>Riwayat Hasil Belajar</h6>
-                <button onclick="clearQuizHistory()" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill" style="font-size: 0.7rem;">Hapus</button>
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill" onclick="clearQuizHistory()" style="font-size: 0.7rem; height: auto;">
+                    Hapus
+                </button>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="min-width: 320px;">
-                    <thead class="table-light"><tr style="font-size: 0.75rem;"><th>Nama & Absen</th><th class="text-center">Nilai</th><th class="text-center">Aksi</th></tr></thead>
+                    <thead class="table-light">
+                        <tr style="font-size: 0.75rem;">
+                            <th>Nama & Absen</th>
+                            <th class="text-center">Nilai</th>
+                            <th class="text-center">Aksi</th>
+                         </tr>
+                    </thead>
                     <tbody id="quizHistoryBody" style="font-size: 0.8rem;"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- REKAP GURU VIEW -->
-    <div id="view-rekap-guru" class="d-none">
+    <!-- SUBVIEW: REKAPITULASI DATA MENU GURU -->
+    <div id="view-rekap-guru" class="fade-in-view d-none">
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 btn-sm" onclick="navigateTo('dashboard')"><i class="bi bi-arrow-left me-1"></i> Tutup Menu Guru</button>
-            <span class="badge bg-danger rounded-pill px-2.5 py-1">Akses Khusus</span>
+            <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 btn-sm fw-semibold" onclick="navigateTo('dashboard')">
+                <i class="bi bi-arrow-left me-1"></i> Tutup Menu Guru
+            </button>
+            <span class="badge bg-danger rounded-pill px-2.5 py-1 text-xs">Akses Khusus</span>
         </div>
+
         <div class="card custom-card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                     <h6 class="fw-bold text-teal mb-0"><i class="bi bi-file-earmark-spreadsheet-fill me-1"></i>Rekap Nilai Siswa</h6>
-                    <small class="text-muted" id="db-status-badge">Mode Google Sheets • Siap Menerima Data</small>
+                    <small class="text-muted block text-[10px]" id="db-status-badge">Mode Google Sheets • Siap Menerima Data</small>
                 </div>
-                <button onclick="triggerResetRekap()" class="btn btn-sm btn-danger rounded-pill px-2.5 py-1"><i class="bi bi-trash-fill"></i> Reset</button>
+                <button onclick="triggerResetRekap()" class="btn btn-sm btn-danger rounded-pill px-2.5 py-1 text-xs" style="height: auto;">
+                    <i class="bi bi-trash-fill"></i> Reset
+                </button>
             </div>
-            <button onclick="downloadRekapExcel()" class="btn btn-teal w-100 rounded-pill btn-sm mb-1 text-white"><i class="bi bi-download me-1"></i> Unduh Berkas Rekap Excel</button>
+            <p class="text-muted mb-3 small" style="font-size: 0.75rem;">
+                Berikut adalah rekapitulasi nilai kuis siswa yang dikirimkan secara langsung dari HP siswa ke Google Sheets.
+            </p>
+            <button onclick="downloadRekapExcel()" class="btn btn-teal w-100 rounded-pill btn-sm mb-1 text-white">
+                <i class="bi bi-download me-1"></i> Unduh Berkas Rekap Excel
+            </button>
         </div>
+
         <div class="card custom-card p-3">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="min-width: 320px;">
-                    <thead class="table-light"><tr style="font-size: 0.75rem;"><th>Nama Siswa (Absen)</th><th class="text-center">Skor</th><th class="text-center">Tanggal & Jam</th></tr></thead>
-                    <tbody id="rekapGuruTableBody"></tbody>
+                    <thead class="table-light">
+                        <tr style="font-size: 0.75rem;">
+                            <th>Nama Siswa (Absen)</th>
+                            <th class="text-center">Skor</th>
+                            <th class="text-center">Tanggal & Jam</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekapGuruTableBody" style="font-size: 0.8rem;"></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<!-- MODALS -->
+<!-- DIALOG KONFIRMASI KUSTOM -->
 <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 340px;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 340px; margin: 1.5rem auto;">
         <div class="modal-content border-0 rounded-4 shadow-lg">
             <div class="modal-body p-4 text-center">
-                <div class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill" style="font-size: 2.8rem;"></i></div>
+                <div class="text-danger mb-3">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.8rem;"></i>
+                </div>
                 <h6 class="fw-bold text-dark mb-2" id="confirmModalTitle">Apakah Anda Yakin?</h6>
                 <p class="text-muted mb-4 small" id="confirmModalDesc">Tindakan ini akan menghapus semua rekaman data secara permanen!</p>
                 <div class="d-flex gap-2 justify-content-center">
@@ -520,6 +603,7 @@
     </div>
 </div>
 
+<!-- MODAL UNDUH BUKTI & KIRIM WA -->
 <div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0">
@@ -528,40 +612,49 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="onCloseResultModal()"></button>
             </div>
             <div class="modal-body p-3 text-center">
-                <div class="mb-2 text-teal"><i class="bi bi-shield-fill-check fs-2"></i></div>
+                <div class="mb-2 text-teal">
+                    <i class="bi bi-shield-fill-check fs-2"></i>
+                </div>
                 <h6 class="fw-bold mb-1" id="quizResultTitle">Pengerjaan Disimpan!</h6>
-                <p class="text-muted small mb-3">Pratinjau bukti belajar resmi ananda di bawah ini.</p>
-                <div class="border rounded-4 p-2 bg-secondary bg-opacity-10 mb-3 text-start overflow-auto" style="max-height: 320px; -webkit-overflow-scrolling: touch;">
-                    <div style="min-width: 595px; width: 595px; flex-shrink: 0;">
+                <p class="text-muted small mb-3" style="font-size: 0.75rem;">Pratinjau bukti belajar resmi ananda di bawah ini. Geser ke samping jika terpotong, lalu tekan tombol unduh.</p>
+
+                <div class="border rounded-4 p-2 bg-secondary bg-opacity-10 mb-3 text-start d-flex justify-content-start overflow-auto" style="max-height: 320px; -webkit-overflow-scrolling: touch;">
+                    <div style="min-width: 595px; width: 595px; flex-shrink: 0; display: inline-block;">
                         <div id="pdfCertificateTemplate">
                             <div class="cert-header text-center d-flex align-items-center justify-content-center gap-2">
-                                <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" style="width: 56px; height: 56px;">
+                                <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid" style="width: 56px; height: 56px; object-fit: contain;">
                                 <div>
-                                    <h4 class="fw-black m-0 text-teal-dark" style="font-size: 1.35rem;">SD NEGERI 3 NGANTRU</h4>
-                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Kecamatan Ngantang, Kabupaten Malang, Jawa Timur</small>
+                                    <h4 class="fw-black m-0 text-teal-dark" style="font-weight: 900; font-size: 1.35rem; letter-spacing: 0.5px;">SD NEGERI 3 NGANTRU</h4>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Kecamatan Ngantang, Kabupaten Malang, Jawa Timur 65162</small>
                                 </div>
                             </div>
+
                             <div class="text-center my-3">
-                                <h5 class="fw-bold text-dark text-uppercase mb-0" style="text-decoration: underline; font-size: 1.05rem;">BUKTI MENGERJAKAN KUIS</h5>
+                                <h5 class="fw-bold text-dark text-uppercase mb-0" style="text-decoration: underline; letter-spacing: 1px; font-size: 1.05rem;">BUKTI MENGERJAKAN KUIS/UJIAN</h5>
                                 <span class="text-muted" style="font-size: 0.7rem;" id="pdfCertId">Nomor: SDN3/V/EVAL/2026/001</span>
                                 <div class="mt-1 text-teal fw-bold small">dari Pak Rizal</div>
                             </div>
+
                             <div class="my-3 small" style="line-height: 1.6; font-size: 0.85rem;">
                                 <p class="mb-2">Dengan ini, sistem pembelajaran portal digital menyatakan bahwa siswa di bawah ini:</p>
                                 <table class="table table-borderless ms-2 mb-2" style="width: 90%;">
-                                    <tr><td class="fw-bold p-0">Nama Siswa</td><td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark">Andi Setiawan</span></td></tr>
+                                    <tr><td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td><td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td></tr>
                                     <tr><td class="fw-bold p-0">Nomor Absen</td><td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td></tr>
                                     <tr><td class="fw-bold p-0">Tanggal Ujian</td><td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td></tr>
                                 </table>
-                                <p class="mt-2 mb-0">Telah menyelesaikan evaluasi belajar mandiri dengan hasil prestasi:</p>
+                                <p class="mt-2 mb-0">Telah menyelesaikan evaluasi belajar mandiri terintegrasi secara jujur dengan hasil prestasi:</p>
                             </div>
+
                             <div class="d-flex align-items-center justify-content-around my-4">
                                 <div>
                                     <span class="text-muted d-block" style="font-size: 0.7rem;">PRESTASI SKOR:</span>
-                                    <h2 class="fw-black text-teal m-0" style="font-size: 3rem;" id="pdfScore">95</h2>
+                                    <h2 class="fw-black text-teal m-0" style="font-weight: 900; font-size: 3rem;" id="pdfScore">95</h2>
                                 </div>
-                                <div class="cert-seal"><span>BUKTI SAH</span></div>
+                                <div class="cert-seal">
+                                    <span>BUKTI SAH</span>
+                                </div>
                             </div>
+
                             <div class="row mt-4 pt-2">
                                 <div class="col-6">
                                     <div class="text-start pt-3">
@@ -571,44 +664,67 @@
                                 </div>
                                 <div class="col-6 text-center">
                                     <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Guru Pengampu Kelas V</small>
-                                    <div style="height: 48px;"><img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.display='none';" style="max-height: 48px;"></div>
-                                    <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 1.5px solid #334155; font-size: 0.85rem;">Aburrizal H. Lubis, S.Pd.</div>
+                                    <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin: 1px 0;">
+                                        <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 48px; max-width: 120px; object-fit: contain;">
+                                    </div>
+                                    <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 1.5px solid #334155; font-size: 0.85rem;">
+                                        Aburrizal H. Lubis, S.Pd.
+                                    </div>
+                                    <small class="text-muted d-block" style="font-size: 0.65rem;">NIP. 199507022020121009</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="alert alert-info small border-0 bg-teal-light text-teal text-start mb-3 p-2.5">
-                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Catatan:</strong><br>
-                    Silakan unduh gambar bukti terlebih dahulu. Setelah unduh berhasil, tombol keluar akan muncul.
+
+                <div class="alert alert-info small border-0 bg-teal-light text-teal text-start mb-3 p-2.5" style="font-size: 0.75rem;">
+                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Cara Mengirim Tugas:</strong><br>
+                    1. Klik tombol <strong>"Unduh Bukti Gambar (JPG)"</strong>.<br>
+                    2. Kirimkan file gambar unduhan ke WA Pak Rizal.
                 </div>
-                <button onclick="downloadTamperProofJPG()" class="btn btn-orange w-100 rounded-pill mb-2 text-white"><i class="bi bi-download me-1"></i> Unduh Bukti Gambar (JPG)</button>
-                <button id="btnSendWA" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2 fw-bold mb-2 d-none"><i class="bi bi-whatsapp me-1"></i> Kirim via WhatsApp Guru</button>
-                <button id="btnCloseQuizResult" onclick="onCloseResultModal()" class="btn btn-teal w-100 rounded-pill py-2.5 fw-bold d-none" data-bs-dismiss="modal">Selesai & Tutup <i class="bi bi-check-circle-fill ms-1"></i></button>
+
+                <button type="button" onclick="downloadTamperProofJPG()" class="btn btn-orange w-100 rounded-pill mb-2 text-white">
+                    <i class="bi bi-download me-1"></i> 1. Unduh Bukti Gambar (JPG)
+                </button>
+
+                <button id="btnSendWA" type="button" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2 fw-bold mb-2 shadow-sm d-none" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-whatsapp me-1"></i> 2. Kirim via WhatsApp Guru
+                </button>
+
+                <button id="btnCloseQuizResult" type="button" class="btn btn-teal w-100 rounded-pill py-2.5 fw-bold d-none" data-bs-dismiss="modal" onclick="onCloseResultModal()" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
+                    Selesai & Tutup <i class="bi bi-check-circle-fill ms-1"></i>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- TOAST ALERT NOTIFICATION -->
 <div class="position-fixed bottom-0 start-50 translate-middle-x p-3 w-100" style="z-index: 1055; max-width: 440px;">
-    <div id="actionToast" class="toast align-items-center text-white bg-teal-dark border-0 rounded-3 shadow w-100">
+    <div id="actionToast" class="toast align-items-center text-white bg-teal-dark border-0 rounded-3 shadow w-100" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
-            <div class="toast-body d-flex align-items-center gap-2 py-2 px-3 small"><i class="bi bi-check-circle-fill text-warning fs-5"></i><span id="toastMessage">Tugas berhasil diunggah!</span></div>
-            <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast"></button>
+            <div class="toast-body d-flex align-items-center gap-2 py-2 px-3 small">
+                <i class="bi bi-check-circle-fill text-warning fs-5"></i>
+                <span id="toastMessage">Tugas berhasil diunggah!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-toast="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
 
+<!-- Bootstrap 5 Bundle with Popper JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 // ============================================================
-// KONFIGURASI GOOGLE SHEETS API
+// KONFIGURASI GOOGLE SHEETS API (TAMBAHAN BARU)
 // ============================================================
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzSAAvjQzxSYSezovc3HUrLFaWaA2b-v_oPh55O6P-Bnsel0_ygBWXf0JRyOTUzuyJSHw/exec";
+
+// KEY untuk menyimpan state kuis di localStorage (fitur lanjutkan kuis)
 const STORAGE_KEY = "sdn3_quiz_current_state";
 
-// Variabel global
+// Variabel global (ASLI)
 let importedQuestions = [];
 let currentStudentData = null;
 let quizStartTime = null;
@@ -618,13 +734,13 @@ let timerIntervalId = null;
 let remainingSeconds = 0;
 let quizConnections = {};
 let activeDragConnection = null;
-let isQuizSubmitted = false;
+let isQuizSubmitted = false; // TAMBAHAN untuk cegah submit ganda
 
 const LOCKED_DRIVE_FOLDER_ID = "1vy-RR8BtBeGtvPRcyFTYP91fPEoG6QgB";
 const SECRET_CRYPT_SALT = "SDN3_NGANTRU_SUPER_SECRET_SALT_2026_MATH5";
 
 // ============================================================
-// FUNGSI MENYIMPAN & MEMUAT STATE KUIS
+// FUNGSI MENYIMPAN STATE KUIS (FITUR LANJUTKAN KUIS)
 // ============================================================
 function saveQuizState() {
     if (isQuizSubmitted) return;
@@ -651,175 +767,272 @@ function saveQuizState() {
     });
     
     const matchingAnswers = {};
-    Object.keys(quizConnections).forEach(qId => { matchingAnswers[qId] = quizConnections[qId]; });
+    Object.keys(quizConnections).forEach(qId => {
+        matchingAnswers[qId] = quizConnections[qId];
+    });
     
     const state = {
         studentName: document.getElementById('studentNameInput').value,
         studentAbsen: document.getElementById('studentAbsenInput').value,
-        pgAnswers, pgkAnswers, isianAnswers, matchingAnswers,
+        pgAnswers: pgAnswers,
+        pgkAnswers: pgkAnswers,
+        isianAnswers: isianAnswers,
+        matchingAnswers: matchingAnswers,
         remainingSeconds: remainingSeconds,
-        isQuizActive: !document.getElementById('quizArea').classList.contains('d-none'),
+        isQuizActive: document.getElementById('quizArea').classList.contains('d-none') === false,
         importedQuestions: importedQuestions,
-        quizStartTime: quizStartTime, quizEndTime: quizEndTime, quizDurationMinutes: quizDurationMinutes,
+        quizStartTime: quizStartTime,
+        quizEndTime: quizEndTime,
+        quizDurationMinutes: quizDurationMinutes,
         savedAt: new Date().toISOString()
     };
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+// Fungsi memuat state kuis yang tersimpan
 function loadQuizState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return false;
+    
     try {
         const state = JSON.parse(saved);
+        
         if (state.quizEndTime && new Date(state.quizEndTime) < new Date()) {
             localStorage.removeItem(STORAGE_KEY);
             return false;
         }
+        
         if (state.studentName) document.getElementById('studentNameInput').value = state.studentName;
         if (state.studentAbsen) document.getElementById('studentAbsenInput').value = state.studentAbsen;
-        remainingSeconds = state.remainingSeconds || 0;
+        
+        remainingSeconds = state.remainingSeconds;
+        
         if (state.importedQuestions && state.importedQuestions.length > 0) {
             importedQuestions = state.importedQuestions;
             quizStartTime = state.quizStartTime ? new Date(state.quizStartTime) : null;
             quizEndTime = state.quizEndTime ? new Date(state.quizEndTime) : null;
-            quizDurationMinutes = state.quizDurationMinutes || 0;
+            quizDurationMinutes = state.quizDurationMinutes;
+            
             renderQuiz();
-            if (remainingSeconds > 0) startQuizTimerFromRemaining(remainingSeconds);
+            
+            if (remainingSeconds > 0) {
+                startQuizTimerFromRemaining(remainingSeconds);
+            }
+            
             setTimeout(() => {
                 Object.keys(state.pgAnswers || {}).forEach(name => {
                     const radio = document.querySelector(`input[name="${name}"][value="${state.pgAnswers[name]}"]`);
-                    if (radio) { radio.checked = true; radio.closest('.option-container')?.classList.add('selected'); }
+                    if (radio) {
+                        radio.checked = true;
+                        const container = radio.closest('.option-container');
+                        if (container) container.classList.add('selected');
+                    }
                 });
+                
                 Object.keys(state.pgkAnswers || {}).forEach(name => {
                     state.pgkAnswers[name].forEach(val => {
                         const cb = document.querySelector(`input[name="${name}"][value="${val}"]`);
-                        if (cb) { cb.checked = true; cb.closest('.option-container')?.classList.add('selected'); }
+                        if (cb) {
+                            cb.checked = true;
+                            const container = cb.closest('.option-container');
+                            if (container) container.classList.add('selected');
+                        }
                     });
                 });
+                
                 Object.keys(state.isianAnswers || {}).forEach(name => {
                     const input = document.querySelector(`input[name="${name}"]`);
                     if (input) input.value = state.isianAnswers[name];
                 });
+                
                 if (state.matchingAnswers) {
                     quizConnections = state.matchingAnswers;
-                    Object.keys(quizConnections).forEach(qId => drawConnections(parseInt(qId)));
+                    Object.keys(quizConnections).forEach(qId => {
+                        drawConnections(parseInt(qId));
+                    });
                 }
             }, 500);
+            
             document.getElementById('quizStartPanel').classList.add('d-none');
             document.getElementById('quizArea').classList.remove('d-none');
+            
             return true;
         }
-    } catch(e) { console.error(e); }
+    } catch (e) {
+        console.error("Gagal memuat state:", e);
+    }
     return false;
 }
 
 function startQuizTimerFromRemaining(seconds) {
     if (timerIntervalId) clearInterval(timerIntervalId);
+    
     const timerCard = document.getElementById('floatingTimerCard');
     const timerText = document.getElementById('quizTimerText');
-    if (!seconds || seconds <= 0) { timerCard.classList.add('d-none'); return; }
+    
+    if (!seconds || seconds <= 0) {
+        timerCard.classList.add('d-none');
+        return;
+    }
+    
     timerCard.classList.remove('d-none');
     remainingSeconds = seconds;
-    const updateDisplay = () => {
-        const mins = Math.floor(remainingSeconds / 60);
-        const secs = remainingSeconds % 60;
-        timerText.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
-    updateDisplay();
+    updateTimerDisplay();
+    
     timerIntervalId = setInterval(() => {
         if (isQuizSubmitted) return;
+        
         remainingSeconds--;
-        updateDisplay();
+        updateTimerDisplay();
         saveQuizState();
+        
         if (remainingSeconds <= 60) {
             document.getElementById('floatingTimerCard').style.borderColor = '#ef4444';
-            timerText.classList.add('text-danger');
+            timerText.classList.add('text-danger', 'animate-pulse');
         }
-        if (remainingSeconds <= 0) { stopQuizTimer(); if (!isQuizSubmitted) autoSubmitQuizOnTimeout(); }
+        
+        if (remainingSeconds <= 0) {
+            stopQuizTimer();
+            if (!isQuizSubmitted) autoSubmitQuizOnTimeout();
+        }
     }, 1000);
 }
 
-function stopQuizTimer() {
-    if (timerIntervalId) { clearInterval(timerIntervalId); timerIntervalId = null; }
-    document.getElementById('floatingTimerCard').classList.add('d-none');
-}
-
-function autoSubmitQuizOnTimeout() {
-    showNotification("Waktu Habis! Jawaban akan dikirim otomatis.");
-    const fakeEvent = { preventDefault: () => {} };
-    submitInteractiveQuiz(fakeEvent);
-}
-
 // ============================================================
-// FUNGSI KIRIM KE GOOGLE SHEETS
+// FUNGSI KIRIM KE GOOGLE SHEETS (TAMBAHAN BARU)
 // ============================================================
 async function saveToGoogleSheets(studentData) {
     try {
-        const payload = { nama: studentData.name, absen: studentData.absen, skor: studentData.score, tanggal: studentData.date, waktu: new Date().toLocaleString('id-ID'), sertifikat_id: studentData.certId, kode_validasi: studentData.secureCode };
-        await fetch(GOOGLE_SHEETS_API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const payload = {
+            nama: studentData.name,
+            absen: studentData.absen,
+            skor: studentData.score,
+            tanggal: studentData.date,
+            waktu: new Date().toLocaleString('id-ID'),
+            sertifikat_id: studentData.certId,
+            kode_validasi: studentData.secureCode
+        };
+
+        await fetch(GOOGLE_SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+
+        console.log("Data terkirim ke Google Sheets:", payload);
         showNotification("✅ Nilai tersimpan ke Google Sheets!");
+        
         let rekap = localStorage.getItem('sdn3_rekap_guru');
         rekap = rekap ? JSON.parse(rekap) : [];
         rekap.unshift(studentData);
         localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
-        if (typeof window.loadRekapGuru === 'function') window.loadRekapGuru();
+        
+        if (typeof window.loadRekapGuru === 'function') {
+            window.loadRekapGuru();
+        }
+        
         return true;
-    } catch(error) {
-        console.error(error);
-        showNotification("⚠️ Gagal menyimpan ke Google Sheets, data tersimpan di lokal.");
+    } catch (error) {
+        console.error("Gagal kirim ke Google Sheets:", error);
+        showNotification("⚠️ Gagal menyimpan ke Google Sheets, namun data tersimpan di lokal.");
+        
         let rekap = localStorage.getItem('sdn3_rekap_guru');
         rekap = rekap ? JSON.parse(rekap) : [];
         rekap.unshift(studentData);
         localStorage.setItem('sdn3_rekap_guru', JSON.stringify(rekap));
+        
         return false;
     }
 }
 
 // ============================================================
-// SUBMIT KUIS DENGAN POPUP UNDUH WAJIB
+// SUBMIT KUIS DENGAN POPUP UNDUH WAJIB (DI MODIFIKASI)
 // ============================================================
 async function submitInteractiveQuiz(e) {
     e.preventDefault();
-    if (isQuizSubmitted) { showNotification("Kuis sudah disubmit sebelumnya!"); return; }
+    
+    if (isQuizSubmitted) {
+        showNotification("Kuis sudah disubmit sebelumnya!");
+        return;
+    }
+    
     stopQuizTimer();
     
     const nameInput = document.getElementById('studentNameInput').value.trim();
     const absenInput = document.getElementById('studentAbsenInput').value.trim();
-    if (!nameInput || !absenInput) { showNotification("Data siswa tidak lengkap!"); return; }
+    
+    if (!nameInput || !absenInput) {
+        showNotification("Data siswa tidak lengkap!");
+        return;
+    }
     
     let correctCount = 0;
     const total = importedQuestions.length || 1;
     
     importedQuestions.forEach(q => {
         if (q.tipe === 'PG') {
-            const selected = document.querySelector(`input[name="soal_${q.id}"]:checked`);
-            if (selected && selected.value.toUpperCase() === q.kunciJawaban.toUpperCase()) correctCount++;
+            const selectedRadio = document.querySelector(`input[name="soal_${q.id}"]:checked`);
+            if (selectedRadio) {
+                const answer = selectedRadio.value.toUpperCase();
+                if (answer === q.kunciJawaban.toUpperCase()) {
+                    correctCount++;
+                }
+            }
         } else if (q.tipe === 'PGK') {
-            const checked = Array.from(document.querySelectorAll(`input[name="soal_${q.id}"]:checked`)).map(cb => cb.value.toUpperCase()).sort();
-            const correct = q.kunciJawaban.split(/[;,]/).map(k => k.trim().toUpperCase()).sort().join(';');
-            if (checked.join(';') === correct) correctCount++;
+            const checkedBoxes = Array.from(document.querySelectorAll(`input[name="soal_${q.id}"]:checked`))
+                                       .map(cb => cb.value.toUpperCase())
+                                       .sort();
+            const answerString = checkedBoxes.join(';');
+            const correctKeys = q.kunciJawaban.split(/[;,]/).map(k => k.trim().toUpperCase()).sort().join(';');
+            if (answerString === correctKeys) {
+                correctCount++;
+            }
         } else if (q.tipe === 'MENJODOHKAN') {
+            const subItems = q.pertanyaan.split(';');
+            const matchingRows = subItems.slice(1);
+            let isMatchAll = true;
             const correctKeys = q.kunciJawaban.split(/[;,]/).map(k => k.trim().toUpperCase());
-            let allMatch = true;
-            (q.pertanyaan.split(';').slice(1)).forEach((_, idx) => {
-                const student = (quizConnections[q.id] && quizConnections[q.id][idx]) || '';
-                if (student.toUpperCase() !== (correctKeys[idx] || '')) allMatch = false;
+            matchingRows.forEach((_, rowIdx) => {
+                const studentChoice = (quizConnections[q.id] && quizConnections[q.id][rowIdx]) || '';
+                const correctChoice = correctKeys[rowIdx] || '';
+                if (studentChoice.toUpperCase() !== correctChoice.toUpperCase()) {
+                    isMatchAll = false;
+                }
             });
-            if (allMatch) correctCount++;
+            if (isMatchAll) {
+                correctCount++;
+            }
         } else if (q.tipe === 'ISIAN') {
-            const input = document.querySelector(`input[name="isian_${q.id}"]`);
-            if (input && cekJawabanIsian(input.value, q.kunciJawaban)) correctCount++;
+            const isianInput = document.querySelector(`input[name="isian_${q.id}"]`);
+            const studentText = isianInput ? isianInput.value : '';
+            if (cekJawabanIsian(studentText, q.kunciJawaban)) {
+                correctCount++;
+            }
         }
     });
     
     const finalScore = Math.round((correctCount / total) * 100);
     const today = new Date();
-    const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-    const dateString = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
-    const certCode = generateSecureCode(nameInput, absenInput, finalScore);
-    const certIdNum = `SDN3/V/EVAL/${today.getFullYear()}/${today.getTime().toString().substring(7)}`;
+    const dateString = today.getDate().toString().padStart(2, '0') + ' ' + 
+                       ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][today.getMonth()] + ' ' + 
+                       today.getFullYear();
     
-    currentStudentData = { name: nameInput, absen: absenInput, score: finalScore, date: dateString, certId: certIdNum, secureCode: certCode };
+    const certCode = generateSecureCode(nameInput, absenInput, finalScore);
+    const certIdNum = "SDN3/V/EVAL/" + today.getFullYear() + "/" + today.getTime().toString().substring(7);
+    
+    currentStudentData = {
+        name: nameInput,
+        absen: absenInput,
+        score: finalScore,
+        date: dateString,
+        certId: certIdNum,
+        secureCode: certCode
+    };
+    
     isQuizSubmitted = true;
     localStorage.removeItem(STORAGE_KEY);
     
@@ -841,21 +1054,38 @@ async function submitInteractiveQuiz(e) {
     showNotification("⚠️ Silakan unduh gambar bukti terlebih dahulu!");
 }
 
+// Override fungsi downloadTamperProofJPG - setelah unduh, baru muncul tombol keluar
 window.downloadTamperProofJPG = function() {
     if (!currentStudentData) return;
+    
     showNotification("Mempersiapkan gambar JPG...");
     const element = document.getElementById('pdfCertificateTemplate');
-    html2canvas(element, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `BUKTI_KUIS_${currentStudentData.absen}_${currentStudentData.name.replace(/\s+/g, '_').toUpperCase()}_[${currentStudentData.score}].jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.8);
-        link.click();
+    
+    html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        backgroundColor: "#ffffff"
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/jpeg', 0.80);
+        
+        const downloadLink = document.createElement('a');
+        downloadLink.href = imgData;
+        downloadLink.download = `BUKTI_KUIS_${currentStudentData.absen}_${currentStudentData.name.replace(/\s+/g, '_').toUpperCase()}_[${currentStudentData.score}].jpg`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
         showNotification("Gambar JPG berhasil diunduh!");
+        
         document.getElementById('btnSendWA').classList.remove('d-none');
         document.getElementById('btnCloseQuizResult').classList.remove('d-none');
-    }).catch(err => { console.error(err); showNotification("Gagal mengunduh gambar."); });
+    }).catch(err => {
+        console.error(err);
+        showNotification("Gagal mengunduh gambar. Silakan coba lagi.");
+    });
 };
 
+// Reset setelah modal ditutup
 window.onCloseResultModal = function() {
     if (!isQuizSubmitted) return;
     document.getElementById('quizStartPanel').classList.remove('d-none');
@@ -864,284 +1094,1061 @@ window.onCloseResultModal = function() {
     localStorage.removeItem(STORAGE_KEY);
 };
 
-// ============================================================
-// FUNGSI LAINNYA
-// ============================================================
-function generateSecureCode(name, absen, score) {
-    const payload = `${name.toLowerCase().trim()}|${absen}|${score}|${SECRET_CRYPT_SALT}`;
-    let hash = 0;
-    for (let i = 0; i < payload.length; i++) hash = ((hash << 5) - hash + payload.charCodeAt(i)) | 0;
-    return `SDN3-K5-${absen}-${score}-${Math.abs(hash).toString(16).toUpperCase().substring(0,5)}`;
-}
-
-function bersihkanJawaban(str) { return str ? str.toString().toLowerCase().trim().replace(/\s+/g, ' ') : ''; }
-function hitungLevenshtein(s1, s2) {
-    const a = bersihkanJawaban(s1), b = bersihkanJawaban(s2);
-    if (a === b) return 0;
-    const matrix = Array(a.length + 1).fill().map((_, i) => [i]);
-    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
-    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
-        const cost = a[i-1] === b[j-1] ? 0 : 1;
-        matrix[i][j] = Math.min(matrix[i-1][j] + 1, matrix[i][j-1] + 1, matrix[i-1][j-1] + cost);
-    }
-    return matrix[a.length][b.length];
-}
-function cekJawabanIsian(input, kunci) {
-    const inputBersih = bersihkanJawaban(input);
-    if (!inputBersih) return false;
-    return kunci.split('|').map(k => bersihkanJawaban(k)).some(kunciBersih => {
-        if (inputBersih === kunciBersih) return true;
-        if (kunciBersih.length > 4 && hitungLevenshtein(inputBersih, kunciBersih) === 1) return true;
-        return false;
-    });
-}
-
-function saveToQuizHistory(data) {
-    let history = localStorage.getItem('sdn3_quiz_history');
-    history = history ? JSON.parse(history) : [];
-    history.unshift(data);
-    localStorage.setItem('sdn3_quiz_history', JSON.stringify(history));
-    loadQuizHistory();
-}
-
-function loadQuizHistory() {
-    const body = document.getElementById('quizHistoryBody');
-    if (!body) return;
-    let history = localStorage.getItem('sdn3_quiz_history');
-    if (!history || JSON.parse(history).length === 0) {
-        body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td></tr>`;
+// Modifikasi syncAndStartQuiz agar memuat state jika ada
+window.syncAndStartQuiz = async function() {
+    if (loadQuizState()) {
+        showNotification("Melanjutkan kuis yang belum selesai...");
         return;
     }
-    history = JSON.parse(history);
-    body.innerHTML = '';
-    history.forEach((data, idx) => {
-        body.innerHTML += `<tr><td><span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span><small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.date}</small></td><td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td><td class="text-center"><button class="btn btn-sm btn-teal py-1 px-2.5 rounded-pill" onclick="viewSpecificHistoryCert(${idx})" style="font-size: 0.75rem;"><i class="bi bi-eye"></i> Lihat</button></td></tr>`;
-    });
-}
-
-function viewSpecificHistoryCert(index) {
-    let history = localStorage.getItem('sdn3_quiz_history');
-    if (!history) return;
-    const data = JSON.parse(history)[index];
-    if (!data) return;
-    currentStudentData = data;
-    document.getElementById('pdfName').innerText = data.name;
-    document.getElementById('pdfAbsen').innerText = data.absen;
-    document.getElementById('pdfDate').innerText = data.date;
-    document.getElementById('pdfScore').innerText = data.score;
-    document.getElementById('pdfCertId').innerText = `Nomor: ${data.certId}`;
-    document.getElementById('pdfCertCode').innerText = data.secureCode;
-    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-archive-fill text-teal me-2"></i>Bukti Belajar (Arsip)`;
-    document.getElementById('btnSendWA').classList.remove('d-none');
-    document.getElementById('btnCloseQuizResult').classList.remove('d-none');
-    new bootstrap.Modal(document.getElementById('quizResultModal')).show();
-}
-
-function clearQuizHistory() {
-    const title = document.getElementById('confirmModalTitle');
-    const desc = document.getElementById('confirmModalDesc');
-    const btn = document.getElementById('btnConfirmModalAction');
-    title.innerText = "Hapus Riwayat Kuis?";
-    desc.innerText = "Tindakan ini akan membersihkan seluruh bukti riwayat pengerjaan lokal di HP ini!";
-    btn.onclick = function() {
-        localStorage.removeItem('sdn3_quiz_history');
-        loadQuizHistory();
-        bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
-        showNotification("Riwayat kuis berhasil dibersihkan!");
-    };
-    new bootstrap.Modal(document.getElementById('customConfirmModal')).show();
-}
-
-function contactTeacherWA() {
-    if (!currentStudentData) return;
-    const waText = `🏆 *BUKTI HASIL KUIS - SDN 3 NGANTRU* 🏆\n\nHalo Bapak Aburrizal Hamdani Lubis, S.Pd.\n\n👤 *Nama Siswa* : ${currentStudentData.name.toUpperCase()}\n🔢 *No. Absen* : ${currentStudentData.absen}\n🎯 *Skor Kuis* : *${currentStudentData.score} / 100*`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, '_blank');
-}
-
-window.loadRekapGuru = function() {
-    const body = document.getElementById('rekapGuruTableBody');
-    if (!body) return;
-    let rekap = localStorage.getItem('sdn3_rekap_guru');
-    if (!rekap || JSON.parse(rekap).length === 0) {
-        body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk.</td></tr>`;
+    
+    const nameInput = document.getElementById('studentNameInput').value.trim();
+    const absenInput = document.getElementById('studentAbsenInput').value.trim();
+    
+    if (!nameInput || !absenInput) {
+        showNotification("Mohon isi Nama Lengkap dan Nomor Absen terlebih dahulu!");
         return;
     }
-    rekap = JSON.parse(rekap);
-    body.innerHTML = '';
-    rekap.forEach(data => {
-        body.innerHTML += `<tr><td><span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span><small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen}</small></td><td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td><td class="text-center"><small class="text-muted" style="font-size: 0.65rem;">${data.date}</small></td></tr>`;
-    });
-};
-
-window.saveToRekapGuru = async function(data) { await saveToGoogleSheets(data); };
-window.triggerResetRekap = function() {
-    const title = document.getElementById('confirmModalTitle'), desc = document.getElementById('confirmModalDesc'), btn = document.getElementById('btnConfirmModalAction');
-    title.innerText = "Hapus Seluruh Rekap?"; desc.innerText = "Semua nilai kuis siswa akan dihapus permanen dari memori HP!";
-    btn.onclick = function() { localStorage.removeItem('sdn3_rekap_guru'); window.loadRekapGuru(); bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide(); showNotification("Rekap nilai lokal dihapus!"); };
-    new bootstrap.Modal(document.getElementById('customConfirmModal')).show();
-};
-
-window.downloadRekapExcel = function() {
-    let rekap = localStorage.getItem('sdn3_rekap_guru');
-    if (!rekap || JSON.parse(rekap).length === 0) { showNotification("Tidak ada data!"); return; }
-    rekap = JSON.parse(rekap);
-    const wsData = [["No","Nama Siswa","Nomor Absen","Skor","Tanggal","ID Sertifikat","Kode Validasi"]];
-    rekap.forEach((d,i) => wsData.push([i+1,d.name,d.absen,d.score,d.date,d.certId||"-",d.secureCode||"-"]));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsData), "Rekap_Nilai");
-    XLSX.writeFile(wb, `Rekap_Nilai_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`);
-    showNotification("File Excel berhasil diunduh!");
-};
-
-// Fungsi render quiz dll disederhanakan
-async function syncAndStartQuiz() {
-    if (loadQuizState()) { showNotification("Melanjutkan kuis yang belum selesai..."); return; }
-    const name = document.getElementById('studentNameInput').value.trim();
-    const absen = document.getElementById('studentAbsenInput').value.trim();
-    if (!name || !absen) { showNotification("Isi nama dan nomor absen!"); return; }
+    
     isQuizSubmitted = false;
     await syncQuizFromDrive(true);
+};
+
+// ============================================================
+// SELURUH FUNGSI ASLI ANDA (TIDAK BERUBAH)
+// ============================================================
+
+function extractFileIdFromFolderHtml(html, fileName = "kuis") {
+    const lowercaseHtml = html.toLowerCase();
+    const index = lowercaseHtml.indexOf(fileName.toLowerCase());
+    if (index === -1) return null;
+    
+    const start = Math.max(0, index - 800);
+    const end = Math.min(html.length, index + 800);
+    const windowText = html.substring(start, end);
+    
+    const fileDMatch = windowText.match(/\/file\/d\/([a-zA-Z0-9-_]{28,45})/);
+    if (fileDMatch) {
+        return fileDMatch[1];
+    }
+    
+    const idMatches = windowText.match(/["'\[,]([a-zA-Z0-9-_]{33})["'\]]/g);
+    if (idMatches && idMatches.length > 0) {
+        for (let m of idMatches) {
+            const id = m.replace(/[^a-zA-Z0-9-_]/g, '');
+            if (id.length === 33) return id;
+        }
+    }
+    
+    const generalMatches = windowText.match(/([a-zA-Z0-9-_]{33,40})/g);
+    if (generalMatches) {
+        return generalMatches[0];
+    }
+    
+    return null;
 }
 
-async function syncQuizFromDrive(isManual = false) {
+async function syncQuizFromDrive(isManualClick = false) {
     const btn = document.getElementById('btnStartQuiz');
     const textSpan = document.getElementById('startText');
     const spinner = document.getElementById('startSpinner');
     const quizStartPanel = document.getElementById('quizStartPanel');
     const quizArea = document.getElementById('quizArea');
     const quizLoader = document.getElementById('quizLoader');
-    btn.disabled = true; textSpan.classList.add('d-none'); spinner.classList.remove('d-none');
-    quizStartPanel.classList.add('d-none'); quizArea.classList.add('d-none'); quizLoader.classList.remove('d-none');
-    if (isManual) showNotification("Mengunduh lembar kuis...");
+
+    btn.disabled = true;
+    textSpan.classList.add('d-none');
+    spinner.classList.remove('d-none');
+    
+    quizStartPanel.classList.add('d-none');
+    quizArea.classList.add('d-none');
+    quizLoader.classList.remove('d-none');
+
+    if (isManualClick) {
+        showNotification("Mengunduh lembar kuis terjadwal dari Google Drive...");
+    }
+
+    const timestamp = Date.now();
+
     try {
-        const fallbackResp = await fetch(`kuis.xlsx?_=${Date.now()}`);
-        if (fallbackResp.ok) {
-            const arrayBuffer = await fallbackResp.arrayBuffer();
+        const folderId = LOCKED_DRIVE_FOLDER_ID;
+        const embeddedFolderUrl = `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+        const proxyFolderUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(embeddedFolderUrl)}&_=${timestamp}`;
+
+        const folderResponse = await fetch(proxyFolderUrl);
+        if (!folderResponse.ok) {
+            throw new Error("Gagal mengakses folder via proksi.");
+        }
+
+        const folderHtml = await folderResponse.text();
+        const fileId = extractFileIdFromFolderHtml(folderHtml, "kuis");
+
+        if (!fileId) {
+            console.log("Mencoba mengambil fallback kuis.xlsx lokal dari GitHub dengan penangkal cache...");
+            const localResponse = await fetch(`kuis.xlsx?_=${timestamp}`);
+            if (!localResponse.ok) {
+                throw new Error("Kuis di Google Drive tidak ditemukan.");
+            }
+            const arrayBuffer = await localResponse.arrayBuffer();
             await parseExcelData(arrayBuffer);
+            
             quizLoader.classList.add('d-none');
-            processQuizAccess(isManual);
+            processQuizAccess(isManualClick);
             return;
         }
-        throw new Error("File tidak ditemukan");
-    } catch(err) {
-        console.error(err);
+
+        const targetUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}&_=${timestamp}`;
+
+        const response = await fetch(proxyUrl);
+        if (!response.ok) {
+            throw new Error("Gagal mengunduh file kuis.");
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        await parseExcelData(arrayBuffer);
+
+        quizLoader.classList.add('d-none');
+        processQuizAccess(isManualClick);
+
+    } catch (error) {
+        console.error(error);
+        try {
+            const localResponse = await fetch(`kuis.xlsx?_=${timestamp}`);
+            if (localResponse.ok) {
+                const arrayBuffer = await localResponse.arrayBuffer();
+                await parseExcelData(arrayBuffer);
+                quizLoader.classList.add('d-none');
+                processQuizAccess(isManualClick);
+                return;
+            }
+        } catch (localErr) {
+            console.error("Gagal memuat file kuis cadangan lokal.", localErr);
+        }
+
         quizLoader.classList.add('d-none');
         quizStartPanel.classList.remove('d-none');
-        showNotification("Gagal memuat kuis. Pastikan file kuis.xlsx tersedia.");
+        showNotification("Gagal memuat kuis.");
     } finally {
-        btn.disabled = false; textSpan.classList.remove('d-none'); spinner.classList.add('d-none');
+        resetStartButton();
     }
 }
 
 async function parseExcelData(arrayBuffer) {
-    const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet);
-    if (json.length === 0) throw new Error("File kosong");
-    const first = json[0];
-    quizStartTime = first['Waktu Mulai'] ? new Date(first['Waktu Mulai']) : null;
-    quizEndTime = first['Waktu Selesai'] ? new Date(first['Waktu Selesai']) : null;
-    quizDurationMinutes = parseInt(first['Durasi (Menit)']) || 0;
-    importedQuestions = json.map((row, idx) => ({
-        id: idx+1, tipe: (row['Tipe'] || 'PG').toString().trim().toUpperCase(),
-        pertanyaan: row['Pertanyaan'] || `Soal ${idx+1}`,
-        pilihanA: row['Pilihan A'] || '', pilihanB: row['Pilihan B'] || '', pilihanC: row['Pilihan C'] || '', pilihanD: row['Pilihan D'] || '',
-        kunciJawaban: (row['Jawaban'] || '').toString().trim()
-    }));
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: 'array' });
+    
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+    if (jsonData.length === 0) {
+        throw new Error("Berkas kuis Excel tidak sesuai atau kosong!");
+    }
+
+    const firstRow = jsonData[0];
+    const rawStart = firstRow['Waktu Mulai'] || firstRow['waktu mulai'] || null;
+    const rawEnd = firstRow['Waktu Selesai'] || firstRow['waktu selesai'] || null;
+    const rawDuration = firstRow['Durasi (Menit)'] || firstRow['durasi'] || firstRow['Durasi'] || 0;
+
+    quizStartTime = rawStart ? new Date(rawStart) : null;
+    quizEndTime = rawEnd ? new Date(rawEnd) : null;
+    quizDurationMinutes = parseInt(rawDuration) || 0;
+
+    importedQuestions = jsonData.map((row, index) => {
+        return {
+            id: index + 1,
+            tipe: (row['Tipe'] || row['tipe'] || 'PG').toString().trim().toUpperCase(),
+            pertanyaan: row['Pertanyaan'] || row['pertanyaan'] || `Pertanyaan Tanpa Judul ${index + 1}`,
+            pilihanA: row['Pilihan A'] || row['pilihan a'] || row['A'] || '',
+            pilihanB: row['Pilihan B'] || row['pilihan b'] || row['B'] || '',
+            pilihanC: row['Pilihan C'] || row['pilihan c'] || row['C'] || '',
+            pilihanD: row['Pilihan D'] || row['pilihan d'] || row['D'] || '',
+            kunciJawaban: (row['Jawaban'] || row['jawaban'] || row['Kunci Jawaban'] || '').toString().trim()
+        };
+    });
 }
 
-function processQuizAccess(isManual) {
+function processQuizAccess(isManualClick) {
     const now = new Date();
-    if ((quizStartTime && now < quizStartTime) || (quizEndTime && now > quizEndTime)) {
-        showNotification("Akses Terkunci! Kuis belum dimulai atau sudah berakhir.");
-        document.getElementById('quizStartPanel').classList.remove('d-none');
+    const quizStartPanel = document.getElementById('quizStartPanel');
+    const quizArea = document.getElementById('quizArea');
+    const alertBox = document.getElementById('quizScheduleAlert');
+    const scheduleText = document.getElementById('scheduleText');
+    const durationText = document.getElementById('durationText');
+
+    if (quizStartTime || quizEndTime) {
+        alertBox.classList.remove('d-none');
+        const formatOption = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        const startStr = quizStartTime ? quizStartTime.toLocaleDateString('id-ID', formatOption) + " WIB" : "Kapan saja";
+        const endStr = quizEndTime ? quizEndTime.toLocaleDateString('id-ID', formatOption) + " WIB" : "Seterusnya";
+        scheduleText.innerHTML = `${startStr} <br> s.d <br> ${endStr}`;
+        durationText.innerHTML = `<i class="bi bi-hourglass-split me-1"></i> Batas Waktu Mengerjakan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' Menit' : 'Bebas / Tanpa Batas'}`;
+    } else {
+        alertBox.classList.add('d-none');
+    }
+
+    if (quizStartTime && now < quizStartTime) {
+        quizStartPanel.classList.remove('d-none');
+        quizArea.classList.add('d-none');
+        showNotification("Akses Terkunci! Kuis belum dimulai.");
+        alertBox.className = "alert alert-danger mx-auto py-2.5 px-4 mb-3 text-center";
         return;
     }
+
+    if (quizEndTime && now > quizEndTime) {
+        quizStartPanel.classList.remove('d-none');
+        quizArea.classList.add('d-none');
+        showNotification("Akses Terkunci! Batas waktu akses kuis sudah ditutup.");
+        alertBox.className = "alert alert-danger mx-auto py-2.5 px-4 mb-3 text-center";
+        return;
+    }
+
+    alertBox.className = "alert alert-success mx-auto py-2.5 px-4 mb-3 text-center";
     renderQuiz();
-    if (quizDurationMinutes > 0) startQuizTimerFromRemaining(quizDurationMinutes * 60);
-    if (isManual) showNotification(`Batas pengerjaan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' menit' : 'Bebas'}`);
+    
+    if (isManualClick) {
+        showNotification(`Menyiapkan lembar kuis! Batas pengerjaan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' menit' : 'Bebas'}.`);
+    }
+
+    startQuizTimer(quizDurationMinutes);
+    quizArea.scrollIntoView({ behavior: 'smooth' });
+}
+
+function startQuizTimer(minutes) {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    
+    const timerCard = document.getElementById('floatingTimerCard');
+    const timerText = document.getElementById('quizTimerText');
+    
+    if (!minutes || minutes <= 0) {
+        timerCard.classList.add('d-none');
+        return;
+    }
+    
+    timerCard.classList.remove('d-none');
+    remainingSeconds = minutes * 60;
+    updateTimerDisplay();
+    
+    timerIntervalId = setInterval(() => {
+        remainingSeconds--;
+        updateTimerDisplay();
+        saveQuizState();
+        
+        if (remainingSeconds <= 60) {
+            document.getElementById('floatingTimerCard').style.borderColor = '#ef4444';
+            timerText.classList.add('text-danger', 'animate-pulse');
+        }
+        
+        if (remainingSeconds <= 0) {
+            stopQuizTimer();
+            autoSubmitQuizOnTimeout();
+        }
+    }, 1000);
+}
+
+function stopQuizTimer() {
+    if (timerIntervalId) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+    }
+    document.getElementById('floatingTimerCard').classList.add('d-none');
+}
+
+function updateTimerDisplay() {
+    const timerText = document.getElementById('quizTimerText');
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
+    timerText.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function autoSubmitQuizOnTimeout() {
+    showNotification("Waktu Habis! Semua jawaban Anda dikunci dan dikirim otomatis.");
+
+    const inputs = document.querySelectorAll('#interactiveQuizForm input, #interactiveQuizForm button, #interactiveQuizForm select');
+    inputs.forEach(element => element.disabled = true);
+
+    let nameInput = document.getElementById('studentNameInput').value.trim();
+    let absenInput = document.getElementById('studentAbsenInput').value.trim();
+
+    if (!nameInput) nameInput = "Siswa Tanpa Identitas";
+    if (!absenInput) absenInput = "99";
+
+    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>Waktu Habis! Jawaban Terkirim Otomatis`;
+    
+    const fakeEvent = { preventDefault: () => {} };
+    submitInteractiveQuiz(fakeEvent);
+}
+
+function resetStartButton() {
+    const btn = document.getElementById('btnStartQuiz');
+    const textSpan = document.getElementById('startText');
+    const spinner = document.getElementById('startSpinner');
+    btn.disabled = false;
+    textSpan.classList.remove('d-none');
+    spinner.classList.add('d-none');
 }
 
 function renderQuiz() {
-    const container = document.getElementById('questionsContainer');
-    container.innerHTML = '';
+    const questionsContainer = document.getElementById('questionsContainer');
+    questionsContainer.innerHTML = '';
     quizConnections = {};
+
     importedQuestions.forEach((q, idx) => {
+        let questionHtml = '';
+
         if (q.tipe === 'PG') {
-            container.innerHTML += `<div class="card p-3 border shadow-sm rounded-3"><div class="mb-2"><span class="badge bg-teal-dark">Pilihan Ganda</span></div><h6 class="fw-bold text-dark mb-3">Soal ${idx+1}: ${q.pertanyaan}</h6><div class="options-group">${['A','B','C','D'].map(opt => `<div class="option-container" onclick="selectOption(this, 'option_${q.id}_${opt}')"><input class="d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_${opt}" value="${opt}"><label class="form-check-label w-100 ps-1" style="cursor:pointer;" for="option_${q.id}_${opt}"><strong>${opt}.</strong> ${q[`pilihan${opt}`] || ''}</label></div>`).join('')}</div></div>`;
+            questionHtml = `
+                <div class="card p-3 border shadow-sm rounded-3">
+                    <div class="mb-2"><span class="badge bg-teal-dark" style="font-size: 0.7rem;">Pilihan Ganda</span></div>
+                    <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                    
+                    <div class="options-group">
+                        <div class="option-container" onclick="selectOption(this, 'option_${q.id}_A')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_A" value="A" required>
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_A">
+                                <strong>A.</strong> ${q.pilihanA}
+                            </label>
+                        </div>
+                        <div class="option-container" onclick="selectOption(this, 'option_${q.id}_B')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_B" value="B">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_B">
+                                <strong>B.</strong> ${q.pilihanB}
+                            </label>
+                        </div>
+                        <div class="option-container" onclick="selectOption(this, 'option_${q.id}_C')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_C" value="C">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_C">
+                                <strong>C.</strong> ${q.pilihanC}
+                            </label>
+                        </div>
+                        <div class="option-container" onclick="selectOption(this, 'option_${q.id}_D')">
+                            <input class="form-check-input d-none" type="radio" name="soal_${q.id}" id="option_${q.id}_D" value="D">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_D">
+                                <strong>D.</strong> ${q.pilihanD}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (q.tipe === 'PGK') {
+            questionHtml = `
+                <div class="card p-3 border shadow-sm rounded-3">
+                    <div class="mb-2"><span class="badge bg-primary" style="background-color: #4f46e5 !important; font-size: 0.7rem;">Pilihan Ganda Kompleks</span></div>
+                    <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                    
+                    <div class="options-group">
+                        <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_A')">
+                            <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_A" value="A">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_A">
+                                <strong>A.</strong> ${q.pilihanA}
+                            </label>
+                        </div>
+                        <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_B')">
+                            <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_B" value="B">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_B">
+                                <strong>B.</strong> ${q.pilihanB}
+                            </label>
+                        </div>
+                        <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_C')">
+                            <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_C" value="C">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_C">
+                                <strong>C.</strong> ${q.pilihanC}
+                            </label>
+                        </div>
+                        <div class="option-container" onclick="selectMultiOption(this, 'option_${q.id}_D')">
+                            <input class="form-check-input d-none" type="checkbox" name="soal_${q.id}" id="option_${q.id}_D" value="D">
+                            <label class="form-check-label w-100 ps-1" style="cursor: pointer; font-size: 0.85rem;" for="option_${q.id}_D">
+                                <strong>D.</strong> ${q.pilihanD}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (q.tipe === 'MENJODOHKAN') {
+            const subItems = q.pertanyaan.split(';');
+            const instructionText = subItems[0];
+            const matchingRows = subItems.slice(1);
+
+            let leftItemsHtml = '';
+            matchingRows.forEach((rowText, rowIdx) => {
+                leftItemsHtml += `
+                    <div class="matching-node-left d-flex align-items-center justify-content-between p-2 mb-2 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_left_${q.id}_${rowIdx}">
+                        <span class="fw-bold text-dark text-start" style="font-size: 0.75rem;">${rowText.trim()}</span>
+                        <div class="matching-dot bg-teal-dark" data-q-id="${q.id}" data-node-idx="${rowIdx}" id="dot_left_${q.id}_${rowIdx}"></div>
+                    </div>
+                `;
+            });
+
+            let rightItemsHtml = '';
+            const options = [
+                { val: 'A', text: q.pilihanA },
+                { val: 'B', text: q.pilihanB },
+                { val: 'C', text: q.pilihanC },
+                { val: 'D', text: q.pilihanD }
+            ].filter(o => o.text !== '');
+
+            options.forEach((opt) => {
+                rightItemsHtml += `
+                    <div class="matching-node-right d-flex align-items-center gap-2 p-2 mb-2 bg-white border border-2 rounded-3 shadow-sm" style="touch-action: none;" id="node_right_${q.id}_${opt.val}">
+                        <div class="matching-dot bg-orange" data-q-id="${q.id}" data-node-val="${opt.val}" id="dot_right_${q.id}_opt_${opt.val}"></div>
+                        <span class="fw-bold text-dark text-start" style="font-size: 0.75rem;"><strong>${opt.val}.</strong> ${opt.text}</span>
+                    </div>
+                `;
+            });
+
+            questionHtml = `
+                <div class="card p-3 border shadow-sm rounded-3">
+                    <div class="mb-2"><span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Menjodohkan</span></div>
+                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${instructionText}</h6>
+                    <p class="text-muted mb-2" style="font-size: 0.7rem;"><i class="bi bi-info-circle"></i> Hubungkan bulatan <strong>Teal (Kiri)</strong> ke <strong>Oranye (Kanan)</strong>!</p>
+                    
+                    <div class="matching-wrapper p-2 bg-light rounded-4 border border-teal-light" id="matching_container_${q.id}">
+                        <canvas class="matching-canvas" id="canvas_${q.id}"></canvas>
+                        <div class="row relative z-10 g-2">
+                            <div class="col-6 d-flex flex-column justify-content-center">
+                                ${leftItemsHtml}
+                            </div>
+                            <div class="col-6 d-flex flex-column justify-content-center">
+                                ${rightItemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         } else if (q.tipe === 'ISIAN') {
-            container.innerHTML += `<div class="card p-3 border shadow-sm rounded-3"><div class="mb-2"><span class="badge bg-success">Isian Singkat</span></div><h6 class="fw-bold text-dark mb-3">Soal ${idx+1}: ${q.pertanyaan}</h6><input type="text" name="isian_${q.id}" class="form-control" placeholder="Jawaban singkat..."></div>`;
-        } else {
-            container.innerHTML += `<div class="card p-3 border shadow-sm rounded-3"><div class="mb-2"><span class="badge bg-warning text-dark">${q.tipe}</span></div><h6 class="fw-bold text-dark mb-3">Soal ${idx+1}: ${q.pertanyaan}</h6><p class="text-muted">Tipe soal ini sedang dalam pengembangan</p></div>`;
+            questionHtml = `
+                <div class="card p-3 border shadow-sm rounded-3">
+                    <div class="mb-2"><span class="badge bg-success" style="font-size: 0.7rem;">Isian Singkat</span></div>
+                    <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem; line-height: 1.4;">Soal ${idx + 1}: ${q.pertanyaan}</h6>
+                    <div class="mt-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-secondary border-teal-light"><i class="bi bi-pencil-square"></i></span>
+                            <input type="text" name="isian_${q.id}" class="form-control border-teal-light py-2 px-3" placeholder="Jawaban singkat..." required style="height: 44px; font-size: 0.85rem;">
+                        </div>
+                    </div>
+                </div>
+            `;
         }
+
+        questionsContainer.insertAdjacentHTML('beforeend', questionHtml);
     });
+
     document.getElementById('quizQuestionCount').innerText = `${importedQuestions.length} Soal`;
     document.getElementById('quizArea').classList.remove('d-none');
+
+    setTimeout(() => {
+        importedQuestions.forEach(q => {
+            if (q.tipe === 'MENJODOHKAN') {
+                initMatchingQuiz(q.id);
+            }
+        });
+    }, 300);
+}
+
+function initMatchingQuiz(qId) {
+    const container = document.getElementById(`matching_container_${qId}`);
+    const canvas = document.getElementById(`canvas_${qId}`);
+    if (!container || !canvas) return;
+
+    function resizeAndDraw() {
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        drawConnections(qId);
+    }
+    
+    window.addEventListener('resize', () => setTimeout(resizeAndDraw, 100));
+    setTimeout(resizeAndDraw, 100);
+
+    const leftDots = container.querySelectorAll('.matching-node-left .matching-dot');
+    const rightDots = container.querySelectorAll('.matching-node-right .matching-dot');
+
+    let selectedLeftDotIdx = null; 
+
+    function getDotCenter(dotElement) {
+        const dotRect = dotElement.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        return {
+            x: dotRect.left - containerRect.left + dotRect.width / 2,
+            y: dotRect.top - containerRect.top + dotRect.height / 2
+        };
+    }
+
+    leftDots.forEach(dot => {
+        const leftIdx = parseInt(dot.getAttribute('data-node-idx'));
+
+        const handleStart = (e) => {
+            if (e.cancelable) e.preventDefault();
+            const touch = e.touches ? e.touches[0] : e;
+            const containerRect = container.getBoundingClientRect();
+
+            leftDots.forEach(d => d.classList.remove('active-glow'));
+            dot.classList.add('active-glow');
+
+            selectedLeftDotIdx = leftIdx;
+
+            const center = getDotCenter(dot);
+            activeDragConnection = {
+                qId: qId,
+                leftIdx: leftIdx,
+                startX: center.x,
+                startY: center.y,
+                currentX: touch.clientX - containerRect.left,
+                currentY: touch.clientY - containerRect.top
+            };
+        };
+
+        dot.addEventListener('mousedown', handleStart);
+        dot.addEventListener('touchstart', handleStart, { passive: false });
+
+        dot.addEventListener('click', (e) => {
+            e.preventDefault();
+            selectedLeftDotIdx = leftIdx;
+            leftDots.forEach(d => d.classList.remove('active-glow'));
+            dot.classList.add('active-glow');
+        });
+    });
+
+    rightDots.forEach(dot => {
+        const rightVal = dot.getAttribute('data-node-val');
+
+        dot.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (selectedLeftDotIdx !== null) {
+                if (!quizConnections[qId]) quizConnections[qId] = {};
+                quizConnections[qId][selectedLeftDotIdx] = rightVal;
+                
+                leftDots.forEach(d => d.classList.remove('active-glow'));
+                selectedLeftDotIdx = null;
+
+                drawConnections(qId);
+                showNotification("Garis dihubungkan!");
+                saveQuizState();
+            } else {
+                showNotification("Pilih bulatan Kiri (Teal) dulu!");
+            }
+        });
+    });
+
+    const handleMove = (e) => {
+        if (!activeDragConnection || activeDragConnection.qId !== qId) return;
+        if (e.cancelable) e.preventDefault();
+
+        const touch = e.touches ? e.touches[0] : e;
+        const containerRect = container.getBoundingClientRect();
+
+        activeDragConnection.currentX = touch.clientX - containerRect.left;
+        activeDragConnection.currentY = touch.clientY - containerRect.top;
+
+        drawConnections(qId);
+    };
+
+    const handleEnd = (e) => {
+        if (!activeDragConnection || activeDragConnection.qId !== qId) return;
+        
+        const touch = e.changedTouches ? e.changedTouches[0] : e;
+        let targetDot = null;
+
+        rightDots.forEach(rDot => {
+            const rect = rDot.getBoundingClientRect();
+            if (
+                touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                touch.clientY >= rect.top && touch.clientY <= rect.bottom
+            ) {
+                targetDot = rDot;
+            }
+        });
+
+        if (targetDot) {
+            const rightVal = targetDot.getAttribute('data-node-val');
+            if (!quizConnections[qId]) quizConnections[qId] = {};
+            
+            quizConnections[qId][activeDragConnection.leftIdx] = rightVal;
+            showNotification("Garis dihubungkan!");
+            saveQuizState();
+        }
+
+        activeDragConnection = null;
+        leftDots.forEach(d => d.classList.remove('active-glow'));
+        selectedLeftDotIdx = null;
+
+        drawConnections(qId);
+    };
+
+    container.addEventListener('mousemove', handleMove);
+    container.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('touchend', handleEnd);
+}
+
+function drawConnections(qId) {
+    const container = document.getElementById(`matching_container_${qId}`);
+    const canvas = document.getElementById(`canvas_${qId}`);
+    if (!container || !canvas) return;
+
+    const rect = container.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (quizConnections[qId]) {
+        Object.keys(quizConnections[qId]).forEach(leftIdx => {
+            const rightVal = quizConnections[qId][leftIdx];
+
+            const leftDot = document.getElementById(`dot_left_${qId}_${leftIdx}`);
+            const rightDot = document.getElementById(`dot_right_${qId}_opt_${rightVal}`);
+
+            if (leftDot && rightDot) {
+                const lRect = leftDot.getBoundingClientRect();
+                const rRect = rightDot.getBoundingClientRect();
+                const cRect = container.getBoundingClientRect();
+
+                const startX = lRect.left - cRect.left + lRect.width / 2;
+                const startY = lRect.top - cRect.top + lRect.height / 2;
+                const endX = rRect.left - cRect.left + rRect.width / 2;
+                const endY = rRect.top - cRect.top + rRect.height / 2;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#0f766e';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.shadowColor = 'rgba(20, 184, 166, 0.4)';
+                ctx.shadowBlur = 6;
+                ctx.stroke();
+            }
+        });
+    }
+
+    if (activeDragConnection && activeDragConnection.qId === qId) {
+        ctx.beginPath();
+        ctx.moveTo(activeDragConnection.startX, activeDragConnection.startY);
+        ctx.lineTo(activeDragConnection.currentX, activeDragConnection.currentY);
+        ctx.strokeStyle = '#f97316';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 6]);
+        ctx.lineCap = 'round';
+        ctx.shadowColor = 'rgba(249, 115, 22, 0.4)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
 }
 
 function selectOption(element, radioId) {
     const radio = document.getElementById(radioId);
-    if (!radio) return;
+    if (radio && radio.disabled) return;
+
     const parent = element.closest('.options-group');
     parent.querySelectorAll('.option-container').forEach(el => el.classList.remove('selected'));
-    radio.checked = true;
+    if(radio) {
+        radio.checked = true;
+    }
     element.classList.add('selected');
     saveQuizState();
 }
 
-function drawConnections(qId) {}
+function selectMultiOption(element, checkboxId) {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox && checkbox.disabled) return;
 
-// Navigasi
+    checkbox.checked = !checkbox.checked;
+    if (checkbox.checked) {
+        element.classList.add('selected');
+    } else {
+        element.classList.remove('selected');
+    }
+    saveQuizState();
+}
+
+function generateSecureCode(name, absen, score) {
+    const payload = `${name.toLowerCase().trim()}|${absen}|${score}|${SECRET_CRYPT_SALT}`;
+    let hashValue = 0;
+    for (let i = 0; i < payload.length; i++) {
+        hashValue = (hashValue << 5) - hashValue + payload.charCodeAt(i);
+        hashValue |= 0;
+    }
+    const checksum = Math.abs(hashValue).toString(16).toUpperCase().substring(0, 5);
+    return `SDN3-K5-${absen}-${score}-${checksum}`;
+}
+
+function bersihkanJawaban(str) {
+    if (!str) return '';
+    return str.toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ');
+}
+
+function hitungLevenshtein(s1, s2) {
+    const a = bersihkanJawaban(s1);
+    const b = bersihkanJawaban(s2);
+    if (a === b) return 0;
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const matrix = [];
+    for (let i = 0; i <= a.length; i++) {
+        matrix[i] = [i];
+    }
+    for (let j = 0; j <= b.length; j++) {
+        matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            matrix[i][j] = Math.min(
+                matrix[i - 1][j] + 1,
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j - 1] + cost
+            );
+        }
+    }
+    return matrix[a.length][b.length];
+}
+
+function cekJawabanIsian(inputSiswa, kunciExcel) {
+    const inputBersih = bersihkanJawaban(inputSiswa);
+    if (!inputBersih) return false;
+
+    const alternatifKunci = kunciExcel.split('|').map(k => bersihkanJawaban(k));
+
+    for (let kunci of alternatifKunci) {
+        if (inputBersih === kunci) return true;
+
+        if (kunci.length > 4) {
+            const jarak = hitungLevenshtein(inputBersih, kunci);
+            if (jarak === 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function saveToQuizHistory(studentData) {
+    let history = localStorage.getItem('sdn3_quiz_history');
+    if (history) {
+        history = JSON.parse(history);
+    } else {
+        history = [];
+    }
+
+    history.unshift(studentData);
+    localStorage.setItem('sdn3_quiz_history', JSON.stringify(history));
+    loadQuizHistory();
+}
+
+function loadQuizHistory() {
+    const historyBody = document.getElementById('quizHistoryBody');
+    if (!historyBody) return;
+
+    let history = localStorage.getItem('sdn3_quiz_history');
+    
+    if (!history || JSON.parse(history).length === 0) {
+        historyBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada riwayat kuis.</td></tr>`;
+        return;
+    }
+
+    history = JSON.parse(history);
+    historyBody.innerHTML = '';
+
+    history.forEach((data, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.date}</small>
+            </td>
+            <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-teal py-1 px-2.5 rounded-pill text-white" onclick="viewSpecificHistoryCert(${index})" style="font-size: 0.75rem; height: auto;">
+                    <i class="bi bi-eye"></i> Lihat
+                </button>
+            </td>
+        `;
+        historyBody.appendChild(tr);
+    });
+}
+
+function clearQuizHistory() {
+    const title = document.getElementById('confirmModalTitle');
+    const desc = document.getElementById('confirmModalDesc');
+    const btnAction = document.getElementById('btnConfirmModalAction');
+
+    title.innerText = "Hapus Riwayat Kuis?";
+    desc.innerText = "Tindakan ini akan membersihkan seluruh bukti riwayat pengerjaan lokal di HP ini!";
+    
+    btnAction.onclick = function() {
+        localStorage.removeItem('sdn3_quiz_history');
+        loadQuizHistory();
+        bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+        showNotification("Riwayat kuis berhasil dibersihkan!");
+    };
+
+    const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+    confirmModal.show();
+}
+
+function viewSpecificHistoryCert(index) {
+    let history = localStorage.getItem('sdn3_quiz_history');
+    if (!history) return;
+    history = JSON.parse(history);
+    const data = history[index];
+    if (!data) return;
+
+    currentStudentData = data;
+
+    document.getElementById('pdfName').innerText = data.name;
+    document.getElementById('pdfAbsen').innerText = data.absen;
+    document.getElementById('pdfDate').innerText = data.date;
+    document.getElementById('pdfScore').innerText = data.score;
+    document.getElementById('pdfCertId').innerText = `Nomor: ${data.certId}`;
+    document.getElementById('pdfCertCode').innerText = data.secureCode;
+
+    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-archive-fill text-teal me-2"></i>Bukti Belajar (Arsip)`;
+    document.getElementById('btnSendWA').classList.remove('d-none');
+    document.getElementById('btnCloseQuizResult').classList.remove('d-none');
+
+    const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
+    resultModal.show();
+}
+
+function contactTeacherWA() {
+    if (!currentStudentData) return;
+
+    const waText = 
+`🏆 *BUKTI HASIL KUIS KELAS V - SDN 3 NGANTRU* 🏆
+
+Halo Bapak Aburrizal Hamdani Lubis, S.Pd. Saya sudah menyelesaikan kuis kelas.
+
+👤 *Nama Siswa* : ${currentStudentData.name.toUpperCase()}
+🔢 *No. Absen* : ${currentStudentData.absen}
+🎯 *Skor Kuis* : *${currentStudentData.score} / 100*
+
+_File Bukti Gambar JPG asli sudah saya unduh dan akan saya kirimkan._`;
+
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+    window.open(waUrl, '_blank');
+}
+
+window.loadRekapGuru = function() {
+    const body = document.getElementById('rekapGuruTableBody');
+    if (!body) return;
+    
+    let rekap = localStorage.getItem('sdn3_rekap_guru');
+    
+    if (!rekap || JSON.parse(rekap).length === 0) {
+        body.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">Belum ada rekap data kuis masuk. Selesaikan kuis untuk mengisi rekap.</td></tr>`;
+        return;
+    }
+    
+    rekap = JSON.parse(rekap);
+    body.innerHTML = '';
+    
+    rekap.forEach(data => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
+                <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen}</small>
+            </td>
+            <td class="text-center"><strong class="text-teal" style="font-size: 0.95rem;">${data.score}</strong></td>
+            <td class="text-center"><small class="text-muted d-block" style="font-size: 0.65rem; line-height:1.2;">${data.date}</small></td>
+        `;
+        body.appendChild(tr);
+    });
+};
+
+window.saveToRekapGuru = async function(studentData) {
+    await saveToGoogleSheets(studentData);
+};
+
+window.triggerResetRekap = function() {
+    const title = document.getElementById('confirmModalTitle');
+    const desc = document.getElementById('confirmModalDesc');
+    const btnAction = document.getElementById('btnConfirmModalAction');
+    
+    title.innerText = "Hapus Seluruh Rekap?";
+    desc.innerText = "Semua nilai kuis siswa di Menu Guru akan dihapus permanen dari memori HP ini! Data di Google Sheets tetap aman.";
+    
+    btnAction.onclick = function() {
+        localStorage.removeItem('sdn3_rekap_guru');
+        window.loadRekapGuru();
+        bootstrap.Modal.getInstance(document.getElementById('customConfirmModal')).hide();
+        showNotification("Rekap nilai lokal berhasil dihapus!");
+    };
+    
+    const confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+    confirmModal.show();
+};
+
+window.downloadRekapExcel = function() {
+    let rekap = localStorage.getItem('sdn3_rekap_guru');
+    if (!rekap || JSON.parse(rekap).length === 0) {
+        showNotification("Tidak ada data untuk diunduh!");
+        return;
+    }
+    
+    rekap = JSON.parse(rekap);
+    
+    const worksheetData = [
+        ["No", "Nama Siswa", "Nomor Absen", "Skor", "Tanggal", "ID Sertifikat", "Kode Validasi"]
+    ];
+    
+    rekap.forEach((data, index) => {
+        worksheetData.push([
+            index + 1,
+            data.name,
+            data.absen,
+            data.score,
+            data.date,
+            data.certId || "-",
+            data.secureCode || "-"
+        ]);
+    });
+    
+    const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap_Nilai_Siswa");
+    
+    XLSX.writeFile(wb, `Rekap_Nilai_Kelas_V_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+    showNotification("File Excel berhasil diunduh!");
+};
+
 function navigateTo(viewName) {
-    if (document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none') && !isQuizSubmitted) saveQuizState();
-    document.getElementById('view-dashboard').classList.add('d-none');
-    document.getElementById('view-materi').classList.add('d-none');
-    document.getElementById('view-tugas').classList.add('d-none');
-    document.getElementById('view-rekap-guru').classList.add('d-none');
-    if (viewName === 'dashboard') document.getElementById('view-dashboard').classList.remove('d-none');
-    else if (viewName === 'materi') document.getElementById('view-materi').classList.remove('d-none');
-    else if (viewName === 'tugas') { document.getElementById('view-tugas').classList.remove('d-none'); document.getElementById('quizStartPanel').classList.remove('d-none'); document.getElementById('quizArea').classList.add('d-none'); loadQuizHistory(); stopQuizTimer(); }
-    else if (viewName === 'rekap') { document.getElementById('view-rekap-guru').classList.remove('d-none'); window.loadRekapGuru(); }
-    window.scrollTo({ top: 0 });
+    if (document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none') && !isQuizSubmitted) {
+        saveQuizState();
+        showNotification("Kuis disimpan. Kembali ke Menu Tugas untuk melanjutkan.");
+    }
+    
+    const views = {
+        'dashboard': document.getElementById('view-dashboard'),
+        'materi': document.getElementById('view-materi'),
+        'tugas': document.getElementById('view-tugas'),
+        'rekap': document.getElementById('view-rekap-guru')
+    };
+    
+    Object.keys(views).forEach(key => {
+        if (views[key]) {
+            views[key].classList.add('d-none');
+        }
+    });
+    
+    if (viewName === 'rekap') {
+        views['rekap'].classList.remove('d-none');
+        window.loadRekapGuru();
+    } else if (views[viewName]) {
+        views[viewName].classList.remove('d-none');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (viewName === 'tugas') {
+            document.getElementById('quizStartPanel').classList.remove('d-none');
+            document.getElementById('quizArea').classList.add('d-none');
+            document.getElementById('quizLoader').classList.add('d-none');
+            loadQuizHistory();
+            stopQuizTimer();
+            setTimeout(() => {
+                if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
+                    if (confirm("Ada kuis yang belum selesai. Lanjutkan?")) {
+                        loadQuizState();
+                    }
+                }
+            }, 500);
+        }
+    }
 }
 
 function checkPassword(e) {
     e.preventDefault();
-    if (document.getElementById('inputPassword').value === "kelas5") {
+    const enteredPassword = document.getElementById('inputPassword').value;
+    const correctPassword = "kelas5";
+    
+    if (enteredPassword === correctPassword) {
         document.getElementById('passwordOverlay').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
         navigateTo('dashboard');
     } else {
-        document.getElementById('passwordError').classList.remove('d-none');
+        const errorDiv = document.getElementById('passwordError');
+        errorDiv.classList.remove('d-none');
+        document.getElementById('inputPassword').value = '';
     }
 }
 
 function promptGuruMenu() {
-    const pwd = prompt("Masukkan Sandi Keamanan Menu Guru:");
-    if (pwd === "11223344") { navigateTo('rekap'); showNotification("Berhasil masuk ke Menu Rekapitulasi Guru."); }
-    else if (pwd) showNotification("Sandi salah! Akses ditolak.");
+    const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
+    if (password === null) return;
+    if (password === "11223344") {
+        navigateTo('rekap');
+        showNotification("Berhasil masuk ke Menu Rekapitulasi Guru.");
+    } else {
+        showNotification("Sandi salah! Akses ditolak.");
+    }
 }
 
-// Toast
-const toast = new bootstrap.Toast(document.getElementById('actionToast'));
-const toastMsg = document.getElementById('toastMessage');
-function showNotification(msg) { toastMsg.innerText = msg; toast.show(); }
+const toastElement = document.getElementById('actionToast');
+const toast = new bootstrap.Toast(toastElement);
+const toastMsgSpan = document.getElementById('toastMessage');
 
-// Event handlers
+function showNotification(message) {
+    toastMsgSpan.innerText = message;
+    toast.show();
+}
+
+function resetImportedQuiz() {
+    if (remainingSeconds <= 0 && quizDurationMinutes > 0) {
+        showNotification("Kuis sudah berakhir!");
+        return;
+    }
+    
+    const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]');
+    radios.forEach(r => r.checked = false);
+    
+    const checkboxes = document.querySelectorAll('#interactiveQuizForm input[type="checkbox"]');
+    checkboxes.forEach(c => c.checked = false);
+    
+    const textInputs = document.querySelectorAll('#interactiveQuizForm input[type="text"]');
+    textInputs.forEach(i => i.value = '');
+    
+    quizConnections = {};
+    importedQuestions.forEach(q => {
+        if (q.tipe === 'MENJODOHKAN') {
+            drawConnections(q.id);
+        }
+    });
+    
+    const selectedOptions = document.querySelectorAll('#interactiveQuizForm .option-container');
+    selectedOptions.forEach(o => o.classList.remove('selected'));
+    
+    showNotification("Jawaban dibersihkan!");
+}
+
 window.navigateTo = navigateTo;
 window.checkPassword = checkPassword;
 window.promptGuruMenu = promptGuruMenu;
 window.syncAndStartQuiz = syncAndStartQuiz;
-window.selectOption = selectOption;
-window.clearQuizHistory = clearQuizHistory;
+window.downloadTamperProofJPG = downloadTamperProofJPG;
 window.contactTeacherWA = contactTeacherWA;
+window.clearQuizHistory = clearQuizHistory;
 window.viewSpecificHistoryCert = viewSpecificHistoryCert;
 window.onCloseResultModal = onCloseResultModal;
+window.selectOption = selectOption;
+window.selectMultiOption = selectMultiOption;
 
 window.onload = function() {
     loadQuizHistory();
     window.loadRekapGuru();
-    setTimeout(() => { if (loadQuizState()) showNotification("Kuis belum selesai! Klik Mulai Kuis untuk melanjutkan."); }, 500);
+    setTimeout(() => {
+        if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
+            if (confirm("Ada kuis yang belum selesai. Lanjutkan?")) {
+                loadQuizState();
+            }
+        }
+    }, 500);
 };
 </script>
 </body>

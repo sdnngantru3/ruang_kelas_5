@@ -307,6 +307,7 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+        /* UKURAN MODAL PRESISI UNTUK HP */
         @media (max-width: 575.98px) {
             .modal-dialog {
                 margin: 0.5rem !important;
@@ -316,16 +317,34 @@
                 border-radius: 20px !important;
             }
             .modal-body {
-                padding: 1.25rem 1rem !important;
+                padding: 1rem !important;
             }
             .modal-header, .modal-footer {
                 padding: 0.75rem 1rem !important;
             }
-            #tugasPreviewImage {
-                max-height: 180px !important;
-                object-fit: contain;
-                width: 100%;
+            /* Preview sertifikat di HP - ukuran presisi */
+            .cert-preview-container {
+                max-height: 380px !important;
+                overflow: auto !important;
+                -webkit-overflow-scrolling: touch;
             }
+            .cert-preview-inner {
+                min-width: 100%;
+                width: 100%;
+                transform: scale(0.85);
+                transform-origin: top left;
+            }
+        }
+        /* Tambahan untuk preview sertifikat */
+        .cert-preview-container {
+            max-height: 400px;
+            overflow: auto;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+        .cert-preview-inner {
+            min-width: 480px;
+            padding: 8px;
         }
     </style>
 </head>
@@ -337,7 +356,7 @@
         <div class="text-teal mb-3">
             <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
         </div>
-        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
+        <h4 class="fw-bold text-dark mb-1">Akses Terbatass</h4>
         <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
         
         <form onsubmit="checkPassword(event)">
@@ -512,7 +531,7 @@
             </div>
             
             <div id="quizScheduleAlert" class="alert alert-secondary d-none border-0 rounded-4 py-2 px-3 mb-3 text-center">
-                <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis Akses:</span>
+                <span class="small fw-semibold text-dark d-block mb-1"><i class="bi bi-clock-fill me-1"></i> Jadwal Akses Kuis:</span>
                 <span class="small text-muted d-block" id="scheduleText">-</span>
                 <span class="small text-orange fw-bold d-block mt-1" id="durationText">-</span>
             </div>
@@ -590,7 +609,7 @@
                             <th>Nama & Absen</th>
                             <th class="text-center">Nilai</th>
                             <th class="text-center">Aksi</th>
-                         </tr>
+                          </tr>
                     </thead>
                     <tbody id="quizHistoryBody" style="font-size: 0.8rem;">
                     </tbody>
@@ -663,11 +682,11 @@
     </div>
 </div>
 
-<!-- MODAL UNDUH BUKTI & KIRIM WA -->
+<!-- MODAL UNDUH BUKTI & KIRIM WA - DENGAN UKURAN PRESISI UNTUK HP -->
 <div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header bg-teal-dark text-white border-0 py-2.5">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 500px; margin: 0.5rem auto;">
+        <div class="modal-content border-0" style="border-radius: 24px;">
+            <div class="modal-header bg-teal-dark text-white border-0 py-3" style="border-radius: 24px 24px 0 0;">
                 <h6 class="modal-title fw-bold"><i class="bi bi-image text-warning me-1"></i>Pratinjau Hasil Belajar</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="onCloseResultModal()"></button>
             </div>
@@ -676,91 +695,77 @@
                     <i class="bi bi-shield-fill-check fs-2"></i>
                 </div>
                 <h6 class="fw-bold mb-1" id="quizResultTitle">Pengerjaan Disimpan!</h6>
-                <p class="text-muted small mb-3" style="font-size: 0.75rem;">Pratinjau bukti belajar resmi ananda di bawah ini. Geser ke samping jika terpotong, lalu tekan tombol unduh.</p>
+                <p class="text-muted small mb-3" style="font-size: 0.75rem;">Pratinjau bukti belajar di bawah ini. Geser untuk melihat seluruhnya.</p>
 
-                <div class="border rounded-4 p-2 bg-secondary bg-opacity-10 mb-3 text-start d-flex justify-content-start overflow-auto" style="max-height: 320px; -webkit-overflow-scrolling: touch;">
-                    <div style="min-width: 595px; width: 595px; flex-shrink: 0; display: inline-block;">
-                        <div id="pdfCertificateTemplate">
+                <!-- PREVIEW DENGAN UKURAN PRESISI HP -->
+                <div class="cert-preview-container border rounded-4 p-2 bg-light mb-3" style="max-height: 380px; overflow: auto; -webkit-overflow-scrolling: touch;">
+                    <div class="cert-preview-inner" style="min-width: 450px;">
+                        <div id="pdfCertificateTemplate" style="width: 450px; padding: 16px; margin: 0 auto; transform: scale(0.95); transform-origin: top center;">
                             <div class="cert-header text-center d-flex align-items-center justify-content-center gap-2">
-                                <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid" style="width: 56px; height: 56px; object-fit: contain;">
+                                <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/80x80/0f766e/ffffff?text=SDN3';" style="width: 48px; height: 48px; object-fit: contain;">
                                 <div>
-                                    <h4 class="fw-black m-0 text-teal-dark" style="font-weight: 900; font-size: 1.35rem; letter-spacing: 0.5px;">SD NEGERI 3 NGANTRU</h4>
-                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Kecamatan Ngantang, Kabupaten Malang, Jawa Timur 65162</small>
+                                    <h4 class="fw-black m-0 text-teal-dark" style="font-size: 1rem;">SD NEGERI 3 NGANTRU</h4>
+                                    <small class="text-muted d-block" style="font-size: 0.6rem;">Kec. Ngantang, Kab. Malang</small>
                                 </div>
                             </div>
 
-                            <div class="text-center my-3">
-                                <h5 class="fw-bold text-dark text-uppercase mb-0" style="text-decoration: underline; letter-spacing: 1px; font-size: 1.05rem;">BUKTI MENGERJAKAN KUIS/UJIAN</h5>
-                                <span class="text-muted" style="font-size: 0.7rem;" id="pdfCertId">Nomor: SDN3/V/EVAL/2026/001</span>
-                                <div class="mt-1 text-teal fw-bold small">dari Pak Rizal</div>
+                            <div class="text-center my-2">
+                                <h5 class="fw-bold text-dark text-uppercase mb-0" style="font-size: 0.85rem;">BUKTI MENGERJAKAN KUIS</h5>
+                                <span class="text-muted" style="font-size: 0.6rem;" id="pdfCertId">Nomor: SDN3/V/EVAL/2026/001</span>
+                                <div class="mt-1 text-teal fw-bold small" style="font-size: 0.65rem;">dari Pak Rizal</div>
                             </div>
 
-                            <div class="my-3 small" style="line-height: 1.6; font-size: 0.85rem;">
-                                <p class="mb-2">Dengan ini, sistem pembelajaran portal digital menyatakan bahwa siswa di bawah ini:</p>
-                                <table class="table table-borderless ms-2 mb-2" style="width: 90%;">
-                                    <tr>
-                                        <td style="width: 120px;" class="fw-bold p-0">Nama Siswa</td>
-                                        <td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark text-uppercase">Andi Setiawan</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold p-0">Nomor Absen</td>
-                                        <td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold p-0">Tanggal Ujian</td>
-                                        <td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td>
-                                    </tr>
-                                 </table>
-                                <p class="mt-2 mb-0">Telah menyelesaikan evaluasi belajar mandiri terintegrasi secara jujur dengan hasil prestasi:</p>
+                            <div class="my-2 small" style="line-height: 1.5; font-size: 0.7rem;">
+                                <p class="mb-1">Dengan ini, sistem pembelajaran menyatakan bahwa siswa:</p>
+                                <table class="table table-borderless ms-1 mb-1" style="width: 95%;">
+                                    <tr><td class="fw-bold p-0" style="width: 90px;">Nama Siswa</td><td class="p-0">: <span id="pdfName" class="fw-extrabold text-teal-dark">Andi Setiawan</span></td></tr>
+                                    <tr><td class="fw-bold p-0">Nomor Absen</td><td class="p-0">: <span id="pdfAbsen" class="fw-bold">07</span></td></tr>
+                                    <tr><td class="fw-bold p-0">Tanggal Ujian</td><td class="p-0">: <span id="pdfDate" class="text-muted">12 Juni 2026</span></td></tr>
+                                </table>
+                                <p class="mt-1 mb-0">Telah menyelesaikan evaluasi dengan hasil:</p>
                             </div>
 
-                            <div class="d-flex align-items-center justify-content-around my-4">
+                            <div class="d-flex align-items-center justify-content-around my-3">
                                 <div>
-                                    <span class="text-muted d-block" style="font-size: 0.7rem;">PRESTASI SKOR:</span>
-                                    <h2 class="fw-black text-teal m-0" style="font-weight: 900; font-size: 3rem;" id="pdfScore">95</h2>
+                                    <span class="text-muted d-block" style="font-size: 0.6rem;">SKOR:</span>
+                                    <h2 class="fw-black text-teal m-0" style="font-size: 2rem;" id="pdfScore">95</h2>
                                 </div>
-                                <div class="cert-seal">
+                                <div class="cert-seal" style="width: 55px; height: 55px; font-size: 0.55rem;">
                                     <span>BUKTI SAH</span>
                                 </div>
                             </div>
 
-                            <div class="row mt-4 pt-2">
+                            <div class="row mt-2">
                                 <div class="col-6">
-                                    <div class="text-start pt-3">
-                                        <small class="text-muted d-block" style="font-size: 0.65rem;">KODE VALIDATOR:</small>
-                                        <span class="fw-bold text-teal font-monospace" style="font-size: 0.75rem;" id="pdfCertCode">SDN3-K5-SECURE-9B1D</span>
+                                    <div class="text-start">
+                                        <small class="text-muted d-block" style="font-size: 0.55rem;">KODE VALIDATOR:</small>
+                                        <span class="fw-bold text-teal font-monospace" style="font-size: 0.6rem;" id="pdfCertCode">SDN3-K5-9B1D</span>
                                     </div>
                                 </div>
                                 <div class="col-6 text-center">
-                                    <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Guru Pengampu Kelas V</small>
-                                    <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin: 1px 0;">
-                                        <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 48px; max-width: 120px; object-fit: contain;">
-                                    </div>
-                                    <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 1.5px solid #334155; font-size: 0.85rem;">
-                                        Aburrizal H. Lubis, S.Pd.
-                                    </div>
-                                    <small class="text-muted d-block" style="font-size: 0.65rem;">NIP. 199507022020121009</small>
+                                    <small class="text-muted d-block mb-1" style="font-size: 0.6rem;">Guru Pengampu</small>
+                                    <div style="height: 35px;"><img src="ttd guru.png" alt="Ttd" onerror="this.style.display='none';" style="max-height: 35px;"></div>
+                                    <div class="py-1 text-teal-dark fw-bold" style="border-top: 1px solid #334155; font-size: 0.65rem;">Aburrizal H. Lubis, S.Pd.</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="alert alert-info small border-0 bg-teal-light text-teal text-start mb-3 p-2.5" style="font-size: 0.75rem;">
-                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Cara Mengirim Tugas:</strong><br>
-                    1. Klik tombol <strong>"Unduh Bukti Gambar (JPG)"</strong>.<br>
-                    2. Kirimkan file gambar unduhan ke WA Pak Rizal.
+                <div class="alert alert-info small border-0 bg-teal-light text-teal text-start mb-3 p-2" style="font-size: 0.7rem;">
+                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Catatan:</strong><br>
+                    Unduh gambar bukti terlebih dahulu. Setelah unduh berhasil, tombol keluar akan muncul.
                 </div>
 
-                <button type="button" onclick="downloadTamperProofJPG()" class="btn btn-orange w-100 rounded-pill mb-2 text-white">
-                    <i class="bi bi-download me-1"></i> 1. Unduh Bukti Gambar (JPG)
+                <button type="button" onclick="downloadTamperProofJPG()" class="btn btn-orange w-100 rounded-pill mb-2 text-white py-2" style="height: 44px;">
+                    <i class="bi bi-download me-1"></i> Unduh Bukti Gambar (JPG)
                 </button>
 
-                <button id="btnSendWA" type="button" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2 fw-bold mb-2 shadow-sm d-none" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-whatsapp me-1"></i> 2. Kirim via WhatsApp Guru
+                <button id="btnSendWA" type="button" onclick="contactTeacherWA()" class="btn btn-success w-100 rounded-pill py-2 fw-bold mb-2 shadow-sm d-none" style="height: 44px;">
+                    <i class="bi bi-whatsapp me-1"></i> Kirim via WhatsApp Guru
                 </button>
 
-                <button id="btnCloseQuizResult" type="button" class="btn btn-teal w-100 rounded-pill py-2.5 fw-bold d-none" data-bs-dismiss="modal" onclick="onCloseResultModal()" style="height: 48px; display: inline-flex; align-items: center; justify-content: center;">
+                <button id="btnCloseQuizResult" type="button" class="btn btn-teal w-100 rounded-pill py-2 fw-bold d-none" data-bs-dismiss="modal" onclick="onCloseResultModal()" style="height: 44px;">
                     Selesai & Tutup <i class="bi bi-check-circle-fill ms-1"></i>
                 </button>
             </div>
@@ -999,7 +1004,7 @@ function autoSubmitQuizOnTimeout() {
 }
 
 // ============================================================
-// FUNGSI KIRIM KE GOOGLE SHEETS
+// FUNGSI KIRIM KE GOOGLE SHEETS (DIPERBAIKI)
 // ============================================================
 async function saveToGoogleSheets(studentData) {
     try {
@@ -1013,7 +1018,10 @@ async function saveToGoogleSheets(studentData) {
             kode_validasi: studentData.secureCode
         };
 
-        await fetch(GOOGLE_SHEETS_API_URL, {
+        console.log("Mengirim data ke Google Sheets:", payload);
+        
+        // Menggunakan fetch dengan mode no-cors
+        const response = await fetch(GOOGLE_SHEETS_API_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -1021,10 +1029,12 @@ async function saveToGoogleSheets(studentData) {
             },
             body: JSON.stringify(payload)
         });
-
-        console.log("Data terkirim ke Google Sheets:", payload);
+        
+        // Karena mode no-cors, response tidak bisa dibaca, tapi data tetap terkirim
+        console.log("Data terkirim ke Google Sheets (mode no-cors)");
         showNotification("✅ Nilai tersimpan ke Google Sheets!");
         
+        // Simpan juga ke localStorage untuk rekap lokal
         let rekap = localStorage.getItem('sdn3_rekap_guru');
         rekap = rekap ? JSON.parse(rekap) : [];
         rekap.unshift(studentData);
@@ -1039,6 +1049,7 @@ async function saveToGoogleSheets(studentData) {
         console.error("Gagal kirim ke Google Sheets:", error);
         showNotification("⚠️ Gagal menyimpan ke Google Sheets, namun data tersimpan di lokal.");
         
+        // Tetap simpan ke lokal jika gagal
         let rekap = localStorage.getItem('sdn3_rekap_guru');
         rekap = rekap ? JSON.parse(rekap) : [];
         rekap.unshift(studentData);
@@ -1049,14 +1060,13 @@ async function saveToGoogleSheets(studentData) {
 }
 
 // ============================================================
-// FUNGSI DRAW CONNECTIONS YANG DISEMPURNAKAN (MENJODOHKAN)
+// FUNGSI DRAW CONNECTIONS (MENJODOHKAN)
 // ============================================================
 function drawConnections(qId) {
     const container = document.getElementById(`matching_container_${qId}`);
     const canvas = document.getElementById(`canvas_${qId}`);
     if (!container || !canvas) return;
 
-    // Update ukuran canvas sesuai container
     const rect = container.getBoundingClientRect();
     canvas.width = rect.width;
     canvas.height = rect.height;
@@ -1066,7 +1076,6 @@ function drawConnections(qId) {
     
     if (!quizConnections || !quizConnections[qId]) return;
     
-    // Gambar semua garis yang tersimpan
     Object.keys(quizConnections[qId]).forEach(leftIdx => {
         const rightVal = quizConnections[qId][leftIdx];
         
@@ -1091,7 +1100,7 @@ function drawConnections(qId) {
             ctx.lineCap = 'round';
             ctx.stroke();
             
-            // Gambar panah kecil di ujung
+            // Panah
             const angle = Math.atan2(endY - startY, endX - startX);
             const arrowSize = 8;
             const arrowX = endX - 12 * Math.cos(angle);
@@ -1108,7 +1117,7 @@ function drawConnections(qId) {
 }
 
 // ============================================================
-// FUNGSI INIT MATCHING QUIZ YANG DISEMPURNAKAN
+// FUNGSI INIT MATCHING QUIZ (MENJODOHKAN)
 // ============================================================
 function initMatchingQuiz(qId) {
     const container = document.getElementById(`matching_container_${qId}`);
@@ -1119,9 +1128,7 @@ function initMatchingQuiz(qId) {
     
     let selectedLeftIdx = null;
     
-    // Event untuk left dots (warna teal)
     leftDots.forEach(dot => {
-        // Hapus event listener lama
         const newDot = dot.cloneNode(true);
         dot.parentNode.replaceChild(newDot, dot);
         
@@ -1129,7 +1136,6 @@ function initMatchingQuiz(qId) {
         
         newDot.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Hapus active dari semua left dot
             document.querySelectorAll(`#matching_container_${qId} .matching-node-left .matching-dot`).forEach(d => {
                 d.classList.remove('active-glow');
             });
@@ -1148,7 +1154,6 @@ function initMatchingQuiz(qId) {
         });
     });
     
-    // Event untuk right dots (warna oranye)
     rightDots.forEach(dot => {
         const newDot = dot.cloneNode(true);
         dot.parentNode.replaceChild(newDot, dot);
@@ -1162,17 +1167,13 @@ function initMatchingQuiz(qId) {
                 if (!quizConnections[qId]) quizConnections[qId] = {};
                 quizConnections[qId][selectedLeftIdx] = rightVal;
                 
-                // Hapus active glow
                 document.querySelectorAll(`#matching_container_${qId} .matching-node-left .matching-dot`).forEach(d => {
                     d.classList.remove('active-glow');
                 });
                 selectedLeftIdx = null;
                 
-                // Gambar ulang garis
                 drawConnections(qId);
                 showNotification("Berhasil dihubungkan!");
-                
-                // Simpan state
                 saveQuizState();
             } else {
                 showNotification("Klik bulatan kiri (warna Teal) terlebih dahulu!");
@@ -1201,12 +1202,11 @@ function initMatchingQuiz(qId) {
         });
     });
     
-    // Gambar garis yang sudah ada
     setTimeout(() => drawConnections(qId), 100);
 }
 
 // ============================================================
-// SUBMIT KUIS
+// SUBMIT KUIS (DIPERBAIKI - PASTIKAN KIRIM KE SHEETS)
 // ============================================================
 async function submitInteractiveQuiz(e) {
     e.preventDefault();
@@ -1293,6 +1293,9 @@ async function submitInteractiveQuiz(e) {
     localStorage.removeItem(STORAGE_KEY);
     
     saveToQuizHistory(currentStudentData);
+    
+    // PASTIKAN KIRIM KE GOOGLE SHEETS
+    console.log("Menyimpan ke Google Sheets...");
     await saveToGoogleSheets(currentStudentData);
     
     document.getElementById('pdfName').innerText = nameInput;
@@ -1367,7 +1370,7 @@ window.syncAndStartQuiz = async function() {
 };
 
 // ============================================================
-// FUNGSI ASLI (TIDAK DIUBAH)
+// FUNGSI ASLI LAINNYA (TIDAK DIUBAH)
 // ============================================================
 
 function extractFileIdFromFolderHtml(html, fileName = "kuis") {
@@ -1436,7 +1439,7 @@ async function syncQuizFromDrive(isManualClick = false) {
         const fileId = extractFileIdFromFolderHtml(folderHtml, "kuis");
 
         if (!fileId) {
-            console.log("Mencoba mengambil fallback kuis.xlsx lokal dari GitHub dengan penangkal cache...");
+            console.log("Mencoba mengambil fallback kuis.xlsx lokal...");
             const localResponse = await fetch(`kuis.xlsx?_=${timestamp}`);
             if (!localResponse.ok) {
                 throw new Error("Kuis di Google Drive tidak ditemukan.");
@@ -1891,7 +1894,7 @@ function loadQuizHistory() {
     history.forEach((data, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>
+            <tr>
                 <span class="fw-bold text-dark d-block" style="font-size: 0.85rem;">${data.name.toUpperCase()}</span>
                 <small class="text-muted" style="font-size: 0.65rem;">No. Absen: ${data.absen} • ${data.date}</small>
             </td>

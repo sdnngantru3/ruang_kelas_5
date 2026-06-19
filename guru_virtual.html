@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal Kelas Virtual & Guru AI - SDN 3 Ngantru</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts: Plus Jakarta Sans & Comic Neue -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --teal-dark: #0f766e;
+            --teal-medium: #14b8a6;
+            --teal-light: #f0fdfa;
+            --teal-hover: #115e59;
+            --orange-accent: #f97316;
+            --orange-light: #fff7ed;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+            height: 100dvh; /* Kunci tinggi layar dinamis HP */
+            overflow: hidden;
+        }
+        .comic-font {
+            font-family: 'Comic Neue', cursive, sans-serif;
+        }
+        /* Custom scrollbar untuk riwayat chat */
+        .chat-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 1);
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: rgba(203, 213, 225, 1);
+            border-radius: 4px;
+        }
+        /* Animasi denyut gelombang suara perekam */
+        @keyframes pulse-wave {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+        .pulse-active {
+            animation: pulse-wave 1.2s infinite ease-in-out;
+        }
+        /* Mencegah highlight teks/gambar saat menekan lama di HP */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-slate-800 flex flex-col no-select">
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="mainContent" class="flex flex-col h-full w-full overflow-hidden">
+        
+        <!-- Header Utama Portal -->
+        <header class="bg-white/90 backdrop-blur-md border-b border-teal-100 px-4 py-2.5 flex justify-between items-center shadow-sm shrink-0">
+            <div class="flex items-center gap-2">
+                <div class="bg-gradient-to-r from-[#0f766e] to-[#14b8a6] text-white p-1.5 rounded-xl shadow-md flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-graduation-cap text-sm"></i>
+                </div>
+                <div class="leading-tight">
+                    <h1 class="text-xs sm:text-sm font-bold bg-gradient-to-r from-[#0f766e] to-[#14b8a6] bg-clip-text text-transparent comic-font">SDN 3 Ngantru</h1>
+                    <p class="text-[8px] sm:text-[9px] text-slate-500 font-semibold">Kelas V Kreatif</p>
+                </div>
+            </div>
+            
+            <!-- Status Koneksi & Pengaturan Suara -->
+            <div class="flex items-center gap-1.5">
+                <button id="autoVoiceBtn" onclick="toggleAutoVoice()" class="flex items-center justify-center h-7 w-7 rounded-lg bg-teal-50 text-[#0f766e] border border-teal-100 hover:bg-teal-100 transition" title="Suara Otomatis">
+                    <i id="autoVoiceIcon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+                <div id="connectionStatus" class="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-100">
+                    <span id="statusIndicatorDot" class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="statusText" class="hidden sm:inline">Offline</span>
+                </div>
+                <button onclick="toggleConfigModal()" class="text-slate-600 hover:text-teal-600 hover:bg-slate-100 h-7 w-7 rounded-lg transition flex items-center justify-center" title="Pengaturan API">
+                    <i class="fa-solid fa-gears text-xs"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            
+            <!-- LEFT PANEL: Tampil hanya di tablet/desktop untuk menghemat ruang HP -->
+            <section class="hidden lg:flex lg:w-[280px] xl:w-[320px] flex-col gap-3 p-3 bg-white border-r border-slate-100 shrink-0 overflow-y-auto">
+                <!-- Kartu Banner Kelas / Guru -->
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col items-center gap-3 relative overflow-hidden">
+                    <div id="teacherHeaderBg" class="absolute top-0 left-0 w-full h-12 bg-gradient-to-r from-[#0f766e] to-[#14b8a6] transition-all duration-300"></div>
+                    
+                    <!-- Container Foto Profil Guru -->
+                    <div class="relative z-10 mt-4 w-24 h-24 bg-white rounded-full p-1 shadow-md flex items-center justify-center shrink-0">
+                        <div class="w-full h-full bg-teal-50 rounded-full flex items-center justify-center relative overflow-hidden">
+                            <img id="teacherAvatarImg" src="pak_rizal.png" alt="Foto Guru" onerror="fallbackAvatar(this)" class="w-full h-full object-cover rounded-full transition-transform duration-300">
+                        </div>
+                    </div>
+
+                    <!-- Detil Biografi Guru -->
+                    <div class="text-center z-10 w-full leading-tight">
+                        <h2 id="teacherName" class="text-sm font-bold text-slate-800 comic-font">Pak Rizal</h2>
+                        <p id="teacherSubject" class="text-[9px] text-teal-600 font-bold px-2 py-0.5 bg-teal-50 rounded-full inline-block mt-1">Teknologi & Robotika</p>
+                        <p id="teacherMotto" class="text-[10px] text-slate-400 italic mt-2 px-1">"Teknologi adalah kekuatan supermu! Mari kita ciptakan masa depan bersama."</p>
+                    </div>
+                </div>
+
+                <!-- Pemilihan Guru (Desktop Only) -->
+                <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                    <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase block mb-2">Pilih Guru Pembimbing:</span>
+                    <div class="flex flex-col gap-1.5">
+                        <button onclick="selectTeacher('rizal')" id="btn-rizal" class="flex items-center gap-2 py-2 px-2.5 rounded-xl border border-teal-500 bg-teal-50/50 transition duration-150 text-left w-full">
+                            <span class="text-sm">👨‍💻</span>
+                            <span class="text-xs font-bold text-teal-700">Pak Rizal</span>
+                        </button>
+                        <button onclick="selectTeacher('young')" id="btn-young" class="flex items-center gap-2 py-2 px-2.5 rounded-xl border border-slate-200 bg-white transition duration-150 text-left w-full">
+                            <span class="text-sm">👩‍🎨</span>
+                            <span class="text-xs font-bold text-slate-600">Kak Young</span>
+                        </button>
+                        <button onclick="selectTeacher('julia')" id="btn-julia" class="flex items-center gap-2 py-2 px-2.5 rounded-xl border border-slate-200 bg-white transition duration-150 text-left w-full">
+                            <span class="text-sm">👩‍🏫</span>
+                            <span class="text-xs font-bold text-slate-600">Kak Julia</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Box Rekomendasi Topik -->
+                <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100 flex-grow flex flex-col overflow-y-auto">
+                    <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase block mb-2">Topik Obrolan Seru:</span>
+                    <div id="suggestionBox" class="flex flex-col gap-1.5 overflow-y-auto">
+                        <!-- Ditampilkan dinamis -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: Sesi Obrolan Chat (Mengambil porsi layar penuh di HP) -->
+            <section class="flex-1 flex flex-col bg-slate-50 overflow-hidden relative">
+                
+                <!-- HEADER CHAT (Menampilkan detail guru yang aktif saat ini) -->
+                <div class="bg-white px-4 py-2 border-b border-slate-100 flex justify-between items-center shrink-0 shadow-sm z-10">
+                    <div class="flex items-center gap-2">
+                        <div class="relative w-8 h-8 rounded-full bg-teal-50 border border-teal-100 overflow-hidden flex items-center justify-center shrink-0">
+                            <img id="chatHeaderAvatar" src="pak_rizal.png" alt="Avatar" onerror="fallbackAvatar(this)" class="w-full h-full object-cover">
+                        </div>
+                        <div class="leading-none">
+                            <span id="chatHeaderName" class="text-xs sm:text-sm font-bold text-slate-800 comic-font">Pak Rizal</span>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                <span id="headerStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span id="subHeaderStatus" class="text-[8px] sm:text-[9px] font-semibold text-slate-400">Siap mendengarkanmu...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="clearChat()" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition" title="Bersihkan Percakapan">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- SWITCHER GURU KHUSUS MOBILE (Sangat ramping, menghemat ruang vertikal HP) -->
+                <div class="lg:hidden bg-white border-b border-slate-100 px-3 py-1.5 shrink-0">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Pilih Guru:</span>
+                        <div class="flex gap-1">
+                            <button onclick="selectTeacher('rizal')" id="m-btn-rizal" class="px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-teal-500 bg-teal-50 text-teal-700">
+                                <span>👨‍💻</span> Rizal
+                            </button>
+                            <button onclick="selectTeacher('young')" id="m-btn-young" class="px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-slate-200 bg-white text-slate-600">
+                                <span>👩‍🎨</span> Young
+                            </button>
+                            <button onclick="selectTeacher('julia')" id="m-btn-julia" class="px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-slate-200 bg-white text-slate-600">
+                                <span>👩‍🏫</span> Julia
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KONTANER UTAMA PESAN (Scrollable area) -->
+                <div id="chatMessages" class="flex-1 p-3 overflow-y-auto chat-scroll flex flex-col gap-2.5">
+                    <!-- Welcome Message -->
+                    <div class="flex items-start gap-2 max-w-[90%] self-start" id="welcomeMsgBlock">
+                        <div id="welcomeAvatar" class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-sm shrink-0">👨‍💻</div>
+                        <div id="welcomeBubbleInner" class="bg-teal-50/50 text-teal-900 rounded-2xl rounded-tl-none px-3 py-2 shadow-sm border border-teal-100/50 relative">
+                            <p id="welcomeText" class="text-xs leading-relaxed">Yo halo calon kreator masa depan! Saya Pak Rizal. Di kelas teknologi ini, kita bebas berkreasi dan membedah rahasia dunia digital yang super canggih. Mau tanya apa hari ini?</p>
+                            <button onclick="playAIVoiceFromBubble(this)" class="mt-1.5 text-[9px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-teal-100 shadow-sm transition">
+                                <i class="fa-solid fa-volume-high text-[8px]"></i> <span class="play-btn-txt">Dengarkan Suara</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INDIKATOR LOADING BERPIKIR -->
+                <div id="chatLoading" class="hidden absolute bottom-[105px] left-3 z-10 flex items-center gap-1.5 bg-white/95 backdrop-blur px-2.5 py-1.5 rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex gap-0.5">
+                        <div class="w-1.5 h-1.5 bg-teal-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-1.5 h-1.5 bg-teal-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-1.5 h-1.5 bg-teal-600 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                    </div>
+                    <span id="loadingMessageText" class="text-[9px] text-teal-700 font-bold">Mempersiapkan respon...</span>
+                </div>
+
+                <!-- INPUT AREA & MIC CONTROL (Didesain sangat ringkas untuk layar HP Android) -->
+                <div class="p-2.5 bg-white border-t border-slate-100 shrink-0">
+                    <div class="flex flex-col gap-2 max-w-4xl mx-auto">
+                        <!-- Dual Microphone Controls -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <!-- Button 1: Bicara Sekali -->
+                            <button id="micBtn" onclick="toggleSpeech()" class="h-9 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 text-white flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all text-[10px] font-bold no-select relative">
+                                <i id="micIcon" class="fa-solid fa-microphone text-[10px]"></i>
+                                <span>BICARA SEKALI</span>
+                                <span id="micPulseRing" class="absolute inset-0 rounded-xl border-2 border-rose-400 opacity-0 pointer-events-none"></span>
+                            </button>
+                            
+                            <!-- Button 2: Tahan & Bicara -->
+                            <button id="holdMicBtn" class="h-9 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-all text-[10px] font-bold no-select cursor-pointer relative">
+                                <i id="holdMicIcon" class="fa-solid fa-microphone-lines text-[10px]"></i>
+                                <span id="holdBtnText">TAHAN & BICARA</span>
+                            </button>
+                        </div>
+
+                        <!-- Text Input -->
+                        <div class="relative w-full">
+                            <input id="chatInput" type="text" placeholder="Ketik pertanyaanmu..." onkeydown="handleInputKeydown(event)" class="w-full h-10 pl-3.5 pr-11 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 bg-white shadow-sm text-xs">
+                            <button onclick="handleSendBtn()" class="absolute right-1 top-1 h-8 w-8 rounded-lg bg-teal-600 text-white flex items-center justify-center hover:bg-teal-700 active:scale-95 transition shadow-sm">
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- API Settings Modal -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99] flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-5 shadow-2xl border border-slate-100 relative">
+            <button onclick="toggleConfigModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg transition animate-pulse">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="bg-teal-50 text-teal-600 p-1.5 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <h3 class="text-sm font-bold text-slate-800">Kunci API</h3>
+            </div>
+            
+            <p class="text-[11px] text-slate-500 mb-3 leading-relaxed">
+                Pilih penyedia layanan kustom yang Anda miliki untuk mulai melakukan asisten pembelajaran premium.
+            </p>
+
+            <!-- TAUTAN PEMBUATAN API KEY -->
+            <div id="linkGeminiStudio" class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 p-3 rounded-xl mb-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="bg-teal-100 text-teal-700 w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="leading-tight">
+                        <h4 class="text-[11px] font-bold text-slate-800">Kunci Gemini</h4>
+                        <p class="text-[9px] text-slate-500">Google AI Studio (Gratis)</p>
+                    </div>
+                </div>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="bg-teal-600 hover:bg-teal-700 text-white text-[9px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
+                    Ambil <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                </a>
+            </div>
+
+            <div id="linkOpenAIPlatform" class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 p-3 rounded-xl mb-3 hidden items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="bg-purple-100 text-purple-700 w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div class="leading-tight">
+                        <h4 class="text-[11px] font-bold text-slate-800">Kunci OpenAI</h4>
+                        <p class="text-[9px] text-slate-500">Platform OpenAI (ChatGPT)</p>
+                    </div>
+                </div>
+                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="bg-purple-600 hover:bg-purple-700 text-white text-[9px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
+                    Ambil <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+                </a>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Penyedia AI</label>
+                    <select id="apiProviderSelect" onchange="onProviderChange()" class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700">
+                        <option value="gemini" selected>Google Gemini</option>
+                        <option value="openai">OpenAI (ChatGPT)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label id="apiKeyLabel" class="block text-[10px] font-bold text-slate-500 mb-1">Gemini API Key</label>
+                    <input id="apiKeyInput" type="password" placeholder="Masukkan Kunci API Anda..." class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs">
+                </div>
+                
+                <div class="flex items-center gap-2 py-1">
+                    <input id="saveKeyLocal" type="checkbox" checked class="w-3.5 h-3.5 rounded text-teal-600 focus:ring-teal-500">
+                    <label for="saveKeyLocal" class="text-[10px] text-slate-500">Simpan di peramban ini</label>
+                </div>
+                <button onclick="saveApiKey()" class="w-full bg-teal-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-teal-700 shadow transition duration-200">
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-xl z-[999] text-[10px] font-bold flex items-center gap-1.5 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Berhasil!</span>
+    </div>
+
+    <!-- Audio Player -->
+    <audio id="audioPlayer" class="hidden"></audio>
+
+    <script>
+        // Data presets untuk masing-masing guru AI
+        const PERSONAS = {
+            rizal: {
+                name: 'Pak Rizal',
+                emoji: '👨‍💻',
+                subject: 'Guru Teknologi & Robotika',
+                motto: '"Teknologi adalah kekuatan supermu! Mari kita ciptakan masa depan bersama."',
+                voiceName: 'Fenrir', 
+                openaiVoice: 'onyx', 
+                imgSrc: 'pak_rizal.png',
+                fallbackIcon: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Rizal&gender=male',
+                voiceGuidance: 'Bicara dengan nada suara pria yang keren, mantap, bersahabat, penuh semangat dunia digital dan teknologi.',
+                systemPrompt: `Kamu adalah Pak Rizal, seorang guru Teknologi Informasi dan Robotika yang super keren, cerdas, dan sangat bersahabat dengan anak-anak. 
+Gunakan kata-kata yang modern tapi sopan seperti 'Keren banget!', 'Mantap!', atau 'Canggih!'. 
+Jelaskan teknologi, robot, kecerdasan buatan, atau komputer dengan analogi permainan game atau kehidupan sehari-hari yang seru. 
+JANGAN memberikan jawaban yang terlalu panjang atau rumit. Cukup 2-4 kalimat yang padat, menginspirasi, dan ramah anak.`,
+                lang: 'id-ID', 
+                gradientBg: 'from-teal-600 to-teal-800',
+                suggestions: [
+                    "Bagaimana cara kerja robot?",
+                    "Apa itu Kecerdasan Buatan (AI)?",
+                    "Bagaimana game komputer dibuat?"
+                ],
+                welcome: "Yo halo calon kreator masa depan! Saya Pak Rizal. Di kelas teknologi ini, kita bebas berkreasi dan membedah rahasia dunia digital yang super canggih. Mau tanya apa hari ini?"
+            },
+            young: {
+                name: 'Kak Young',
+                emoji: '👩‍🎨',
+                subject: 'Guru Seni & Komunikasi Kreatif',
+                motto: '"Seni dan imajinasi membuat dunia kita penuh dengan warna-warni indah!"',
+                voiceName: 'Leda', 
+                openaiVoice: 'nova', 
+                imgSrc: 'kak_young.png',
+                fallbackIcon: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Young&gender=female',
+                voiceGuidance: 'Bicara dengan nada suara perempuan yang sangat ceria, energik, penuh senyum, ramah anak, dan nada guru wanita muda yang bersahabat.',
+                systemPrompt: `Kamu adalah Kak Young, seorang guru wanita Seni Kreatif dan Desain yang masih muda, super ceria, energik, dan menganggap seni serta komunikasi adalah petualangan seru tanpa batas. 
+Karena kamu seorang guru perempuan, selalu panggil dirimu dengan sebutan Kak Young.
+Gunakan analogi warna, lukisan, lagu, atau cerita seru saat menjelaskan sesuatu kepada murid. 
+Selalu semangati murid dengan kalimat manis seperti 'Wah hebat!', 'Karya yang luar biasa!', atau 'Kamu berbakat sekali!'.
+JANGAN memberikan rumus atau teori seni yang terlalu rumit. Cukup 2-4 kalimat penjelasan yang inspiratif, penuh imajinasi, dan ramah anak.`,
+                lang: 'id-ID', 
+                gradientBg: 'from-purple-500 to-pink-500',
+                suggestions: [
+                    "Bagaimana cara menggambar yang bagus?",
+                    "Kenapa pelangi punya banyak warna?",
+                    "Bagaimana cara menulis cerita seru?"
+                ],
+                welcome: "Hai sahabat kreatif! Aku Kak Young. Bersama Kak Young, kita akan mewarnai dunia dengan imajinasi terhebatmu! Mau berkreasi atau bertanya tentang karya seru apa hari ini?"
+            },
+            julia: {
+                name: 'Kak Julia',
+                emoji: '👩‍🏫',
+                subject: 'English Conversation Teacher',
+                motto: '"Unlock your confidence and let us speak English naturally together!"',
+                voiceName: 'Aoede', 
+                openaiVoice: 'shimmer', 
+                imgSrc: 'kak_julia.png',
+                fallbackIcon: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Julia&gender=female',
+                voiceGuidance: 'Speak with an enthusiastic, polite, and clear English female voice, keeping your words simple yet highly engaging for language learners.',
+                systemPrompt: `You are Kak Julia, an extremely supportive and friendly female English Conversation teacher. 
+YOU MUST SPEAK EXCLUSIVELY IN CLEAR, SIMPLE, AND CORRECT ENGLISH. Do not use Indonesian in your responses.
+Help students practice their conversational skills. Praise them warmly with expressions like "Wonderful!", "Spot on!", or "That is a brilliant way to say it!".
+Keep your responses short (2-4 sentences), simple, and ALWAYS ask an engaging, easy follow-up question in English to keep the conversation going.`,
+                lang: 'en-US', 
+                gradientBg: 'from-amber-500 to-orange-500',
+                suggestions: [
+                    "How can I improve my English speaking?",
+                    "Let us play a simple English word game!",
+                    "Can we talk about my favorite food?"
+                ],
+                welcome: "Hello there, superstar! I am Kak Julia, your friendly English companion. Let's make learning English fun and exciting! How are you doing today?"
+            }
+        };
+
+        let activePersona = 'rizal';
+        let currentAudioBlobUrl = null;
+        let isSpeaking = false;
+        let isRecording = false; 
+        let isHoldRecording = false; 
+        let recordingMode = 'toggle'; 
+        let recognition = null;
+        let chatHistory = [];
+        
+        let globalApiKey = localStorage.getItem('school_api_key') || "";
+        let apiProvider = localStorage.getItem('school_api_provider') || "gemini";
+        let isAutoVoiceEnabled = true;
+        let silenceTimer = null; 
+
+        window.onload = function() {
+            // Muat API key dan penyedia jika tersimpan
+            document.getElementById('apiProviderSelect').value = apiProvider;
+            onProviderChange();
+            if (globalApiKey) {
+                document.getElementById('apiKeyInput').value = globalApiKey;
+                updateStatusUI(true);
+            } else {
+                updateStatusUI(false);
+            }
+            
+            // Pasang tampilan default
+            selectTeacher('rizal', false);
+
+            // Inisialisasi perekaman suara
+            initSpeechRecognition();
+            initHoldToTalkListeners();
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    console.log("Daftar suara browser diperbarui.");
+                };
+            }
+
+            // Memicu salam suara pertama pada interaksi pengguna pertama kali (Autoplay Guardrail)
+            const handleFirstInteraction = () => {
+                if (isAutoVoiceEnabled) {
+                    playLastAIResponse();
+                }
+                document.removeEventListener('click', handleFirstInteraction);
+                document.removeEventListener('touchstart', handleFirstInteraction);
+            };
+            document.addEventListener('click', handleFirstInteraction);
+            document.addEventListener('touchstart', handleFirstInteraction);
+        };
+
+        function onProviderChange() {
+            const provider = document.getElementById('apiProviderSelect').value;
+            const linkGemini = document.getElementById('linkGeminiStudio');
+            const linkOpenAI = document.getElementById('linkOpenAIPlatform');
+            const keyLabel = document.getElementById('apiKeyLabel');
+
+            if (provider === 'openai') {
+                if (linkGemini) linkGemini.classList.replace('flex', 'hidden');
+                if (linkOpenAI) linkOpenAI.classList.replace('hidden', 'flex');
+                keyLabel.innerText = "OpenAI API Key (sk-...)";
+            } else {
+                if (linkGemini) linkGemini.classList.replace('hidden', 'flex');
+                if (linkOpenAI) linkOpenAI.classList.replace('flex', 'hidden');
+                keyLabel.innerText = "Gemini API Key";
+            }
+        }
+
+        function updateStatusUI(hasKey) {
+            const dot = document.getElementById('statusIndicatorDot');
+            const txt = document.getElementById('statusText');
+            if (hasKey) {
+                dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
+                txt.innerText = apiProvider === 'openai' ? "OpenAI" : "Gemini";
+            } else {
+                dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse";
+                txt.innerText = "Offline";
+            }
+        }
+
+        function fallbackAvatar(imgEl) {
+            const config = PERSONAS[activePersona];
+            imgEl.src = config.fallbackIcon;
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn("Speech recognition tidak didukung di browser ini.");
+                document.getElementById('micBtn').classList.add('opacity-40');
+                document.getElementById('holdMicBtn').classList.add('opacity-40');
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = PERSONAS[activePersona].lang; 
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                clearTimeout(silenceTimer);
+                
+                if (recordingMode === 'toggle') {
+                    isRecording = true;
+                    const micBtn = document.getElementById('micBtn');
+                    const micIcon = document.getElementById('micIcon');
+                    const micPulseRing = document.getElementById('micPulseRing');
+                    
+                    micBtn.classList.add('pulse-active');
+                    micIcon.className = "fa-solid fa-circle-notch text-[10px] animate-spin";
+                    micPulseRing.classList.add('animate-ping', 'opacity-50');
+                    
+                    document.getElementById('chatInput').placeholder = activePersona === 'julia' ? "Listening... Speak naturally!" : "Mendengarkan... Silakan bicara";
+                    document.getElementById('subHeaderStatus').innerText = activePersona === 'julia' ? "Listening to your voice..." : "Mendengarkan...";
+                } else {
+                    const holdBtn = document.getElementById('holdMicBtn');
+                    const holdIcon = document.getElementById('holdMicIcon');
+                    
+                    holdBtn.classList.remove('from-orange-500', 'to-amber-500');
+                    holdBtn.classList.add('from-red-600', 'to-rose-600', 'scale-95', 'pulse-active');
+                    holdIcon.className = "fa-solid fa-circle-notch text-[10px] animate-spin";
+                    document.getElementById('holdBtnText').innerText = "LEPAS UNTUK KIRIM";
+                    
+                    document.getElementById('chatInput').placeholder = "Recording...";
+                    document.getElementById('subHeaderStatus').innerText = "Merekam suara Anda...";
+                }
+            };
+
+            recognition.onresult = (event) => {
+                let currentText = '';
+                for (let i = 0; i < event.results.length; ++i) {
+                    currentText += event.results[i][0].transcript + ' ';
+                }
+                document.getElementById('chatInput').value = currentText.trim();
+
+                if (recordingMode === 'toggle') {
+                    clearTimeout(silenceTimer);
+                    silenceTimer = setTimeout(() => {
+                        if (isRecording) {
+                            recognition.stop();
+                        }
+                    }, 2500);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech error: ", event.error);
+                clearTimeout(silenceTimer);
+                
+                if (event.error === 'aborted' && recordingMode === 'hold') {
+                    return;
+                }
+
+                let msg = activePersona === 'julia' ? "Audio error." : "Kesalahan audio.";
+                if (event.error === 'no-speech') msg = "Suara tidak terdengar.";
+                if (event.error === 'not-allowed') msg = "Izin mikrofon ditolak.";
+                showToast(msg, "fa-circle-exclamation", "rose");
+                
+                if (recordingMode === 'toggle') {
+                    stopSpeechRecording();
+                } else {
+                    stopHoldRecordingUI();
+                }
+            };
+
+            recognition.onend = () => {
+                clearTimeout(silenceTimer);
+                const text = document.getElementById('chatInput').value.trim();
+                
+                if (recordingMode === 'toggle') {
+                    stopSpeechRecording();
+                    if (text) {
+                        showToast("Suara ditangkap!", "fa-microphone", "indigo");
+                        setTimeout(() => { handleSendBtn(); }, 400);
+                    }
+                } else {
+                    stopHoldRecordingUI();
+                    if (text) {
+                        showToast("Suara ditangkap!", "fa-microphone", "indigo");
+                        setTimeout(() => { handleSendBtn(); }, 400);
+                    }
+                }
+            };
+        }
+
+        function initHoldToTalkListeners() {
+            const holdBtn = document.getElementById('holdMicBtn');
+            if (!holdBtn) return;
+
+            const startAction = (e) => {
+                e.preventDefault(); 
+                if (isRecording || isHoldRecording) return;
+
+                stopSpeakingAudio();
+                recordingMode = 'hold';
+                isHoldRecording = true;
+
+                try {
+                    recognition.lang = PERSONAS[activePersona].lang;
+                    recognition.start();
+                } catch (err) {
+                    console.error("Gagal memulai: ", err);
+                    isHoldRecording = false;
+                }
+            };
+
+            const stopAction = (e) => {
+                if (!isHoldRecording) return;
+                isHoldRecording = false;
+
+                try {
+                    recognition.stop();
+                } catch (err) {
+                    console.error("Gagal stop: ", err);
+                }
+            };
+
+            holdBtn.addEventListener('touchstart', startAction, { passive: false });
+            holdBtn.addEventListener('touchend', stopAction);
+            holdBtn.addEventListener('touchcancel', stopAction);
+
+            holdBtn.addEventListener('mousedown', startAction);
+            holdBtn.addEventListener('mouseup', stopAction);
+            holdBtn.addEventListener('mouseleave', stopAction);
+
+            holdBtn.addEventListener('contextmenu', e => e.preventDefault());
+        }
+
+        function toggleSpeech() {
+            if (!recognition) {
+                showToast("Browser tidak mendukung mic.", "fa-circle-exclamation", "rose");
+                return;
+            }
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                stopSpeakingAudio();
+                recordingMode = 'toggle';
+                try {
+                    recognition.lang = PERSONAS[activePersona].lang;
+                    recognition.start();
+                } catch (e) {
+                    console.error("Gagal: ", e);
+                }
+            }
+        }
+
+        function stopSpeechRecording() {
+            isRecording = false;
+            const micBtn = document.getElementById('micBtn');
+            const micIcon = document.getElementById('micIcon');
+            const micPulseRing = document.getElementById('micPulseRing');
+            
+            if (micBtn) micBtn.classList.remove('pulse-active');
+            if (micIcon) micIcon.className = "fa-solid fa-microphone text-[10px]";
+            if (micPulseRing) micPulseRing.classList.remove('animate-ping', 'opacity-50');
+            
+            document.getElementById('chatInput').placeholder = "Ketik pertanyaanmu...";
+            document.getElementById('subHeaderStatus').innerText = "Guru siap mendengarkanmu...";
+        }
+
+        function stopHoldRecordingUI() {
+            isHoldRecording = false;
+            const holdBtn = document.getElementById('holdMicBtn');
+            const holdIcon = document.getElementById('holdMicIcon');
+            
+            if (holdBtn) {
+                holdBtn.classList.add('from-orange-500', 'to-amber-500');
+                holdBtn.classList.remove('from-red-600', 'to-rose-600', 'scale-95', 'pulse-active');
+            }
+            if (holdIcon) holdIcon.className = "fa-solid fa-microphone-lines text-[10px]";
+            document.getElementById('holdBtnText').innerText = "TAHAN & BICARA";
+
+            document.getElementById('chatInput').placeholder = "Ketik pertanyaanmu...";
+            document.getElementById('subHeaderStatus').innerText = "Guru siap mendengarkanmu...";
+        }
+
+        function selectTeacher(teacherId, autoPlaySpeech = true) {
+            activePersona = teacherId;
+            const config = PERSONAS[teacherId];
+
+            stopSpeakingAudio();
+
+            // Highlight Sidebar Button (Desktop)
+            Object.keys(PERSONAS).forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                if (btn) {
+                    if (id === teacherId) {
+                        btn.className = "flex items-center gap-2 py-2 px-2.5 rounded-xl border border-teal-500 bg-teal-50/50 transition duration-150 text-left w-full";
+                        btn.querySelector('span:last-child').className = "text-xs font-bold text-teal-700";
+                    } else {
+                        btn.className = "flex items-center gap-2 py-2 px-2.5 rounded-xl border border-slate-200 bg-white transition duration-150 text-left w-full";
+                        btn.querySelector('span:last-child').className = "text-xs font-bold text-slate-600";
+                    }
+                }
+
+                // Highlight Segment Control Button (Mobile Switcher)
+                const mBtn = document.getElementById(`m-btn-${id}`);
+                if (mBtn) {
+                    if (id === teacherId) {
+                        mBtn.className = "px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-teal-500 bg-teal-50 text-teal-700 shadow-sm";
+                    } else {
+                        mBtn.className = "px-2 py-1 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-slate-200 bg-white text-slate-600";
+                    }
+                }
+            });
+
+            // Update Panel Atas (Desktop)
+            document.getElementById('teacherName').innerText = config.name;
+            document.getElementById('teacherSubject').innerText = config.subject;
+            document.getElementById('teacherMotto').innerText = config.motto;
+
+            const headerBg = document.getElementById('teacherHeaderBg');
+            if (headerBg) {
+                headerBg.className = `absolute top-0 left-0 w-full h-12 bg-gradient-to-r ${config.gradientBg} transition-all duration-300`;
+            }
+
+            const avatarImg = document.getElementById('teacherAvatarImg');
+            if (avatarImg) avatarImg.src = config.imgSrc;
+
+            // Update Header Chat (Mobile & Desktop)
+            document.getElementById('chatHeaderName').innerText = config.name;
+            const chatHeaderAvatar = document.getElementById('chatHeaderAvatar');
+            if (chatHeaderAvatar) chatHeaderAvatar.src = config.imgSrc;
+
+            const suggestionBox = document.getElementById('suggestionBox');
+            if (suggestionBox) {
+                suggestionBox.innerHTML = '';
+                config.suggestions.forEach(sug => {
+                    const btn = document.createElement('button');
+                    btn.className = "text-left text-[10px] text-slate-600 bg-slate-50 hover:bg-teal-50 hover:text-teal-700 px-3 py-2 rounded-xl border border-slate-100 transition font-medium duration-150";
+                    btn.innerHTML = `<i class="fa-regular fa-lightbulb text-teal-500 mr-1.5"></i> "${sug}"`;
+                    btn.onclick = () => {
+                        document.getElementById('chatInput').value = sug;
+                        handleSendBtn();
+                    };
+                    suggestionBox.appendChild(btn);
+                });
+            }
+
+            const welcomeAvatar = document.getElementById('welcomeAvatar');
+            if (welcomeAvatar) welcomeAvatar.innerText = config.emoji;
+            const welcomeText = document.getElementById('welcomeText');
+            if (welcomeText) welcomeText.innerText = config.welcome;
+
+            clearChat(true);
+
+            if (isAutoVoiceEnabled && autoPlaySpeech) {
+                setTimeout(() => {
+                    playLastAIResponse();
+                }, 400);
+            }
+
+            if (autoPlaySpeech) {
+                showToast(config.lang === 'en-US' ? `Learning with ${config.name}!` : `Belajar dengan ${config.name}!`, "fa-chalkboard-user", "teal");
+            }
+        }
+
+        function toggleConfigModal() {
+            const modal = document.getElementById('configModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function toggleAutoVoice() {
+            isAutoVoiceEnabled = !isAutoVoiceEnabled;
+            const btn = document.getElementById('autoVoiceBtn');
+            const icon = document.getElementById('autoVoiceIcon');
+
+            if (isAutoVoiceEnabled) {
+                btn.className = "flex items-center justify-center h-7 w-7 rounded-lg bg-teal-50 text-[#0f766e] border border-teal-100 hover:bg-teal-100 transition";
+                icon.className = "fa-solid fa-volume-high text-xs";
+                showToast("Suara otomatis aktif!", "fa-volume-high", "teal");
+                playLastAIResponse();
+            } else {
+                btn.className = "flex items-center justify-center h-7 w-7 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200 transition";
+                icon.className = "fa-solid fa-volume-xmark text-xs";
+                stopSpeakingAudio();
+                showToast("Suara otomatis mati.", "fa-volume-xmark", "slate");
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            const provider = document.getElementById('apiProviderSelect').value;
+            const saveLocal = document.getElementById('saveKeyLocal').checked;
+            
+            globalApiKey = key;
+            apiProvider = provider;
+
+            if (saveLocal) {
+                localStorage.setItem('school_api_key', key);
+                localStorage.setItem('school_api_provider', provider);
+            } else {
+                localStorage.removeItem('school_api_key');
+                localStorage.removeItem('school_api_provider');
+            }
+
+            toggleConfigModal();
+            updateStatusUI(!!globalApiKey);
+            showToast("API Key disimpan!", "fa-circle-check", "emerald");
+        }
+
+        function showToast(message, iconClass = "fa-circle-check", color = "emerald") {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMsg = document.getElementById('toastMsg');
+
+            toastMsg.innerText = message;
+            toastIcon.className = `fa-solid ${iconClass} text-${color}-400`;
+            
+            toast.className = `fixed bottom-6 right-6 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-xl z-[999] text-[10px] font-bold flex items-center gap-1.5 transform transition-all duration-300 pointer-events-none translate-y-0 opacity-100`;
+
+            setTimeout(() => {
+                toast.className = `fixed bottom-6 right-6 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-xl z-[999] text-[10px] font-bold flex items-center gap-1.5 transform transition-all duration-300 pointer-events-none translate-y-20 opacity-0`;
+            }, 3000);
+        }
+
+        function handleInputKeydown(event) {
+            if (event.key === 'Enter') {
+                handleSendBtn();
+            }
+        }
+
+        function handleSendBtn() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            sendMessage(text);
+        }
+
+        function clearChat(keepWelcome = false) {
+            stopSpeakingAudio();
+            const chatMessages = document.getElementById('chatMessages');
+            
+            if (keepWelcome) {
+                const welcomeBlock = document.getElementById('welcomeMsgBlock');
+                chatMessages.innerHTML = '';
+                if (welcomeBlock) chatMessages.appendChild(welcomeBlock);
+            } else {
+                chatMessages.innerHTML = '';
+                const config = PERSONAS[activePersona];
+                const block = document.createElement('div');
+                block.id = "welcomeMsgBlock";
+                block.className = "flex items-start gap-2 max-w-[90%] self-start";
+                block.innerHTML = `
+                    <div id="welcomeAvatar" class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-sm shrink-0">${config.emoji}</div>
+                    <div id="welcomeBubbleInner" class="bg-teal-50 text-teal-900 rounded-2xl rounded-tl-none px-3 py-2 shadow-sm border border-teal-100 relative">
+                        <p id="welcomeText" class="text-xs leading-relaxed">${config.welcome}</p>
+                        <button onclick="playAIVoiceFromBubble(this)" class="mt-1.5 text-[9px] text-teal-600 hover:text-teal-800 font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-teal-100 shadow-sm transition">
+                            <i class="fa-solid fa-volume-high"></i> <span class="play-btn-txt">Dengarkan Suara</span>
+                        </button>
+                    </div>
+                `;
+                chatMessages.appendChild(block);
+            }
+            chatHistory = [];
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        async function sendMessage(studentText) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            const studentBubble = document.createElement('div');
+            studentBubble.className = "flex items-start gap-2 max-w-[90%] self-end flex-row-reverse";
+            studentBubble.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">${activePersona === 'julia' ? 'Me' : 'Saya'}</div>
+                <div class="bg-teal-600 text-white rounded-2xl rounded-tr-none px-3 py-2 shadow-sm">
+                    <p class="text-xs leading-relaxed">${escapeHtml(studentText)}</p>
+                </div>
+            `;
+            chatMessages.appendChild(studentBubble);
+            scrollToBottom();
+
+            stopSpeakingAudio();
+
+            const chatLoading = document.getElementById('chatLoading');
+            const loadingMsgText = document.getElementById('loadingMessageText');
+            chatLoading.classList.remove('hidden');
+            loadingMsgText.innerText = activePersona === 'julia' ? `${PERSONAS[activePersona].name} is thinking...` : `${PERSONAS[activePersona].name} sedang meramu jawaban...`;
+
+            const apiHistory = chatHistory.map(item => ({
+                role: item.role,
+                parts: [{ text: item.text }]
+            }));
+            apiHistory.push({ role: 'user', parts: [{ text: studentText }] });
+
+            try {
+                const responseText = await callAITextAPI(apiHistory);
+                
+                chatLoading.classList.add('hidden');
+
+                if (!responseText) {
+                    throw new Error("No response.");
+                }
+
+                chatHistory.push({ role: 'user', text: studentText });
+                chatHistory.push({ role: 'model', text: responseText });
+
+                const teacherConfig = PERSONAS[activePersona];
+                const aiBubble = document.createElement('div');
+                aiBubble.className = "flex items-start gap-2 max-w-[90%] self-start";
+                
+                const bubbleId = 'ai-bubble-' + Date.now();
+
+                aiBubble.innerHTML = `
+                    <div class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-sm shrink-0">${teacherConfig.emoji}</div>
+                    <div id="${bubbleId}" class="bg-teal-50 text-teal-900 rounded-2xl rounded-tl-none px-3 py-2 shadow-sm border border-teal-100 relative">
+                        <p class="text-xs leading-relaxed">${escapeHtml(responseText)}</p>
+                        <button onclick="playAIVoiceFromBubble(this)" class="mt-1.5 text-[9px] text-teal-600 hover:text-teal-800 font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-teal-100 shadow-sm transition">
+                            <i class="fa-solid fa-volume-high"></i> <span class="play-btn-txt">Dengarkan Suara</span>
+                        </button>
+                    </div>
+                `;
+                chatMessages.appendChild(aiBubble);
+                scrollToBottom();
+
+                if (isAutoVoiceEnabled) {
+                    playAIVoiceText(responseText, bubbleId);
+                }
+
+            } catch (err) {
+                console.error("Membuka Fallback Offline Mode:", err);
+                chatLoading.classList.add('hidden');
+
+                const warningMsg = activePersona === 'julia' ? "Using Offline Mode" : "Mengaktifkan Mode Offline!";
+                showToast(warningMsg, "fa-triangle-exclamation", "amber");
+
+                const fallbackResponse = getSimulatedTeacherResponse(apiHistory);
+
+                chatHistory.push({ role: 'user', text: studentText });
+                chatHistory.push({ role: 'model', text: fallbackResponse });
+
+                const teacherConfig = PERSONAS[activePersona];
+                const aiBubble = document.createElement('div');
+                aiBubble.className = "flex items-start gap-2 max-w-[90%] self-start";
+                
+                const bubbleId = 'ai-bubble-fallback-' + Date.now();
+
+                aiBubble.innerHTML = `
+                    <div class="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center text-sm shrink-0">${teacherConfig.emoji}</div>
+                    <div id="${bubbleId}" class="bg-teal-50 text-teal-900 rounded-2xl rounded-tl-none px-3 py-2 shadow-sm border border-teal-100 relative">
+                        <p class="text-xs leading-relaxed">${escapeHtml(fallbackResponse)}</p>
+                        <button onclick="playAIVoiceFromBubble(this)" class="mt-1.5 text-[9px] text-teal-600 hover:text-teal-800 font-bold flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-teal-100 shadow-sm transition">
+                            <i class="fa-solid fa-volume-high"></i> <span class="play-btn-txt">Dengarkan Suara</span>
+                        </button>
+                    </div>
+                `;
+                chatMessages.appendChild(aiBubble);
+                scrollToBottom();
+
+                if (isAutoVoiceEnabled) {
+                    playAIVoiceText(fallbackResponse, bubbleId);
+                }
+            }
+        }
+
+        async function callAITextAPI(apiHistory) {
+            if (!globalApiKey) {
+                return getSimulatedTeacherResponse(apiHistory);
+            }
+
+            if (apiProvider === 'openai') {
+                const apiUrl = `https://api.openai.com/v1/chat/completions`;
+                const openAIHistory = apiHistory.map(item => ({
+                    role: item.role === 'model' ? 'assistant' : item.role,
+                    content: item.parts[0].text
+                }));
+                
+                openAIHistory.unshift({
+                    role: 'system',
+                    content: PERSONAS[activePersona].systemPrompt
+                });
+
+                const payload = {
+                    model: "gpt-4o-mini",
+                    messages: openAIHistory
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${globalApiKey}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data?.choices?.[0]?.message?.content;
+
+            } else {
+                const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+                let lastError = null;
+
+                for (const model of modelsToTry) {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${globalApiKey}`;
+                    const payload = {
+                        contents: apiHistory,
+                        systemInstruction: {
+                            parts: [{ text: PERSONAS[activePersona].systemPrompt }]
+                        }
+                    };
+
+                    for (let attempt = 1; attempt <= 2; attempt++) {
+                        try {
+                            const response = await fetch(apiUrl, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                const resultText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                                if (resultText) return resultText;
+                            }
+
+                            const errorData = await response.json().catch(() => ({}));
+                            const errorMsg = errorData?.error?.message || `HTTP ${response.status}`;
+                            lastError = new Error(errorMsg);
+
+                            const isTransientError = response.status === 429 || 
+                                                    response.status === 503 || 
+                                                    errorMsg.toLowerCase().includes("high demand") || 
+                                                    errorMsg.toLowerCase().includes("overloaded");
+
+                            if (isTransientError) {
+                                await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+                            } else {
+                                break;
+                            }
+                        } catch (e) {
+                            lastError = e;
+                            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+                        }
+                    }
+                }
+                throw lastError || new Error("Koneksi gagal.");
+            }
+        }
+
+        function getSimulatedTeacherResponse(apiHistory) {
+            const lastUserMsg = [...apiHistory].reverse().find(m => m.role === 'user')?.parts?.[0]?.text || "";
+            const query = lastUserMsg.toLowerCase();
+            
+            if (activePersona === 'rizal') {
+                if (query.includes("robot") || query.includes("kerja")) {
+                    return "Wih, pertanyaan canggih! Cara kerja robot itu simpelnya: Sensor sebagai mata/telinga, mikrokontroler (komputer kecil) sebagai otaknya, dan aktuator (seperti motor listrik) sebagai ototnya untuk bergerak.";
+                }
+                if (query.includes("ai") || query.includes("kecerdasan")) {
+                    return "AI atau Kecerdasan Buatan itu ibaratnya kita melatih komputer agar bisa 'belajar' dari data, layaknya manusia belajar membaca buku sehingga bisa membantumu mencari jawaban kreatif!";
+                }
+                if (query.includes("game") || query.includes("buat")) {
+                    return "Bikin game itu seru! Langkah utamanya mendesain konsep game, menggambar aset karakter, dan memberikan 'logika' memakai koding seperti Scratch, Python, atau C#.";
+                }
+                return `Mantap banget pertanyaannya! Pak Rizal bangga sama rasa penasaranmu tentang teknologi. Ingat, teknologi adalah kekuatan supermu jika dipakai secara positif.`;
+            }
+            
+            if (activePersona === 'young') {
+                if (query.includes("gambar") || query.includes("lukis")) {
+                    return "Menggambar yang bagus itu dimulai dengan keberanian menuangkan imajinasi! Cobalah mulai dengan bentuk dasar seperti lingkaran dan kotak, lalu campur warna-warna cerah secara bebas ya.";
+                }
+                if (query.includes("pelangi") || query.includes("warna")) {
+                    return "Pelangi adalah perpaduan fisika dan seni yang indah! Saat sinar matahari melewati tetesan air hujan, cahaya putih matahari dibiaskan menjadi tujuh warna menakjubkan.";
+                }
+                if (query.includes("cerita") || query.includes("tulis")) {
+                    return "Menulis cerita seru itu asyik! Tentukan siapa karakter utamanya, lalu bayangkan tantangan menarik yang mereka hadapi. Tuliskan petualangannya dengan seru ya!";
+                }
+                return `Hebat sekali! Kak Young sangat suka imajinasimu. Seni adalah cara terbaik untuk bercerita dan berbagi kebahagiaan dengan dunia.`;
+            }
+
+            if (activePersona === 'julia') {
+                if (query.includes("improve") || query.includes("speak") || query.includes("learn")) {
+                    return "That is a brilliant question! The absolute secret to speaking English confidently is daily practice and not being afraid of making mistakes. Let's practice now!";
+                }
+                if (query.includes("game") || query.includes("play")) {
+                    return "I love games! Let's play a word association game. I say one word, and you say the first word that comes to mind. Ready? My word is: 'GALAXY'!";
+                }
+                if (query.includes("food") || query.includes("eat")) {
+                    return "Yum! Talking about food makes me happy. I adore warm apple pie with ice cream. What is your favorite snack to eat?";
+                }
+                return "That sounds absolutely wonderful! Your English looks super promising. What other fun things would you like to discuss today?";
+            }
+            
+            return "Amazing question! Let's learn and explore it together to make it fun!";
+        }
+
+        function playAIVoiceFromBubble(buttonEl) {
+            const bubbleContainer = buttonEl.closest('.relative');
+            const textToSpeak = bubbleContainer.querySelector('p').innerText;
+            const bubbleId = bubbleContainer.id || 'welcomeMsgBlock';
+            playAIVoiceText(textToSpeak, bubbleId);
+        }
+
+        async function playAIVoiceText(textToSpeak, bubbleId) {
+            stopSpeakingAudio();
+            
+            const bubbleEl = document.getElementById(bubbleId);
+            let btnTxt = null;
+            if (bubbleEl) {
+                btnTxt = bubbleEl.querySelector('.play-btn-txt');
+                if (btnTxt) btnTxt.innerText = activePersona === 'julia' ? "Processing..." : "Mengolah...";
+            }
+
+            document.getElementById('subHeaderStatus').innerText = activePersona === 'julia' ? `${PERSONAS[activePersona].name} is speaking...` : `${PERSONAS[activePersona].name} sedang berbicara...`;
+
+            if (!globalApiKey) {
+                if (!('speechSynthesis' in window)) {
+                    showToast("Browser tidak mendukung TTS lokal.", "fa-circle-exclamation", "rose");
+                    if (btnTxt) btnTxt.innerText = "Dengarkan Suara";
+                    return;
+                }
+                
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = PERSONAS[activePersona].lang;
+                
+                if (activePersona === 'rizal') {
+                    utterance.pitch = 0.85;
+                    utterance.rate = 1.05;
+                } else if (activePersona === 'young') {
+                    utterance.pitch = 1.25;
+                    utterance.rate = 1.0;
+                } else if (activePersona === 'julia') {
+                    utterance.pitch = 1.1;
+                    utterance.rate = 0.95;
+                }
+
+                const voices = window.speechSynthesis.getVoices();
+                let targetVoice = null;
+                const langPrefix = PERSONAS[activePersona].lang.split('-')[0];
+
+                if (activePersona === 'rizal') {
+                    targetVoice = voices.find(v => v.lang.startsWith(langPrefix) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('ihsp')));
+                } else if (activePersona === 'young') {
+                    targetVoice = voices.find(v => v.lang.startsWith(langPrefix) && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('indira') || v.name.toLowerCase().includes('young')));
+                } else {
+                    targetVoice = voices.find(v => v.lang.startsWith('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('google us english') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('hazel')));
+                }
+
+                if (!targetVoice) {
+                    targetVoice = voices.find(v => v.lang.startsWith(langPrefix));
+                }
+
+                if (targetVoice) {
+                    utterance.voice = targetVoice;
+                }
+
+                utterance.onstart = () => {
+                    isSpeaking = true;
+                    startTalkingAnimation();
+                    if (btnTxt) btnTxt.innerText = "Berbicara...";
+                };
+
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    stopTalkingAnimation();
+                    document.getElementById('subHeaderStatus').innerText = "Guru siap mendengarkanmu...";
+                    if (btnTxt) btnTxt.innerText = "Dengarkan Suara";
+                };
+
+                utterance.onerror = (e) => {
+                    isSpeaking = false;
+                    stopTalkingAnimation();
+                    document.getElementById('subHeaderStatus').innerText = "Guru siap mendengarkanmu...";
+                    if (btnTxt) btnTxt.innerText = "Dengarkan Suara";
+                    if (e.error === 'interrupted' || e.error === 'canceled') return;
+                    showToast(`Galat: ${e.error || 'tidak diketahui'}`, "fa-circle-exclamation", "rose");
+                };
+
+                setTimeout(() => {
+                    window.speechSynthesis.speak(utterance);
+                }, 100);
+                return;
+            }
+
+            try {
+                let audioUrl = null;
+
+                if (apiProvider === 'openai') {
+                    const apiUrl = "https://api.openai.com/v1/audio/speech";
+                    const payload = {
+                        model: "tts-1",
+                        input: textToSpeak,
+                        voice: PERSONAS[activePersona].openaiVoice
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${globalApiKey}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorJson = await response.json().catch(() => ({}));
+                        throw new Error(errorJson?.error?.message || `HTTP ${response.status}`);
+                    }
+
+                    const audioBlob = await response.blob();
+                    audioUrl = URL.createObjectURL(audioBlob);
+
+                } else {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${globalApiKey}`;
+                    const voiceConfig = PERSONAS[activePersona];
+                    const promptSpeech = `Say in voice context (${voiceConfig.voiceGuidance}): ${textToSpeak}`;
+
+                    const payload = {
+                        contents: [{
+                            parts: [{ text: promptSpeech }]
+                        }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName: voiceConfig.voiceName }
+                                }
+                            }
+                        }
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorJson = await response.json().catch(() => ({}));
+                        throw new Error(errorJson?.error?.message || `HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType || "audio/L16;rate=24000";
+
+                    if (audioData) {
+                        let sampleRate = 24000;
+                        const match = mimeType.match(/rate=(\d+)/);
+                        if (match) {
+                            sampleRate = parseInt(match[1], 10);
+                        }
+
+                        if (mimeType.includes("mp3") || mimeType.includes("mpeg")) {
+                            audioUrl = `data:${mimeType};base64,${audioData}`;
+                        } else {
+                            const pcmData = base64ToArrayBuffer(audioData);
+                            const pcm16 = new Int16Array(pcmData);
+                            const wavBlob = pcmToWav(pcm16, sampleRate);
+                            audioUrl = URL.createObjectURL(wavBlob);
+                        }
+                    } else {
+                        throw new Error("Gagal mengambil data audio.");
+                    }
+                }
+
+                if (audioUrl) {
+                    if (currentAudioBlobUrl && currentAudioBlobUrl.startsWith("blob:")) {
+                        URL.revokeObjectURL(currentAudioBlobUrl);
+                    }
+
+                    currentAudioBlobUrl = audioUrl;
+                    const player = document.getElementById('audioPlayer');
+                    player.src = currentAudioBlobUrl;
+                    
+                    player.onplay = () => {
+                        isSpeaking = true;
+                        startTalkingAnimation();
+                        if (btnTxt) btnTxt.innerText = "Berbicara...";
+                    };
+
+                    player.onended = () => {
+                        stopSpeakingAudio();
+                        if (btnTxt) btnTxt.innerText = "Dengarkan Suara";
+                    };
+
+                    player.onerror = () => {
+                        stopSpeakingAudio();
+                        showToast("Gagal memutar berkas audio.", "fa-triangle-exclamation", "rose");
+                    };
+
+                    await player.play();
+                }
+
+            } catch (err) {
+                console.error("TTS Premium error: ", err);
+                stopSpeakingAudio();
+                if (btnTxt) btnTxt.innerText = "Dengarkan Suara";
+                showToast(err.message || "Gagal memproses suara premium.", "fa-circle-exclamation", "rose");
+            }
+        }
+
+        function playLastAIResponse() {
+            const config = PERSONAS[activePersona];
+            playAIVoiceText(config.welcome, 'welcomeBubbleInner');
+        }
+
+        function stopSpeakingAudio() {
+            isSpeaking = false;
+            const player = document.getElementById('audioPlayer');
+            if (player) {
+                player.pause();
+                player.currentTime = 0;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            stopTalkingAnimation();
+
+            document.querySelectorAll('.play-btn-txt').forEach(span => {
+                span.innerText = "Dengarkan Suara";
+            });
+
+            document.getElementById('subHeaderStatus').innerText = "Guru siap mendengarkanmu...";
+        }
+
+        function startTalkingAnimation() {
+            const pulse = document.getElementById('avatarPulse');
+            const avatarImg = document.getElementById('teacherAvatarImg');
+            
+            if (pulse) {
+                pulse.classList.remove('opacity-0');
+                pulse.classList.add('animate-ping', 'opacity-30');
+            }
+            if (avatarImg) {
+                avatarImg.classList.add('scale-105');
+            }
+        }
+
+        function stopTalkingAnimation() {
+            const pulse = document.getElementById('avatarPulse');
+            const avatarImg = document.getElementById('teacherAvatarImg');
+            
+            if (pulse) {
+                pulse.classList.remove('animate-ping', 'opacity-30');
+                pulse.classList.add('opacity-0');
+            }
+            if (avatarImg) {
+                avatarImg.classList.remove('scale-105');
+            }
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16Data, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16Data.length * 2);
+            const view = new DataView(buffer);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16Data.length * 2, true);
+            writeString(view, 8, 'WAVE');
+
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16Data.length * 2, true);
+
+            for (let i = 0; i < pcm16Data.length; i++) {
+                view.setInt16(44 + i * 2, pcm16Data[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+    </script>
+</body>
+</html>

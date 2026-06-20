@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Generator Bacaan & Soal AI - Siap Cetak</title>
+    <!-- Tailwind CSS untuk styling modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons untuk ikon yang cantik -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .heading-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Styling khusus untuk cetak halaman kertas */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-family: "Times New Roman", Times, serif !important;
+                font-size: 12pt !important;
+            }
+            
+            /* Sembunyikan elemen kontrol saat mencetak */
+            .no-print {
+                display: none !important;
+            }
+            
+            /* Hilangkan bayangan dan border luar pada lembar kerja */
+            .print-paper {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                background-color: #ffffff !important;
+            }
+
+            /* Halaman cetak selalu potret dan bersih */
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+
+            /* Sembunyikan tombol edit saat cetak */
+            .edit-indicator {
+                display: none !important;
+            }
+
+            /* Tampilkan kunci jawaban di lembar terpisah saat cetak jika dicentang */
+            .answer-key-section {
+                page-break-before: always;
+            }
+        }
+
+        /* Animasi loading berkilau */
+        .shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: loading-shimmer 1.5s infinite;
+        }
+
+        @keyframes loading-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col antialiased">
+
+    <!-- Header Aplikasi (Disembunyikan saat cetak) -->
+    <header class="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 sticky top-0 z-20 no-print shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-100 shrink-0">
+                    <i data-lucide="book-open-check" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold heading-font text-slate-900 leading-tight">EduPrint AI</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500">Generator Bacaan & Soal Evaluasi SD Berbagai Bahasa</p>
+                </div>
+            </div>
+            
+            <div class="hidden sm:flex items-center gap-2 text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full font-medium border border-emerald-100">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Terhubung dengan Gemini 2.5 Flash
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigasi Tab Khusus Layar Seluler / HP (Hanya muncul di Layar < lg, disembunyikan saat cetak) -->
+    <div class="lg:hidden flex bg-white border-b border-slate-200 sticky top-[61px] z-10 no-print shadow-sm">
+        <button id="tab-btn-settings" onclick="switchMobileTab('settings')" class="flex-1 py-3 text-center text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 transition-all">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+            Atur Parameter
+        </button>
+        <button id="tab-btn-preview" onclick="switchMobileTab('preview')" class="flex-1 py-3 text-center text-sm font-semibold border-b-2 border-transparent text-slate-500 flex items-center justify-center gap-1.5 transition-all">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            Lembar Kerja
+        </button>
+    </div>
+
+    <!-- Konten Utama -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-4 lg:gap-8">
+        
+        <!-- Panel Konfigurasi (Disembunyikan saat cetak) -->
+        <section id="panel-settings" class="w-full lg:w-[420px] shrink-0 space-y-4 sm:space-y-6 no-print block">
+            
+            <!-- Notifikasi/Status Panel -->
+            <div id="status-banner" class="hidden p-4 rounded-xl text-sm border flex items-start gap-3 shadow-sm transition-all animate-fade-in">
+                <i id="status-icon" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                <div class="flex-1">
+                    <p id="status-text" class="font-medium"></p>
+                </div>
+            </div>
+
+            <!-- Form Pengaturan -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
+                <h2 class="text-base sm:text-lg font-bold heading-font text-slate-900 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-indigo-600"></i>
+                    Pengaturan Lembar Kerja
+                </h2>
+
+                <!-- Input Parameter Soal -->
+                <div class="space-y-4">
+                    <!-- INPUT API KEY -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Gemini API Key</span>
+                            <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-indigo-600 hover:underline flex items-center gap-0.5">
+                                Dapatkan Key <i data-lucide="external-link" class="w-3 h-3"></i>
+                            </a>
+                        </label>
+                        <input type="password" id="input-api-key" 
+                            class="w-full px-3 sm:px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all"
+                            placeholder="Masukkan AIzaSy... (Aman disimpan di browser)">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Topik / Tema Utama</label>
+                        <input type="text" id="input-topic" 
+                            class="w-full px-3 sm:px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all"
+                            placeholder="Contoh: Ekosistem Sawah, Pecahan Desimal, Holiday">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Tingkat Kelas</label>
+                            <select id="input-level" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Kelas 1 SD">Kelas 1 SD</option>
+                                <option value="Kelas 2 SD">Kelas 2 SD</option>
+                                <option value="Kelas 3 SD">Kelas 3 SD</option>
+                                <option value="Kelas 4 SD" selected>Kelas 4 SD</option>
+                                <option value="Kelas 5 SD">Kelas 5 SD</option>
+                                <option value="Kelas 6 SD">Kelas 6 SD</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
+                            <select id="input-subject" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Bahasa Indonesia" selected>Bahasa Indonesia</option>
+                                <option value="Matematika">Matematika</option>
+                                <option value="IPA (Ilmu Pengetahuan Alam)">IPA</option>
+                                <option value="IPS (Ilmu Pengetahuan Sosial)">IPS</option>
+                                <option value="Pendidikan Pancasila / PPKn">Pendidikan Pancasila / PPKn</option>
+                                <option value="Bahasa Inggris">Bahasa Inggris</option>
+                                <option value="Bahasa Daerah (Jawa)">Bahasa Jawa</option>
+                                <option value="Bahasa Daerah (Sunda)">Bahasa Sunda</option>
+                                <option value="PJOK (Jasmani & Kesehatan)">PJOK</option>
+                                <option value="Seni Budaya & Prakarya">Seni Budaya</option>
+                                <option value="Pendidikan Agama">Pendidikan Agama</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Bahasa Pengantar</label>
+                            <select id="input-language" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Bahasa Indonesia" selected>Bahasa Indonesia</option>
+                                <option value="Bahasa Inggris">Bahasa Inggris (English)</option>
+                                <option value="Bahasa Jawa">Bahasa Jawa</option>
+                                <option value="Bahasa Sunda">Bahasa Sunda</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Tipe Soal</label>
+                            <select id="input-type" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Pilihan Ganda">Pilihan Ganda</option>
+                                <option value="Esai/Isian">Esai / Isian</option>
+                                <option value="Campuran">Campuran</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Jumlah Soal</label>
+                            <select id="input-count" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="3">3 Soal</option>
+                                <option value="5" selected>5 Soal</option>
+                                <option value="10">10 Soal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Gaya Bahasa</label>
+                            <select id="input-style" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Formal & Edukatif" selected>Formal & Edukatif</option>
+                                <option value="Cerita / Narasi Menarik">Cerita / Narasi</option>
+                                <option value="Bahasa Sederhana">Sederhana & Mudah</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Upload Foto Pendukung -->
+                    <div class="pt-2 border-t border-slate-100">
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Foto / Ilustrasi Pendukung</span>
+                            <span class="text-[10px] text-slate-400 font-normal">Opsional</span>
+                        </label>
+                        
+                        <div class="relative group border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-3 sm:p-4 transition-colors text-center cursor-pointer bg-slate-50 hover:bg-slate-100/50">
+                            <input type="file" id="input-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleImageUpload(event)">
+                            <div id="upload-placeholder" class="space-y-1">
+                                <i data-lucide="image" class="w-7 h-7 text-slate-400 mx-auto group-hover:text-indigo-500 transition-colors"></i>
+                                <p class="text-xs font-semibold text-slate-600">Ketuk untuk unggah foto</p>
+                                <p class="text-[9px] text-slate-400">PNG, JPG maksimal 5MB</p>
+                            </div>
+                            <!-- Preview kecil saat terunggah -->
+                            <div id="upload-success-preview" class="hidden flex items-center justify-center gap-3">
+                                <img id="thumb-img" src="" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg border border-slate-200">
+                                <div class="text-left">
+                                    <p class="text-xs font-semibold text-slate-800 line-clamp-1" id="uploaded-filename">gambar.jpg</p>
+                                    <button type="button" onclick="removeImage(event)" class="text-[10px] text-rose-500 hover:underline font-medium">Hapus Foto</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi Utama -->
+                <button type="button" id="btn-generate" onclick="generateWorksheet()" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 text-sm">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    Buat Lembar Kerja Baru
+                </button>
+            </div>
+
+            <!-- Panduan Cetak & Tips -->
+            <div class="bg-slate-100 rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-2.5 text-xs text-slate-600">
+                <h3 class="font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-4 h-4 text-indigo-500"></i>
+                    Panduan Pembelajaran Multi-Bahasa:
+                </h3>
+                <ul class="list-disc pl-4 space-y-1">
+                    <li><strong>Aman di GitHub Pages:</strong> API Key disimpan secara lokal di browser Anda, bukan di internet umum.</li>
+                    <li><strong>Matematika:</strong> AI otomatis menyusun teks bermuatan angka (Numerasi) dan latihan hitung kontekstual.</li>
+                    <li>Semua teks di kertas pratinjau dapat <strong>diedit langsung</strong> sebelum diprint.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Area Hasil Lembar Kerja (Preview Cetak) - Pada mobile default tersembunyi hingga tab dipindah -->
+        <section id="panel-preview" class="flex-1 flex-col gap-4 hidden lg:flex">
+            
+            <!-- Bilah Kontrol Cetak Terpadu -->
+            <div id="preview-controls" class="hidden bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm flex flex-wrap items-center justify-between gap-3 no-print animate-fade-in">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <p class="text-xs text-slate-600">Hasil siap diedit & dicetak</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="toggleAnswerKey()" class="flex-1 sm:flex-initial px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5">
+                        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                        <span id="txt-toggle-key">Kunci Jawaban</span>
+                    </button>
+                    <button onclick="window.print()" class="flex-1 sm:flex-initial px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-slate-100">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        Cetak Kertas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lembar Kerja Nyata (Kertas A4 Simulasi) -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-8 lg:p-12 print-paper relative transition-all min-h-[500px] flex flex-col justify-between">
+                
+                <!-- Tampilan Awal Kosong -->
+                <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white rounded-2xl">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-3 border border-slate-100">
+                        <i data-lucide="clipboard-list" class="w-6 h-6 sm:w-8 sm:h-8"></i>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-800 heading-font">Lembar Kerja Belum Dibuat</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-sm mt-1">Masukkan API key, topik, tingkat kelas, mapel, dan bahasa di panel kiri lalu klik "Buat Lembar Kerja Baru" untuk mulai menghasilkan konten.</p>
+                </div>
+
+                <!-- Tampilan Efek Loading / Generator Berjalan -->
+                <div id="loading-state" class="hidden absolute inset-0 bg-white/95 z-10 flex flex-col items-center justify-center p-6 text-center rounded-2xl">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 relative flex items-center justify-center mb-4">
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+                        <i data-lucide="sparkles" class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 animate-pulse"></i>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 heading-font">AI Sedang Menyusun Soal</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 max-w-md mt-1 animate-pulse">Merancang teks bacaan literasi tematik dan paket soal evaluasi...</p>
+                    
+                    <div class="w-48 sm:w-64 h-1.5 bg-slate-100 rounded-full mt-4 overflow-hidden">
+                        <div class="h-full bg-indigo-600 rounded-full" style="width: 40%; animation: slide-loading 2s infinite ease-in-out;"></div>
+                    </div>
+                </div>
+
+                <!-- Konten Lembar Kerja Nyata -->
+                <div id="worksheet-content" class="hidden space-y-6">
+                    
+                    <!-- KOP SOAL / HEADER UJIAN SEKOLAH -->
+                    <div class="border-b-4 border-double border-slate-900 pb-4 mb-4 sm:mb-6">
+                        <div class="text-center space-y-1 mb-4">
+                            <h2 class="text-sm sm:text-lg font-bold uppercase tracking-wide heading-font leading-tight" contenteditable="true" title="Klik untuk mengedit">LEMBAR EVALUASI BELAJAR SISWA</h2>
+                            <p class="text-[10px] sm:text-xs text-slate-500 font-medium" contenteditable="true" title="Klik untuk mengedit">Ujian Penilaian Harian Tematik Berbasis Literasi Kreatif</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] sm:text-xs font-semibold pt-2 border-t border-slate-200">
+                            <div class="space-y-1.5">
+                                <div class="flex"><span class="w-24 shrink-0">Nama Siswa</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[16px]" contenteditable="true">..........................................</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Nomor Absen</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[16px]" contenteditable="true">..........................................</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Mata Pelajaran</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[16px]" id="display-subject">Bahasa Indonesia</span></div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex"><span class="w-24 shrink-0">Kelas / Semester</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[16px]" id="display-level">Kelas 4 SD / Ganjil</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Bahasa Pengantar</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[16px]" id="display-language">Bahasa Indonesia</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Tanggal Ujian</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[16px]" id="display-date">Sabtu, 20 Juni 2026</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Judul Bacaan -->
+                    <div class="text-center py-1 sm:py-2 relative group">
+                        <span class="no-print absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-indigo-500 text-[10px] font-semibold flex items-center gap-1 bg-indigo-50 px-1.5 py-0.5 rounded-lg border border-indigo-100 pointer-events-none edit-indicator">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit Judul
+                        </span>
+                        <h1 id="worksheet-title" class="text-base sm:text-xl font-bold uppercase tracking-tight heading-font text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 p-1.5 rounded-lg" contenteditable="true">
+                            JUDUL BACAAN LITERASI
+                        </h1>
+                    </div>
+
+                    <!-- FOTO / ILUSTRASI YANG DIUNGGAH -->
+                    <div id="worksheet-image-container" class="hidden flex flex-col items-center justify-center gap-2 py-2 sm:py-4">
+                        <img id="worksheet-img" src="" class="max-w-[90%] sm:max-w-[80%] max-h-[180px] sm:max-h-[280px] object-contain rounded-xl shadow-sm border border-slate-200" alt="Ilustrasi Soal">
+                        <p id="worksheet-img-caption" class="text-[10px] sm:text-xs text-slate-400 italic text-center focus:outline-none" contenteditable="true">Gambar: Ilustrasi pendukung bahan bacaan.</p>
+                    </div>
+
+                    <!-- Teks Bacaan Literasi -->
+                    <div class="space-y-3 relative group">
+                        <span class="no-print absolute -left-2 top-2 opacity-0 group-hover:opacity-100 text-indigo-500 text-[10px] font-semibold flex items-center gap-1 bg-indigo-50 px-1.5 py-0.5 rounded-lg border border-indigo-100 pointer-events-none edit-indicator">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit Bacaan
+                        </span>
+                        <div id="worksheet-reading" class="text-xs sm:text-sm leading-relaxed text-slate-700 text-justify space-y-3 p-1 rounded-lg border border-transparent focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 focus:outline-none" contenteditable="true">
+                            <!-- Paragraf-paragraf bacaan akan masuk ke sini -->
+                        </div>
+                    </div>
+
+                    <!-- Pertanyaan Soal -->
+                    <div class="space-y-6 pt-6 border-t border-slate-200 relative group">
+                        <span class="no-print absolute -left-2 top-6 opacity-0 group-hover:opacity-100 text-indigo-500 text-[10px] font-semibold flex items-center gap-1 bg-indigo-50 px-1.5 py-0.5 rounded-lg border border-indigo-100 pointer-events-none edit-indicator">
+                            <i data-lucide="edit-3" class="w-3 h-3"></i> Edit Soal
+                        </span>
+                        
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="h-5 w-1 bg-slate-900 rounded-full"></span>
+                            <h3 id="display-section-title" class="text-xs sm:text-sm font-bold uppercase tracking-wide text-slate-900 heading-font" contenteditable="true">BAGIAN SOAL EVALUASI</h3>
+                        </div>
+
+                        <div id="worksheet-questions" class="space-y-5 text-xs sm:text-sm">
+                            <!-- Daftar Soal akan disematkan di sini -->
+                        </div>
+                    </div>
+
+                    <!-- LEMBAR TERPISAH: KUNCI JAWABAN (Dapat dinonaktifkan/diaktifkan) -->
+                    <div id="worksheet-answers" class="hidden answer-key-section mt-12 pt-8 border-t-2 border-dashed border-slate-300">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="h-5 w-1 bg-indigo-600 rounded-full"></span>
+                            <h3 class="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-600 heading-font">KUNCI JAWABAN & PEMBAHASAN GURU</h3>
+                        </div>
+                        <div id="worksheet-answers-list" class="space-y-4 text-[11px] sm:text-xs text-slate-600">
+                            <!-- Daftar Kunci Jawaban akan disematkan di sini -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer Lembar Ujian -->
+                <div id="worksheet-footer" class="hidden border-t border-slate-200 pt-4 mt-8 flex justify-between text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                    <span>EduPrint AI Worksheet Generator</span>
+                    <span contenteditable="true">Evaluasi Kurikulum Merdeka Belajar</span>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-400 no-print">
+        <p>&copy; 2026 EduPrint AI. Dibuat dengan integrasi Gemini API & Tailwind CSS.</p>
+        <p class="text-[10px] text-slate-300 mt-0.5">Catatan: Model gemini-2.5-flash-preview-09-2025 digunakan sebagai mesin AI default di server lokal.</p>
+    </footer>
+
+    <!-- Logika Aplikasi (JavaScript) -->
+    <script>
+        const modelName = "gemini-2.5-flash-preview-09-2025";
+        let localImageData = null; // Menyimpan data URL foto yang diunggah
+        let latestGeneratedData = null; // Menyimpan respons data JSON terakhir dari AI
+
+        // Inisialisasi awal halaman
+        window.onload = function() {
+            lucide.createIcons();
+            
+            // Set tanggal hari ini pada kop soal secara default
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('display-date').innerText = new Date().toLocaleDateString('id-ID', options);
+
+            // Muat API Key dari localStorage jika sebelumnya pernah disimpan secara lokal
+            const savedApiKey = localStorage.getItem('gemini_api_key');
+            if (savedApiKey) {
+                document.getElementById('input-api-key').value = savedApiKey;
+            }
+        }
+
+        // Fungsi khusus Mobile Tab Switcher untuk HP Android/iOS
+        function switchMobileTab(tab) {
+            const panelSettings = document.getElementById('panel-settings');
+            const panelPreview = document.getElementById('panel-preview');
+            const btnSettings = document.getElementById('tab-btn-settings');
+            const btnPreview = document.getElementById('tab-btn-preview');
+
+            if (tab === 'settings') {
+                panelSettings.classList.remove('hidden');
+                panelSettings.classList.add('block');
+                panelPreview.classList.add('hidden');
+                panelPreview.classList.remove('flex');
+                
+                // Ubah gaya tombol tab aktif
+                btnSettings.className = "flex-1 py-3 text-center text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 transition-all";
+                btnPreview.className = "flex-1 py-3 text-center text-sm font-semibold border-b-2 border-transparent text-slate-500 flex items-center justify-center gap-1.5 transition-all";
+            } else {
+                panelSettings.classList.add('hidden');
+                panelSettings.classList.remove('block');
+                panelPreview.classList.remove('hidden');
+                panelPreview.classList.add('flex');
+
+                // Ubah gaya tombol tab aktif
+                btnSettings.className = "flex-1 py-3 text-center text-sm font-semibold border-b-2 border-transparent text-slate-500 flex items-center justify-center gap-1.5 transition-all";
+                btnPreview.className = "flex-1 py-3 text-center text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 transition-all";
+            }
+        }
+
+        // Penanganan Unggah Foto Baru
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showStatus("Ukuran berkas melebihi batas 5MB!", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                localImageData = e.target.result;
+                
+                // Perbarui tampilan interface input foto
+                document.getElementById('upload-placeholder').classList.add('hidden');
+                document.getElementById('upload-success-preview').classList.remove('hidden');
+                document.getElementById('thumb-img').src = localImageData;
+                document.getElementById('uploaded-filename').innerText = file.name;
+
+                // Sinkronkan langsung ke lembar kerja jika lembar kerja sudah aktif
+                updateWorksheetImage();
+                showStatus("Foto berhasil ditautkan ke lembar kerja!", "success");
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Hapus Foto
+        function removeImage(event) {
+            if (event) event.stopPropagation();
+            localImageData = null;
+            
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+            document.getElementById('upload-success-preview').classList.add('hidden');
+            document.getElementById('input-image').value = '';
+            
+            updateWorksheetImage();
+            showStatus("Foto dihapus.", "info");
+        }
+
+        // Perbarui visibilitas & sumber foto di area lembar kertas ujian
+        function updateWorksheetImage() {
+            const container = document.getElementById('worksheet-image-container');
+            const imgEl = document.getElementById('worksheet-img');
+
+            if (localImageData) {
+                imgEl.src = localImageData;
+                container.classList.remove('hidden');
+            } else {
+                imgEl.src = "";
+                container.classList.add('hidden');
+            }
+        }
+
+        // Tampilkan Banner Informasi Status Sederhana
+        function showStatus(message, type = "info") {
+            const banner = document.getElementById('status-banner');
+            const icon = document.getElementById('status-icon');
+            const text = document.getElementById('status-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800', 'bg-rose-50', 'border-rose-200', 'text-rose-800', 'bg-indigo-50', 'border-indigo-200', 'text-indigo-800');
+            
+            text.innerText = message;
+
+            if (type === "success") {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                icon.setAttribute('data-lucide', 'check-circle-2');
+                icon.className = 'w-5 h-5 shrink-0 mt-0.5 text-emerald-600';
+            } else if (type === "error") {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+                icon.setAttribute('data-lucide', 'alert-circle');
+                icon.className = 'w-5 h-5 shrink-0 mt-0.5 text-rose-600';
+            } else {
+                banner.classList.add('bg-indigo-50', 'border-indigo-200', 'text-indigo-800');
+                icon.setAttribute('data-lucide', 'info');
+                icon.className = 'w-5 h-5 shrink-0 mt-0.5 text-indigo-600';
+            }
+
+            banner.classList.remove('hidden');
+            lucide.createIcons();
+
+            // Sembunyikan otomatis jika sukses/info setelah beberapa saat
+            if (type !== "error") {
+                setTimeout(() => {
+                    banner.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        // Toggle Tampilan Kunci Jawaban di Lembar Kerja
+        function toggleAnswerKey() {
+            const answerSection = document.getElementById('worksheet-answers');
+            const btnText = document.getElementById('txt-toggle-key');
+            
+            if (answerSection.classList.contains('hidden')) {
+                answerSection.classList.remove('hidden');
+                btnText.innerText = "Sembunyikan Kunci";
+                showStatus("Kunci jawaban ditambahkan di bagian bawah halaman cetak.", "info");
+            } else {
+                answerSection.classList.add('hidden');
+                btnText.innerText = "Kunci Jawaban";
+            }
+        }
+
+        // Mengirim kueri ke Gemini API menggunakan fetch dengan Exponential Backoff
+        async function fetchGeminiWithBackoff(apiKey, prompt, systemPrompt, maxRetries = 5) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            title: { type: "STRING" },
+                            reading: { type: "STRING" },
+                            questions: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        num: { type: "INTEGER" },
+                                        question: { type: "STRING" },
+                                        options: {
+                                            type: "ARRAY",
+                                            items: { type: "STRING" }
+                                        },
+                                        answer: { type: "STRING" }
+                                    },
+                                    required: ["num", "question", "answer"]
+                                }
+                            }
+                        },
+                        required: ["title", "reading", "questions"]
+                    }
+                }
+            };
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    }
+
+                    // Jika status rate limit (429) atau server error lainnya, lakukan delay eksponensial
+                    if (response.status === 429 || response.status >= 500) {
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+
+                    const errorText = await response.text();
+                    throw new Error(`API Error: ${response.status} - ${errorText}`);
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error; // Re-throw jika sudah batas akhir percobaan
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        // Jalankan Pembuatan Lembar Kerja Baru
+        async function generateWorksheet() {
+            const apiKey = document.getElementById('input-api-key').value.trim();
+            const topic = document.getElementById('input-topic').value.trim();
+            const level = document.getElementById('input-level').value;
+            const subject = document.getElementById('input-subject').value;
+            const language = document.getElementById('input-language').value;
+            const type = document.getElementById('input-type').value;
+            const count = document.getElementById('input-count').value;
+            const style = document.getElementById('input-style').value;
+            const btn = document.getElementById('btn-generate');
+
+            if (!apiKey) {
+                showStatus("Silakan masukkan Gemini API Key Anda terlebih dahulu!", "error");
+                return;
+            }
+
+            if (!topic) {
+                showStatus("Silakan masukkan topik atau tema utama terlebih dahulu!", "error");
+                return;
+            }
+
+            // Simpan API Key secara lokal agar pengguna tidak perlu mengetik ulang nanti
+            localStorage.setItem('gemini_api_key', apiKey);
+
+            // Jika diakses menggunakan HP Android/layar sentuh kecil, otomatis geser tab ke visual Lembar Kerja
+            if (window.innerWidth < 1024) {
+                switchMobileTab('preview');
+            }
+
+            // Tampilkan state memuat
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span> Menyusun Lembar Kerja...`;
+
+            // Prompt rekayasa (Prompt Engineering) untuk performa terbaik
+            const systemPrompt = `Anda adalah seorang ahli kurikulum sekolah dasar (SD) di Indonesia, desainer bahan ajar kreatif, dan penyusun soal evaluasi akademik bersertifikasi.
+            Tugas Anda adalah memproduksi teks bacaan edukatif beserta paket soal pemahaman yang selaras dengan perkembangan kognitif siswa SD kelas 1-6.
+            Gunakan bahasa pengantar yang diminta secara natural, tata bahasa yang benar (baku jika formal, santun jika daerah), dan ikuti skema JSON yang telah ditentukan secara tepat.`;
+
+            // Menyesuaikan instruksi khusus jika mapel Matematika (Numerasi) dipilih
+            let subjectSpecificInstruction = "";
+            if (subject.toLowerCase().includes("matematika")) {
+                subjectSpecificInstruction = `
+                - Karena mata pelajarannya adalah Matematika, maka teks bacaan wajib berupa "Cerita Literasi Numerasi" (mengandung narasi yang menyelipkan data angka, kuantitas, grafik khayalan, transaksi, atau pengukuran).
+                - Soal evaluasi yang dihasilkan harus menguji kemampuan pemecahan masalah matematika (berhitung, analisis data angka, perkiraan, logika matematika) berdasarkan data yang disajikan di dalam teks cerita bacaan tersebut.
+                `;
+            } else {
+                subjectSpecificInstruction = `
+                - Konten bacaan harus membahas konsep dasar mata pelajaran ${subject} yang disederhanakan untuk tingkat kelas ${level}.
+                - Pertanyaan harus menguji pemahaman membaca, pemahaman konsep sains/sosial/norma, dan analisis kritis (HOTS/Higher Order Thinking Skills) yang relevan untuk anak SD.
+                `;
+            }
+
+            // Menyesuaikan instruksi bahasa pengantar
+            let languageInstruction = `
+            - Seluruh teks bacaan (reading), judul (title), soal pertanyaan (questions), opsi pilihan ganda (options), dan penjelasan kunci jawaban (answer) harus ditulis sepenuhnya dalam: **${language}**.
+            - Jika bahasa pengantar adalah "Bahasa Jawa", gunakan ragam bahasa Krama Alus atau Ngoko Alus yang edukatif, ramah anak, dan santun.
+            - Jika bahasa pengantar adalah "Bahasa Sunda", gunakan ragam bahasa Loma/Lemes yang sesuai untuk edukasi anak SD kelas ${level}.
+            - Jika bahasa pengantar adalah "Bahasa Inggris", sesuaikan kosakata (vocabulary) agar sesuai dengan kurikulum Bahasa Inggris untuk ${level}.
+            `;
+
+            const prompt = `Buatkan lembar evaluasi belajar dengan kriteria berikut:
+            - **Topik/Tema**: ${topic}
+            - **Tingkat Kelas**: ${level}
+            - **Mata Pelajaran (Mapel)**: ${subject}
+            - **Bahasa Pengantar Utama**: ${language}
+            - **Tipe Evaluasi Soal**: ${type}
+            - **Jumlah Butir Soal**: ${count}
+            - **Gaya Penulisan Teks Bacaan**: ${style}
+
+            Aturan Detil Konten:
+            1. Teks Bacaan (reading): Teks bacaan harus berkualitas, mengalir, memberikan fakta valid, mengasah daya kritis (HOTS), dan berisi setidaknya 3-4 paragraf yang ramah anak dan sesuai dengan perkembangan kognitif siswa ${level}. Pisahkan paragraf dengan baris baru (karakter newline '\\n').
+            2. ${subjectSpecificInstruction}
+            3. ${languageInstruction}
+            4. Pertanyaan (questions): 
+               - Jika tipe "Pilihan Ganda": Berikan daftar 4 opsi alternatif pilihan (A, B, C, D) untuk masing-masing soal. Contoh: "A. [opsi]", "B. [opsi]", dst.
+               - Jika tipe "Esai/Isian": Isi bagian "options" dengan array kosong, namun buat pertanyaan esai pemahaman mendalam.
+               - Jika tipe "Campuran": Variasikan butir soal dengan beberapa pilihan ganda di awal dan esai di bagian akhir (opsi kosong untuk bagian esai).
+            5. Kunci Jawaban (answer): Sediakan kunci jawaban beserta pembahasan ringkas di bagian "answer" dengan menggunakan bahasa pengantar **${language}**.`;
+
+            try {
+                const responseData = await fetchGeminiWithBackoff(apiKey, prompt, systemPrompt);
+                
+                // Parsing hasil JSON terstruktur
+                const rawText = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!rawText) {
+                    throw new Error("Gagal memperoleh respons teks dari AI.");
+                }
+
+                const parsedData = JSON.parse(rawText);
+                latestGeneratedData = parsedData;
+
+                // Terapkan data ke antarmuka lembar kerja
+                renderWorksheet(parsedData, level, subject, language);
+                
+                showStatus("Lembar kerja berhasil dibuat! Anda sekarang bisa mengedit, menambah foto, atau langsung mencetaknya.", "success");
+            } catch (error) {
+                console.error(error);
+                showStatus(`Gagal memuat lembar kerja: ${error.message}`, "error");
+                
+                // Kembalikan ke state kosong jika gagal, dan fokuskan kembali ke tab pengaturan pada HP
+                document.getElementById('empty-state').classList.remove('hidden');
+                if (window.innerWidth < 1024) {
+                    switchMobileTab('settings');
+                }
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i> Buat Lembar Kerja Baru`;
+                lucide.createIcons();
+            }
+        }
+
+        // Render struktur data dari AI ke Lembar Kerja Visual
+        function renderWorksheet(data, level, subject, language) {
+            // Tampilkan elemen-elemen kertas
+            document.getElementById('worksheet-content').classList.remove('hidden');
+            document.getElementById('worksheet-footer').classList.remove('hidden');
+            document.getElementById('preview-controls').classList.remove('hidden');
+
+            // Set Meta info KOP Soal
+            document.getElementById('display-level').innerText = level + " / Ganjil";
+            document.getElementById('display-subject').innerText = subject;
+            document.getElementById('display-language').innerText = language;
+
+            // Set Judul Bacaan
+            document.getElementById('worksheet-title').innerText = data.title;
+
+            // Set Foto Pendukung
+            updateWorksheetImage();
+
+            // Render Bacaan (Pisahkan per paragraf agar terlihat rapi secara semantik)
+            const readingContainer = document.getElementById('worksheet-reading');
+            readingContainer.innerHTML = '';
+            
+            // Memisahkan berdasarkan baris baru/newline
+            const paragraphs = data.reading.split('\n').filter(p => p.trim() !== '');
+            paragraphs.forEach(p => {
+                const pEl = document.createElement('p');
+                pEl.className = 'text-justify text-slate-700 leading-relaxed mb-3 indent-6';
+                pEl.innerText = p.trim();
+                readingContainer.appendChild(pEl);
+            });
+
+            // Judul bagian soal berdasarkan bahasa pengantar
+            let sectionTitle = "BAGIAN SOAL EVALUASI";
+            if (language.toLowerCase().includes("inggris") || language.toLowerCase().includes("english")) {
+                sectionTitle = "EVALUATION QUESTIONS SECTION";
+            } else if (language.toLowerCase().includes("jawa")) {
+                sectionTitle = "PERANGAN PITAKONAN EVALUASI";
+            } else if (language.toLowerCase().includes("sunda")) {
+                sectionTitle = "BAGIAN PATALÉKAN EVALUASI";
+            }
+            document.getElementById('display-section-title').innerText = sectionTitle;
+
+            // Render Butir Soal Evaluasi
+            const questionsContainer = document.getElementById('worksheet-questions');
+            questionsContainer.innerHTML = '';
+
+            const answersContainer = document.getElementById('worksheet-answers-list');
+            answersContainer.innerHTML = '';
+
+            data.questions.forEach((q, idx) => {
+                const questionNum = q.num || (idx + 1);
+                
+                // Buat elemen blok soal
+                const qBlock = document.createElement('div');
+                qBlock.className = 'space-y-2';
+
+                // Teks Pertanyaan
+                const qText = document.createElement('p');
+                qText.className = 'font-semibold text-slate-900 flex gap-2';
+                qText.innerHTML = `<span class="shrink-0">${questionNum}.</span> <span class="flex-1 focus:outline-none" contenteditable="true">${q.question}</span>`;
+                qBlock.appendChild(qText);
+
+                // Jika ada Opsi Pilihan Ganda
+                if (q.options && q.options.length > 0) {
+                    const optGrid = document.createElement('div');
+                    optGrid.className = 'pl-6 grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700';
+
+                    q.options.forEach(opt => {
+                        const optEl = document.createElement('div');
+                        optEl.className = 'flex items-start gap-1.5 focus:outline-none';
+                        optEl.innerHTML = `<span class="font-medium text-slate-400"></span> <span class="flex-1" contenteditable="true">${opt}</span>`;
+                        optGrid.appendChild(optEl);
+                    });
+                    qBlock.appendChild(optGrid);
+                } else {
+                    // Jika esai, berikan baris kosong yang rapi untuk menulis jawaban di kertas
+                    const blankLines = document.createElement('div');
+                    blankLines.className = 'pl-6 py-2 space-y-2.5';
+                    blankLines.innerHTML = `
+                        <div class="border-b border-dotted border-slate-300 w-full h-4"></div>
+                        <div class="border-b border-dotted border-slate-300 w-full h-4"></div>
+                        <div class="border-b border-dotted border-slate-300 w-full h-4"></div>
+                    `;
+                    qBlock.appendChild(blankLines);
+                }
+
+                questionsContainer.appendChild(qBlock);
+
+                // Render Kunci Jawaban (Untuk Lembar Guru)
+                const answerBlock = document.createElement('div');
+                answerBlock.className = 'p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1';
+                answerBlock.innerHTML = `
+                    <p class="font-semibold text-slate-800">Nomor ${questionNum}</p>
+                    <p class="text-slate-600 italic focus:outline-none" contenteditable="true"><strong>Jawaban/Pembahasan:</strong> ${q.answer}</p>
+                `;
+                answersContainer.appendChild(answerBlock);
+            });
+        }
+    </script>
+
+</body>
+</html>

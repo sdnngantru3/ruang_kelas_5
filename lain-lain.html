@@ -70,6 +70,20 @@
             -webkit-user-select: none;
             touch-action: manipulation;
         }
+        /* Efek hover untuk menu segera hadir */
+        .coming-soon {
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        .coming-soon:hover {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+        .coming-soon .badge-coming {
+            background: rgba(255,255,255,0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between max-w-[480px] mx-auto shadow-2xl relative pb-8">
@@ -170,6 +184,66 @@
                     <i class="bi bi-chevron-right text-lg text-purple-300"></i>
                 </div>
             </a>
+
+            <!-- MENU BARU: BUAT ICE BREAKING -->
+            <a href="ice_breaking.html" class="block bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-3xl p-4 shadow-md active:scale-95 transition-all border border-rose-500/50 mt-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3.5">
+                        <div class="bg-white/10 p-3 rounded-2xl border border-white/10 text-white">
+                            <i class="bi bi-emoji-laughing text-2xl"></i>
+                        </div>
+                        <div>
+                            <span class="bg-white/20 text-[9px] font-black tracking-widest text-white px-2 py-0.5 rounded-full uppercase">Baru!</span>
+                            <h3 class="font-bold text-sm mt-1">Buat Ice Breaking</h3>
+                            <p class="text-[10px] text-rose-100/80">Ciptakan aktivitas seru dan mencairkan suasana kelas.</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-lg text-rose-300"></i>
+                </div>
+            </a>
+
+            <!-- 4 MENU SEGERA HADIR (COMING SOON) -->
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <a href="#" class="coming-soon block bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl p-3 shadow-md border border-slate-500/30 cursor-not-allowed">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-white/10 p-2 rounded-2xl mb-1.5">
+                            <i class="bi bi-clock-history text-xl"></i>
+                        </div>
+                        <span class="font-bold text-xs">Media Pembelajaran</span>
+                        <span class="badge-coming text-[7px] font-black px-2 py-0.5 rounded-full mt-0.5">Segera Hadir</span>
+                    </div>
+                </a>
+                
+                <a href="#" class="coming-soon block bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl p-3 shadow-md border border-slate-500/30 cursor-not-allowed">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-white/10 p-2 rounded-2xl mb-1.5">
+                            <i class="bi bi-bar-chart-fill text-xl"></i>
+                        </div>
+                        <span class="font-bold text-xs">Analisis Data</span>
+                        <span class="badge-coming text-[7px] font-black px-2 py-0.5 rounded-full mt-0.5">Segera Hadir</span>
+                    </div>
+                </a>
+                
+                <a href="#" class="coming-soon block bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl p-3 shadow-md border border-slate-500/30 cursor-not-allowed">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-white/10 p-2 rounded-2xl mb-1.5">
+                            <i class="bi bi-person-arms-up text-xl"></i>
+                        </div>
+                        <span class="font-bold text-xs">Profil Siswa</span>
+                        <span class="badge-coming text-[7px] font-black px-2 py-0.5 rounded-full mt-0.5">Segera Hadir</span>
+                    </div>
+                </a>
+                
+                <a href="#" class="coming-soon block bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl p-3 shadow-md border border-slate-500/30 cursor-not-allowed">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="bg-white/10 p-2 rounded-2xl mb-1.5">
+                            <i class="bi bi-people-fill text-xl"></i>
+                        </div>
+                        <span class="font-bold text-xs">Kelompok Belajar</span>
+                        <span class="badge-coming text-[7px] font-black px-2 py-0.5 rounded-full mt-0.5">Segera Hadir</span>
+                    </div>
+                </a>
+            </div>
         </section>
 
         <!-- SECTION 1B: GAME SPACE IMPACT NEON -->

@@ -9,7 +9,7 @@
     <!-- Lucide Icons untuk ikon yang cantik -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=Inter:wght=300;400;500;600;700&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -21,34 +21,21 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
+        /* Styling khusus untuk cetak halaman kertas */
         @media print {
-            header, footer, .no-print, #panel-settings, #tab-btn-settings, #tab-btn-preview, #empty-state, #loading-state {
-                display: none !important;
-            }
-
-            body, html {
+            body {
                 background-color: #ffffff !important;
                 color: #000000 !important;
                 font-family: "Times New Roman", Times, serif !important;
                 font-size: 11pt !important;
-                width: 100% !important;
-                height: auto !important;
-                margin: 0 !important;
-                padding: 0 !important;
             }
-
-            #panel-preview {
-                display: block !important;
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                visibility: visible !important;
+            
+            /* Sembunyikan elemen kontrol saat mencetak */
+            header, footer, .no-print, #panel-settings, #tab-btn-settings, #tab-btn-preview, #empty-state, #loading-state {
+                display: none !important;
             }
-
+            
+            /* Hilangkan bayangan dan border luar pada lembar kerja */
             .print-paper {
                 box-shadow: none !important;
                 border: none !important;
@@ -57,34 +44,39 @@
                 width: 100% !important;
                 max-width: 100% !important;
                 background-color: #ffffff !important;
-                display: block !important;
-                visibility: visible !important;
             }
 
-            #worksheet-content {
+            #panel-preview {
                 display: block !important;
-                visibility: visible !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
+            /* Halaman cetak selalu potret dan bersih */
             @page {
                 size: A4;
-                margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+                margin: 1.5cm;
+            }
+
+            /* Sembunyikan tombol edit saat cetak */
+            .edit-indicator {
+                display: none !important;
+            }
+
+            /* Tampilkan kunci jawaban di lembar terpisah saat cetak jika dicentang */
+            .answer-key-section {
+                page-break-before: always;
             }
 
             .no-break-inside {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
-
-            .edit-indicator {
-                display: none !important;
-            }
-
-            .answer-key-section {
-                page-break-before: always;
-            }
         }
 
+        /* Animasi loading berkilau */
         .shimmer {
             background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
             background-size: 200% 100%;
@@ -99,6 +91,7 @@
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col antialiased">
 
+    <!-- Header Aplikasi (Disembunyikan saat cetak) -->
     <header class="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 sticky top-0 z-20 no-print shadow-sm">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
             <div class="flex items-center gap-3">
@@ -107,7 +100,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg sm:text-xl font-bold heading-font text-slate-900 leading-tight">EduPrint AI</h1>
-                    <p class="text-[10px] sm:text-xs text-slate-500">Generator Bacaan & Evaluasi Siswa SD - Kurikulum Merdeka</p>
+                    <p class="text-[10px] sm:text-xs text-slate-500">Generator Bacaan & Soal Evaluasi SD Berbagai Bahasa</p>
                 </div>
             </div>
             
@@ -118,6 +111,7 @@
         </div>
     </header>
 
+    <!-- Navigasi Tab Khusus Layar Seluler / HP (Hanya muncul di Layar < lg, disembunyikan saat cetak) -->
     <div class="lg:hidden flex bg-white border-b border-slate-200 sticky top-[61px] z-10 no-print shadow-sm">
         <button id="tab-btn-settings" onclick="switchMobileTab('settings')" class="flex-1 py-3 text-center text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 transition-all">
             <i data-lucide="sliders" class="w-4 h-4"></i>
@@ -129,12 +123,13 @@
         </button>
     </div>
 
+    <!-- Konten Utama -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-4 lg:gap-8">
         
-        <!-- Panel Konfigurasi Kiri (Disembunyikan saat cetak) -->
+        <!-- Panel Konfigurasi (Disembunyikan saat cetak) -->
         <section id="panel-settings" class="w-full lg:w-[420px] shrink-0 space-y-4 sm:space-y-6 no-print block">
             
-            <!-- Notifikasi / Status Banner -->
+            <!-- Notifikasi/Status Panel -->
             <div id="status-banner" class="hidden p-4 rounded-xl text-sm border flex items-start gap-3 shadow-sm transition-all animate-fade-in">
                 <i id="status-icon" class="w-5 h-5 shrink-0 mt-0.5"></i>
                 <div class="flex-1">
@@ -142,13 +137,14 @@
                 </div>
             </div>
 
-            <!-- Form Pengaturan Aplikasi -->
+            <!-- Form Pengaturan -->
             <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
                 <h2 class="text-base sm:text-lg font-bold heading-font text-slate-900 flex items-center gap-2">
                     <i data-lucide="sliders" class="w-5 h-5 text-indigo-600"></i>
                     Pengaturan Lembar Kerja
                 </h2>
 
+                <!-- Input Parameter Soal -->
                 <div class="space-y-4">
                     <!-- INPUT API KEY -->
                     <div>
@@ -210,11 +206,16 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Tipe Soal</label>
-                            <select id="input-type" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
-                                <option value="Pilihan Ganda">Pilihan Ganda</option>
-                                <option value="Esai/Isian">Esai / Isian</option>
-                                <option value="Campuran">Campuran</option>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Jumlah Alenia</label>
+                            <select id="input-paragraph-count" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="3">3 Alenia</option>
+                                <option value="4" selected>4 Alenia</option>
+                                <option value="5">5 Alenia</option>
+                                <option value="6">6 Alenia</option>
+                                <option value="7">7 Alenia</option>
+                                <option value="8">8 Alenia</option>
+                                <option value="9">9 Alenia</option>
+                                <option value="10">10 Alenia</option>
                             </select>
                         </div>
                     </div>
@@ -229,27 +230,21 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Gaya Bahasa</label>
-                            <select id="input-style" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
-                                <option value="Formal & Edukatif" selected>Formal & Edukatif</option>
-                                <option value="Cerita / Narasi Menarik">Cerita / Narasi</option>
-                                <option value="Bahasa Sederhana">Sederhana & Mudah</option>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Tipe Soal</label>
+                            <select id="input-type" class="w-full px-2 sm:px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Pilihan Ganda">Pilihan Ganda</option>
+                                <option value="Esai/Isian">Esai / Isian</option>
+                                <option value="Campuran">Campuran</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- BARU: Menu Jumlah Alenia (Paragraf) -->
                     <div>
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Jumlah Alenia (Paragraf Bacaan)</label>
-                        <select id="input-paragraphs" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
-                            <option value="3">3 Alenia</option>
-                            <option value="4" selected>4 Alenia (Rekomendasi)</option>
-                            <option value="5">5 Alenia</option>
-                            <option value="6">6 Alenia</option>
-                            <option value="7">7 Alenia</option>
-                            <option value="8">8 Alenia</option>
-                            <option value="9">9 Alenia</option>
-                            <option value="10">10 Alenia</option>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1">Gaya Bahasa</label>
+                        <select id="input-style" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm bg-white w-full">
+                            <option value="Formal & Edukatif" selected>Formal & Edukatif</option>
+                            <option value="Cerita / Narasi Menarik">Cerita / Narasi</option>
+                            <option value="Bahasa Sederhana">Sederhana & Mudah</option>
                         </select>
                     </div>
 
@@ -267,6 +262,7 @@
                                 <p class="text-xs font-semibold text-slate-600">Ketuk untuk unggah foto</p>
                                 <p class="text-[9px] text-slate-400">PNG, JPG maksimal 5MB</p>
                             </div>
+                            <!-- Preview kecil saat terunggah -->
                             <div id="upload-success-preview" class="hidden flex items-center justify-center gap-3">
                                 <img id="thumb-img" src="" class="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg border border-slate-200">
                                 <div class="text-left">
@@ -278,6 +274,7 @@
                     </div>
                 </div>
 
+                <!-- Tombol Aksi Utama -->
                 <button type="button" id="btn-generate" onclick="generateWorksheet()" 
                     class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 text-sm">
                     <i data-lucide="sparkles" class="w-4 h-4"></i>
@@ -285,19 +282,20 @@
                 </button>
             </div>
 
-            <!-- Panduan Pembelajaran -->
+            <!-- Panduan Cetak & Tips -->
             <div class="bg-slate-100 rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-2.5 text-xs text-slate-600">
                 <h3 class="font-bold text-slate-800 flex items-center gap-1.5">
                     <i data-lucide="info" class="w-4 h-4 text-indigo-500"></i>
-                    Panduan Pembelajaran Multi-Bahasa:
+                    Fitur Eksklusif EduPrint AI:
                 </h3>
                 <ul class="list-disc pl-4 space-y-1">
-                    <li><strong>Hemat Kertas & Efisien:</strong> Kosakata penting serta lembar kamus mini mandiri disusun kompak agar tidak menambah halaman kertas print.</li>
-                    <li><strong>Kamus Mandiri:</strong> Melatih kemandirian siswa mencari makna kata baru secara aktif di perpustakaan atau kamus digital kelas.</li>
+                    <li><strong>Link Sharing Pintar:</strong> Otomatis mengompresi gambar visual guru agar link sharing tetap pendek dan berfungsi 100%.</li>
+                    <li><strong>Kamus Saku & Mandiri:</strong> Menyediakan padanan arti instan serta kolom kosong bagi siswa untuk belajar kosakata baru secara aktif.</li>
                 </ul>
             </div>
         </section>
 
+        <!-- Area Hasil Lembar Kerja (Preview Cetak) - Pada mobile default tersembunyi hingga tab dipindah -->
         <section id="panel-preview" class="flex-1 flex-col gap-4 hidden lg:flex">
             
             <!-- Bilah Kontrol Cetak Terpadu -->
@@ -307,14 +305,21 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <p class="text-xs text-slate-600 font-medium">Hasil siap digunting, diedit & dicetak sesuai dimensi A4</p>
+                    <p class="text-xs text-slate-600 font-medium">Siap untuk dicetak (A4) atau dibagikan secara digital</p>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <!-- Tombol Bagikan Link Siswa -->
+                    <button onclick="shareStudentLink()" class="flex-1 sm:flex-initial px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-100">
+                        <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+                        <span>Bagikan Link Siswa</span>
+                    </button>
+                    
                     <button onclick="toggleAnswerKey()" class="flex-1 sm:flex-initial px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-1.5">
                         <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                         <span id="txt-toggle-key">Kunci Jawaban</span>
                     </button>
-                    <button onclick="printWorksheet()" class="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-100">
+                    
+                    <button onclick="window.print()" class="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-100">
                         <i data-lucide="printer" class="w-4 h-4"></i>
                         Cetak Kertas (A4)
                     </button>
@@ -348,6 +353,7 @@
                     </div>
                 </div>
 
+                <!-- Konten Lembar Kerja Nyata -->
                 <div id="worksheet-content" class="hidden space-y-5">
                     
                     <!-- KOP SOAL / HEADER UJIAN SEKOLAH -->
@@ -397,8 +403,8 @@
                         </div>
                     </div>
 
-                    <!-- KOTAK KOSAKATA HEMAT KERTAS (Tercetak kecil di bawah bacaan) -->
-                    <div id="worksheet-vocab-container" class="hidden border border-slate-300 bg-slate-50/50 rounded-lg p-2.5 no-break-inside text-[9px] sm:text-[10px] space-y-2.5">
+                    <!-- KOTAK KOSAKATA HEMAT KERTAS + KAMUS MINI MANDIRI SISWA -->
+                    <div id="worksheet-vocab-container" class="hidden border border-slate-300 bg-slate-50/50 rounded-lg p-2.5 no-break-inside text-[9px] sm:text-[10px] space-y-3">
                         <div>
                             <p class="font-bold text-slate-800 mb-1.5 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-1">
                                 <i data-lucide="book-marked" class="w-3.5 h-3.5 text-indigo-600 no-print"></i>
@@ -409,24 +415,36 @@
                             </div>
                         </div>
 
-                        <!-- KOLOM BARU: Kamus Mini Mandiri Siswa (Menulis & mencari kosakata sendiri) -->
-                        <div class="border-t border-slate-200 pt-2">
-                            <p class="font-bold text-slate-800 uppercase tracking-wider text-[8px] sm:text-[9px] mb-1.5 flex items-center gap-1">
-                                <i data-lucide="pencil" class="w-3.5 h-3.5 text-indigo-600 no-print"></i>
-                                Kamus Mini Mandiri Siswa (Tulis kosakata baru yang ingin kamu tahu artinya di sini):
+                        <!-- Kolom Kamus Mandiri Tambahan Siswa -->
+                        <div class="pt-2 border-t border-slate-200">
+                            <p class="font-bold text-slate-800 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="edit-2" class="w-3.5 h-3.5 text-indigo-600 no-print"></i>
+                                Kamus Mandiri Siswa (Catat kosakata baru yang kamu temukan):
                             </p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
-                                <div class="border-b border-dotted border-slate-400 pb-0.5 flex items-center gap-1">
-                                    <span class="text-slate-400 font-bold shrink-0">1.</span>
-                                    <span class="w-[40%] text-slate-400 focus:outline-none" contenteditable="true">..........................</span>
-                                    <span class="text-slate-400 font-semibold shrink-0">:</span>
-                                    <span class="flex-1 text-slate-400 focus:outline-none italic" contenteditable="true">..........................................</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-slate-600">
+                                <div class="flex items-center gap-1">
+                                    <span class="text-slate-400">1.</span>
+                                    <span class="border-b border-dotted border-slate-400 w-24 h-4"></span>
+                                    <span>:</span>
+                                    <span class="border-b border-dotted border-slate-400 flex-1 h-4"></span>
                                 </div>
-                                <div class="border-b border-dotted border-slate-400 pb-0.5 flex items-center gap-1">
-                                    <span class="text-slate-400 font-bold shrink-0">2.</span>
-                                    <span class="w-[40%] text-slate-400 focus:outline-none" contenteditable="true">..........................</span>
-                                    <span class="text-slate-400 font-semibold shrink-0">:</span>
-                                    <span class="flex-1 text-slate-400 focus:outline-none italic" contenteditable="true">..........................................</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-slate-400">2.</span>
+                                    <span class="border-b border-dotted border-slate-400 w-24 h-4"></span>
+                                    <span>:</span>
+                                    <span class="border-b border-dotted border-slate-400 flex-1 h-4"></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-slate-400">3.</span>
+                                    <span class="border-b border-dotted border-slate-400 w-24 h-4"></span>
+                                    <span>:</span>
+                                    <span class="border-b border-dotted border-slate-400 flex-1 h-4"></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-slate-400">4.</span>
+                                    <span class="border-b border-dotted border-slate-400 w-24 h-4"></span>
+                                    <span>:</span>
+                                    <span class="border-b border-dotted border-slate-400 flex-1 h-4"></span>
                                 </div>
                             </div>
                         </div>
@@ -477,23 +495,28 @@
         <p class="text-[10px] text-slate-300 mt-0.5">Catatan: Menggunakan model standar gemini-2.5-flash untuk pemrosesan super cepat.</p>
     </footer>
 
+    <!-- Logika Aplikasi (JavaScript) -->
     <script>
         const modelName = "gemini-2.5-flash";
-        let localImageData = null; 
-        let latestGeneratedData = null; 
+        let localImageData = null; // Menyimpan data URL foto yang diunggah
+        let latestGeneratedData = null; // Menyimpan respons data JSON terakhir dari AI
 
+        // Inisialisasi awal halaman
         window.onload = function() {
             lucide.createIcons();
             
+            // Set tanggal hari ini pada kop soal secara default
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('display-date').innerText = new Date().toLocaleDateString('id-ID', options);
 
+            // Muat API Key dari localStorage jika sebelumnya pernah disimpan secara lokal
             const savedApiKey = localStorage.getItem('gemini_api_key');
             if (savedApiKey) {
                 document.getElementById('input-api-key').value = savedApiKey;
             }
         }
 
+        // Fungsi khusus Mobile Tab Switcher untuk HP Android/iOS
         function switchMobileTab(tab) {
             const panelSettings = document.getElementById('panel-settings');
             const panelPreview = document.getElementById('panel-preview');
@@ -519,6 +542,7 @@
             }
         }
 
+        // Penanganan Unggah Foto Baru
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -543,6 +567,7 @@
             reader.readAsDataURL(file);
         }
 
+        // Hapus Foto
         function removeImage(event) {
             if (event) event.stopPropagation();
             localImageData = null;
@@ -555,6 +580,7 @@
             showStatus("Foto dihapus.", "info");
         }
 
+        // Perbarui visibilitas & sumber foto di area lembar kertas ujian
         function updateWorksheetImage() {
             const container = document.getElementById('worksheet-image-container');
             const imgEl = document.getElementById('worksheet-img');
@@ -568,6 +594,7 @@
             }
         }
 
+        // Tampilkan Banner Informasi Status Sederhana
         function showStatus(message, type = "info") {
             const banner = document.getElementById('status-banner');
             const icon = document.getElementById('status-icon');
@@ -601,6 +628,7 @@
             }
         }
 
+        // Toggle Tampilan Kunci Jawaban di Lembar Kerja
         function toggleAnswerKey() {
             const answerSection = document.getElementById('worksheet-answers');
             const btnText = document.getElementById('txt-toggle-key');
@@ -615,15 +643,7 @@
             }
         }
 
-        function printWorksheet() {
-            const isContentVisible = !document.getElementById('worksheet-content').classList.contains('hidden');
-            if (!isContentVisible) {
-                showStatus("Gagal Mencetak! Lembar evaluasi masih kosong. Silakan atur parameter dan buat lembar kerja terlebih dahulu.", "error");
-                return;
-            }
-            window.print();
-        }
-
+        // Mengirim kueri ke Gemini API menggunakan fetch dengan Exponential Backoff
         async function fetchGeminiWithBackoff(apiKey, prompt, systemPrompt, maxRetries = 5) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
             
@@ -665,7 +685,7 @@
                                 }
                             }
                         },
-                        required: ["title", "reading", "vocab", "questions"]
+                        required: ["title", "reading", "questions"]
                     }
                 }
             };
@@ -698,16 +718,17 @@
             }
         }
 
+        // Jalankan Pembuatan Lembar Kerja Baru
         async function generateWorksheet() {
             const apiKey = document.getElementById('input-api-key').value.trim();
             const topic = document.getElementById('input-topic').value.trim();
             const level = document.getElementById('input-level').value;
             const subject = document.getElementById('input-subject').value;
             const vocabCount = document.getElementById('input-vocab-count').value;
+            const paragraphCount = document.getElementById('input-paragraph-count').value;
             const type = document.getElementById('input-type').value;
             const count = document.getElementById('input-count').value;
             const style = document.getElementById('input-style').value;
-            const paragraphCount = document.getElementById('input-paragraphs').value;
             const btn = document.getElementById('btn-generate');
 
             if (!apiKey) {
@@ -720,6 +741,7 @@
                 return;
             }
 
+            // Deteksi Otomatis Bahasa Pengantar dari Mata Pelajaran
             let language = "Bahasa Indonesia";
             if (subject.includes("Inggris")) {
                 language = "Bahasa Inggris";
@@ -740,6 +762,7 @@
             btn.disabled = true;
             btn.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span> Menyusun Lembar Kerja...`;
 
+            // Prompt rekayasa (Prompt Engineering) untuk performa terbaik
             const systemPrompt = `Anda adalah seorang ahli kurikulum sekolah dasar (SD) di Indonesia, desainer bahan ajar kreatif, dan penyusun soal evaluasi akademik bersertifikasi.
             Tugas Anda adalah memproduksi teks bacaan edukatif, mengekstrak daftar kosakata penting yang menantang beserta maknanya, serta menyusun paket soal pemahaman yang selaras dengan perkembangan kognitif siswa SD kelas 1-6.
             Gunakan bahasa pengantar yang sesuai (otomatis dideteksi dari jenis mata pelajaran secara natural) dan ikuti skema JSON yang telah ditentukan secara tepat.`;
@@ -776,9 +799,10 @@
             - **Jumlah Butir Soal**: ${count}
             - **Gaya Penulisan Teks Bacaan**: ${style}
             - **Jumlah Kosakata Penting**: ${vocabCount} kosakata
+            - **Panjang Paragraf / Alenia Teks Bacaan**: Harus presisi berisi **${paragraphCount} alenia / paragraf**.
 
             Aturan Detil Konten:
-            1. Teks Bacaan (reading): Teks bacaan harus berkualitas, memberikan fakta valid, mengasah daya kritis, dan wajib terdiri dari TEPAT **${paragraphCount}** alenia/paragraf yang ramah anak dan sesuai dengan perkembangan kognitif siswa ${level}. Pisahkan antarparagraf dengan baris baru (karakter newline '\\n').
+            1. Teks Bacaan (reading): Teks bacaan harus berkualitas, memberikan fakta valid, mengasah daya kritis, dan wajib berisi tepat **${paragraphCount} alenia / paragraf** yang ramah anak dan sesuai dengan tingkat kognitif siswa ${level}. Pisahkan paragraf dengan baris baru (karakter newline '\\n').
             2. ${subjectSpecificInstruction}
             3. ${languageInstruction}
             4. Kosakata Penting (vocab): Ekstrak secara presisi sebanyak **${vocabCount}** kosakata penting, sulit, atau istilah tematik kunci yang muncul dalam bacaan di atas, lalu buat padanan arti bahasa Indonesia/padanan lokal sederhananya yang instan dan kompak.
@@ -818,19 +842,24 @@
             }
         }
 
+        // Render struktur data dari AI ke Lembar Kerja Visual
         function renderWorksheet(data, level, subject, language) {
             document.getElementById('worksheet-content').classList.remove('hidden');
             document.getElementById('worksheet-footer').classList.remove('hidden');
             document.getElementById('preview-controls').classList.remove('hidden');
 
+            // Set Meta info KOP Soal
             document.getElementById('display-level').innerText = level + " / Ganjil";
             document.getElementById('display-subject').innerText = subject;
             document.getElementById('display-language').innerText = language;
 
+            // Set Judul Bacaan
             document.getElementById('worksheet-title').innerText = data.title;
 
+            // Set Foto Pendukung
             updateWorksheetImage();
 
+            // Render Bacaan
             const readingContainer = document.getElementById('worksheet-reading');
             readingContainer.innerHTML = '';
             
@@ -842,6 +871,7 @@
                 readingContainer.appendChild(pEl);
             });
 
+            // Render Kotak Kosakata
             const vocabContainer = document.getElementById('worksheet-vocab-container');
             const vocabGrid = document.getElementById('worksheet-vocab-grid');
             
@@ -863,6 +893,7 @@
                 vocabContainer.classList.add('hidden');
             }
 
+            // Judul bagian soal berdasarkan bahasa pengantar
             let sectionTitle = "BAGIAN SOAL EVALUASI";
             if (language.toLowerCase().includes("inggris") || language.toLowerCase().includes("english")) {
                 sectionTitle = "EVALUATION QUESTIONS SECTION";
@@ -873,6 +904,7 @@
             }
             document.getElementById('display-section-title').innerText = sectionTitle;
 
+            // Render Butir Soal Evaluasi
             const questionsContainer = document.getElementById('worksheet-questions');
             questionsContainer.innerHTML = '';
 
@@ -885,11 +917,13 @@
                 const qBlock = document.createElement('div');
                 qBlock.className = 'space-y-1.5 no-break-inside';
 
+                // Teks Pertanyaan
                 const qText = document.createElement('p');
                 qText.className = 'font-semibold text-slate-900 flex gap-2';
                 qText.innerHTML = `<span class="shrink-0">${questionNum}.</span> <span class="flex-1 focus:outline-none" contenteditable="true">${q.question}</span>`;
                 qBlock.appendChild(qText);
 
+                // Jika ada Opsi Pilihan Ganda
                 if (q.options && q.options.length > 0) {
                     const optGrid = document.createElement('div');
                     optGrid.className = 'pl-6 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-slate-700';
@@ -902,6 +936,7 @@
                     });
                     qBlock.appendChild(optGrid);
                 } else {
+                    // Jika esai, berikan baris kosong yang rapi untuk menulis jawaban di kertas
                     const blankLines = document.createElement('div');
                     blankLines.className = 'pl-6 py-1 space-y-2';
                     blankLines.innerHTML = `
@@ -913,6 +948,7 @@
 
                 questionsContainer.appendChild(qBlock);
 
+                // Render Kunci Jawaban (Untuk Lembar Guru)
                 const answerBlock = document.createElement('div');
                 answerBlock.className = 'p-2 bg-slate-50 border border-slate-200 rounded-lg space-y-1';
                 answerBlock.innerHTML = `
@@ -920,6 +956,106 @@
                     <p class="text-slate-600 italic focus:outline-none" contenteditable="true"><strong>Jawaban/Pembahasan:</strong> ${q.answer}</p>
                 `;
                 answersContainer.appendChild(answerBlock);
+            });
+        }
+
+        // FUNGSI UTAMA: Kompresi Gambar Instan Di Latar Belakang menggunakan Canvas
+        function compressImageForLink(base64Str, maxWidth, maxHeight, quality, callback) {
+            if (!base64Str) {
+                callback(null);
+                return;
+            }
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = function() {
+                let width = img.width;
+                let height = img.height;
+                
+                // Pertahankan rasio aspek gambar saat diperkecil
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Ubah ke JPEG yang sangat ringan
+                const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                callback(compressedBase64);
+            };
+            img.onerror = function() {
+                callback(null);
+            };
+        }
+
+        // Fungsi Membagikan Link Interaktif untuk Siswa (Dibuat Tangguh & Bebas Crash)
+        function shareStudentLink() {
+            if (!latestGeneratedData) {
+                showStatus("Belum ada data lembar kerja untuk dibagikan. Silakan buat dahulu!", "error");
+                return;
+            }
+
+            showStatus("Sedang memproses tautan siswa...", "info");
+
+            // Langkah 1: Jalankan kompresi gambar pendukung secara instan
+            compressImageForLink(localImageData, 280, 280, 0.5, function(compressedImage) {
+                try {
+                    // Salin data lembar kerja, sematkan gambar versi kompresi super ringan
+                    const packageData = {
+                        title: latestGeneratedData.title,
+                        subject: document.getElementById('display-subject').innerText,
+                        level: document.getElementById('display-level').innerText,
+                        reading: latestGeneratedData.reading,
+                        vocab: latestGeneratedData.vocab,
+                        questions: latestGeneratedData.questions.map(q => ({
+                            num: q.num,
+                            question: q.question,
+                            options: q.options,
+                            answer: q.answer // Tetap disisipkan untuk kebutuhan penilaian otomatis di sisi siswa
+                        })),
+                        localImage: compressedImage // Menggunakan gambar yang sudah dikompresi agar link tidak crash
+                    };
+
+                    const jsonString = JSON.stringify(packageData);
+                    
+                    // Enkripsi string JSON ke UTF-8 Base64 yang aman untuk URL
+                    const encoder = new TextEncoder();
+                    const dataBytes = encoder.encode(jsonString);
+                    let binaryString = "";
+                    for (let i = 0; i < dataBytes.length; i++) {
+                        binaryString += String.fromCharCode(dataBytes[i]);
+                    }
+                    const base64Encoded = btoa(binaryString);
+
+                    // Bentuk URL yang fleksibel untuk folder lokal maupun hosting online
+                    const currentUrl = window.location.href;
+                    const folderPath = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+                    const studentUrl = `${folderPath}/pdf_importer.html?data=${encodeURIComponent(base64Encoded)}`;
+
+                    // Gunakan fallback penulisan papan klip (Clipboard) yang didukung penuh di iframe & localhost
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = studentUrl;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+
+                    showStatus("Tautan interaktif berhasil disalin! Bagikan ke siswa untuk pengerjaan langsung tanpa API Key.", "success");
+                } catch (e) {
+                    console.error("Gagal enkripsi link:", e);
+                    showStatus("Gagal mengompresi tautan siswa. Coba perkecil ukuran file foto Anda.", "error");
+                }
             });
         }
     </script>

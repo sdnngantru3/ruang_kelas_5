@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EduPrint PDF Digitizer - Lembar Kerja Interaktif</title>
+    <!-- Tailwind CSS untuk styling modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons untuk ikon -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- PDF.js untuk mengonversi halaman PDF menjadi gambar di browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=Inter:wght=300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .heading-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        @media print {
+            header, footer, .no-print, #panel-upload, #preview-controls, #status-banner {
+                display: none !important;
+            }
+
+            body, html {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-family: "Times New Roman", Times, serif !important;
+                font-size: 11pt !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            #panel-worksheet {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .print-paper {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Desain stempel tinta merah Guru saat dicetak */
+            .print-score {
+                border-color: #ef4444 !important;
+                color: #ef4444 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            .no-break-inside {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            /* Warna hijau khusus cetak untuk jawaban benar */
+            .selected-print-green {
+                background-color: #f0fdf4 !important;
+                border-color: #15803d !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col antialiased">
+
+    <header class="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 sticky top-0 z-20 no-print shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-100 shrink-0">
+                    <i data-lucide="file-digitization" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold heading-font text-slate-900 leading-tight">EduPrint PDF Digitizer</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500">Ubah PDF Cetak Guru Menjadi Lembar Jawab Interaktif Siswa</p>
+                </div>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full font-medium border border-indigo-100">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                Ditenagai Gemini Vision API
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
+        
+        <!-- Panel Input (Kiri) -->
+        <section id="panel-upload" class="w-full lg:w-[380px] shrink-0 space-y-4 no-print">
+            
+            <!-- Banner Status -->
+            <div id="status-banner" class="hidden p-4 rounded-xl text-sm border flex items-start gap-3 shadow-sm transition-all">
+                <i id="status-icon" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                <div class="flex-1">
+                    <p id="status-text" class="font-medium"></p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+                <h2 class="text-base sm:text-lg font-bold heading-font text-slate-900 flex items-center gap-2">
+                    <i data-lucide="upload-cloud" class="w-5 h-5 text-indigo-600"></i>
+                    Unggah Berkas PDF
+                </h2>
+
+                <div class="space-y-4">
+                    <!-- API KEY -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                            <span>Gemini API Key</span>
+                            <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-indigo-600 hover:underline flex items-center gap-0.5">
+                                Dapatkan Key <i data-lucide="external-link" class="w-3 h-3"></i>
+                            </a>
+                        </label>
+                        <input type="password" id="input-api-key" 
+                            class="w-full px-3 sm:px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all"
+                            placeholder="Masukkan AIzaSy...">
+                    </div>
+
+                    <!-- PDF Upload Drag & Drop -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Pilih Dokumen PDF Lembar Kerja</label>
+                        <div class="relative group border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-4 transition-colors text-center cursor-pointer bg-slate-50 hover:bg-slate-100/50">
+                            <input type="file" id="input-pdf" accept="application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handlePDFSelection(event)">
+                            <div id="upload-placeholder" class="space-y-1.5">
+                                <i data-lucide="file-text" class="w-8 h-8 text-slate-400 mx-auto group-hover:text-indigo-500 transition-colors"></i>
+                                <p class="text-xs font-semibold text-slate-600">Ketuk untuk unggah file PDF</p>
+                                <p class="text-[9px] text-slate-400">Pastikan file PDF berisi lembar evaluasi kosong</p>
+                            </div>
+                            <div id="upload-success" class="hidden flex items-center justify-center gap-3">
+                                <i data-lucide="file-check" class="w-10 h-10 text-emerald-500"></i>
+                                <div class="text-left">
+                                    <p class="text-xs font-semibold text-slate-800 line-clamp-1" id="pdf-filename">lembar_kerja.pdf</p>
+                                    <p class="text-[9px] text-slate-400" id="pdf-filesize">0 KB</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-digitize" onclick="processPDF()" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 text-sm">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    Digitalkan ke Mode Siswa
+                </button>
+            </div>
+
+            <!-- Panduan Penggunaan -->
+            <div class="bg-indigo-50/50 rounded-2xl border border-indigo-100 p-4 space-y-2 text-xs text-indigo-900">
+                <h3 class="font-bold flex items-center gap-1.5">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-indigo-600"></i>
+                    Cara Kerja PDF Digitizer:
+                </h3>
+                <ol class="list-decimal pl-4 space-y-1 text-indigo-800/90">
+                    <li>Siswa tidak memerlukan API Key jika Guru membagikan lembar pengerjaan lewat **Link Guru**.</li>
+                    <li>Siswa juga bisa mengunggah PDF evaluasi cetak secara mandiri di sini untuk dikonversi menjadi lembar pengerjaan digital.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="panel-worksheet" class="flex-1 flex flex-col gap-4">
+            
+            <!-- Bilah Kontrol (Disembunyikan saat cetak) -->
+            <div id="preview-controls" class="hidden bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <p class="text-xs text-slate-600 font-medium">Jawab soal, lalu klik "Periksa & Tampilkan Nilai" sebelum mengunduh hasil PDF</p>
+                </div>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <!-- Tombol Periksa Jawaban (Hanya muncul jika soal Pilihan Ganda saja) -->
+                    <button id="btn-check-score" onclick="checkAnswersAndScore()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-100">
+                        <i data-lucide="check-square" class="w-4 h-4"></i>
+                        Periksa & Tampilkan Nilai
+                    </button>
+                    
+                    <button onclick="window.print()" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-100">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Unduh Hasil Siswa (PDF)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kertas A4 Simulasi Interaktif -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 lg:p-12 print-paper relative min-h-[500px] flex flex-col justify-between">
+                
+                <!-- Tampilan Awal Kosong -->
+                <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white rounded-2xl">
+                    <div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-3 border border-slate-100">
+                        <i data-lucide="file-digitization" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 heading-font">Belum Ada PDF / Link yang Dimuat</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mt-1">Gunakan link pengerjaan digital dari Guru Anda, atau unggah PDF evaluasi cetak di panel kiri.</p>
+                </div>
+
+                <!-- Tampilan Loading AI -->
+                <div id="loading-state" class="hidden absolute inset-0 bg-white/95 z-10 flex flex-col items-center justify-center p-6 text-center rounded-2xl">
+                    <div class="w-12 h-12 relative flex items-center justify-center mb-4">
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+                        <i data-lucide="cpu" class="w-5 h-5 text-indigo-600 animate-pulse"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 heading-font" id="loading-title">Menafsirkan PDF Anda</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mt-1 animate-pulse" id="loading-desc">Sedang mengonversi halaman PDF menjadi citra visual komputer...</p>
+                </div>
+
+                <div id="worksheet-content" class="hidden space-y-5">
+                    
+                    <!-- KOP SOAL / HEADER -->
+                    <div class="border-b-4 border-double border-slate-900 pb-3 mb-4 relative">
+                        
+                        <!-- Stempel Nilai Merah Bulat (Akan muncul jika dikoreksi otomatis) -->
+                        <div id="grading-stamp" class="hidden absolute right-4 top-0 w-24 h-24 border-4 border-rose-500 rounded-full flex flex-col items-center justify-center rotate-12 bg-white/90 shadow-sm z-10 print-score animate-bounce">
+                            <span class="text-[9px] font-extrabold text-rose-500 uppercase tracking-widest leading-none">NILAI</span>
+                            <span id="grading-score" class="text-3xl font-black text-rose-600 leading-none py-1">100</span>
+                            <span id="grading-summary" class="text-[8px] font-bold text-rose-500 leading-none">5/5 BENAR</span>
+                        </div>
+
+                        <div class="text-center space-y-0.5 mb-3 pr-28">
+                            <h2 class="text-xs sm:text-base font-bold uppercase tracking-wide heading-font leading-tight">LEMBAR JAWAB EVALUASI MANDIRI SISWA</h2>
+                            <p class="text-[10px] sm:text-xs text-slate-500 font-medium">Hasil Konversi Digital EduPrint AI</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10px] sm:text-xs font-semibold pt-1.5 border-t border-slate-200">
+                            <div class="space-y-1">
+                                <div class="flex"><span class="w-24 shrink-0">Nama Siswa</span><span class="mr-2">:</span><span id="field-student-name" class="border-b border-dashed border-slate-400 flex-1 min-h-[14px] text-blue-800" contenteditable="true">..........................................</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Nomor Absen</span><span class="mr-2">:</span><span id="field-student-number" class="border-b border-dashed border-slate-400 flex-1 min-h-[14px] text-blue-800" contenteditable="true">..........................................</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Mata Pelajaran</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[14px] font-normal" id="display-subject">Memuat...</span></div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex"><span class="w-24 shrink-0">Kelas / Semester</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[14px] font-normal" id="display-level">Memuat...</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Bahasa Pengantar</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[14px] font-normal" id="display-language">Indonesia</span></div>
+                                <div class="flex"><span class="w-24 shrink-0">Tanggal Pengerjaan</span><span class="mr-2">:</span><span class="border-b border-dashed border-slate-400 flex-1 min-h-[14px] font-normal" id="display-date">Sabtu, 21 Juni 2026</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Judul Bacaan -->
+                    <div class="text-center py-1">
+                        <h1 id="worksheet-title" class="text-sm sm:text-base font-bold uppercase tracking-tight heading-font text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 p-1 rounded-lg" contenteditable="true">
+                            MEMUAT...
+                        </h1>
+                    </div>
+
+                    <!-- Foto Pendukung (Jika Terbaca dari Gambar PDF) -->
+                    <div id="worksheet-image-container" class="hidden flex flex-col items-center justify-center gap-1 py-1">
+                        <img id="worksheet-img" src="" class="max-w-[70%] max-h-[220px] object-contain rounded-lg shadow-sm border border-slate-200" alt="Ilustrasi Soal">
+                    </div>
+
+                    <!-- Teks Bacaan Literasi -->
+                    <div class="space-y-2">
+                        <div id="worksheet-reading" class="text-[11px] sm:text-xs leading-relaxed text-slate-700 text-justify space-y-2 p-1 rounded-lg border border-transparent focus:outline-none" contenteditable="true">
+                            <!-- Paragraf-paragraf bacaan akan masuk ke sini -->
+                        </div>
+                    </div>
+
+                    <!-- Kotak Kosakata -->
+                    <div id="worksheet-vocab-container" class="hidden border border-slate-300 bg-slate-50/50 rounded-lg p-2.5 no-break-inside text-[9px] sm:text-[10px]">
+                        <p class="font-bold text-slate-800 mb-1.5 uppercase tracking-wider">
+                            Daftar Kosakata Penting yang Ditemukan:
+                        </p>
+                        <div id="worksheet-vocab-grid" class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-slate-700">
+                            <!-- Kosakata masuk ke sini -->
+                        </div>
+                    </div>
+
+                    <!-- Pertanyaan Soal -->
+                    <div class="space-y-4 pt-4 border-t border-slate-200 no-break-inside">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="h-4 w-1 bg-slate-900 rounded-full"></span>
+                            <h3 id="display-section-title" class="text-xs font-bold uppercase tracking-wide text-slate-900 heading-font">BAGIAN EVALUASI DIGITAL</h3>
+                        </div>
+
+                        <!-- Daftar Pertanyaan Utama -->
+                        <div id="worksheet-questions" class="space-y-4 text-[11px] sm:text-xs">
+                            <!-- Daftar Soal interaktif -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer Lembar Ujian -->
+                <div id="worksheet-footer" class="hidden border-t border-slate-200 pt-3 mt-6 flex justify-between text-[8px] sm:text-[9px] text-slate-400 uppercase tracking-wider font-semibold">
+                    <span>EduPrint AI Digital Answer Sheet</span>
+                    <span>Lembar Jawaban Terenkripsi</span>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-400 no-print">
+        <p>&copy; 2026 EduPrint AI. Dibuat dengan integrasi PDF.js & Gemini 2.5 Flash.</p>
+    </footer>
+
+    <script>
+        const modelName = "gemini-2.5-flash"; 
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let selectedPdfFile = null;
+        let pdfImagesBase64 = []; // Menyimpan base64 gambar dari tiap halaman PDF
+        let worksheetData = null; // Menyimpan data struktural lengkap lembar kerja
+        let studentAnswers = {};  // Menyimpan indeks pilihan jawaban siswa
+
+        window.onload = function() {
+            lucide.createIcons();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('display-date').innerText = new Date().toLocaleDateString('id-ID', options);
+
+            const savedApiKey = localStorage.getItem('gemini_api_key');
+            if (savedApiKey) {
+                document.getElementById('input-api-key').value = savedApiKey;
+            }
+
+            // DETEKSI KONEKSI OTOMATIS LEWAT PARAMETER LINK GURU (DI-DECODE DARI BASE64)
+            const urlParams = new URLSearchParams(window.location.search);
+            const base64Data = urlParams.get('data');
+            if (base64Data) {
+                try {
+                    showStatus("Menghubungkan lembar kerja digital dari Guru...", "info");
+                    
+                    const binaryString = atob(decodeURIComponent(base64Data));
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const jsonString = new TextDecoder().decode(bytes);
+                    const parsedData = JSON.parse(jsonString);
+                    
+                    renderInteractiveWorksheet(parsedData);
+                    showStatus("Lembar kerja berhasil dimuat otomatis! Selamat mengerjakan.", "success");
+                } catch (e) {
+                    console.error("Gagal mendecode data link:", e);
+                    showStatus("Gagal membaca link digital otomatis guru.", "error");
+                }
+            }
+        }
+
+        function showStatus(message, type = "info") {
+            const banner = document.getElementById('status-banner');
+            const icon = document.getElementById('status-icon');
+            const text = document.getElementById('status-text');
+
+            banner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800', 'bg-rose-50', 'border-rose-200', 'text-rose-800', 'bg-indigo-50', 'border-indigo-200', 'text-indigo-800');
+            text.innerText = message;
+
+            if (type === "success") {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                icon.setAttribute('data-lucide', 'check-circle-2');
+                icon.className = 'w-5 h-5 shrink-0 mt-0.5 text-emerald-600';
+            } else if (type === "error") {
+                banner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+                icon.setAttribute('data-lucide', 'alert-circle');
+                icon.className = 'w-5 h-5 shrink-0 mt-0.5 text-rose-600';
+            } else {
+                banner.classList.add('bg-indigo-50', 'border-indigo-200', 'text-indigo-800');
+                icon.setAttribute('data-lucide', 'info');
+                icon.className = 'w-5 h-5 shrink-0 mt-0.5 text-indigo-600';
+            }
+
+            banner.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function handlePDFSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.type !== "application/pdf") {
+                showStatus("Berkas yang dipilih harus berupa format .pdf!", "error");
+                return;
+            }
+
+            selectedPdfFile = file;
+
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('upload-success').classList.remove('hidden');
+            document.getElementById('pdf-filename').innerText = file.name;
+            document.getElementById('pdf-filesize').innerText = (file.size / 1024).toFixed(1) + " KB";
+
+            showStatus("File PDF berhasil dimuat. Siap untuk diproses oleh AI.", "success");
+        }
+
+        async function convertPdfToImages(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const images = [];
+
+            const maxPages = Math.min(pdf.numPages, 2);
+
+            for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                
+                const base64Data = canvas.toDataURL('image/png').split(',')[1];
+                images.push(base64Data);
+            }
+
+            return images;
+        }
+
+        async function processPDF() {
+            const apiKey = document.getElementById('input-api-key').value.trim();
+
+            if (!apiKey) {
+                showStatus("Silakan masukkan Gemini API Key terlebih dahulu!", "error");
+                return;
+            }
+
+            if (!selectedPdfFile) {
+                showStatus("Silakan pilih file PDF lembar kerja yang ingin didigitalkan!", "error");
+                return;
+            }
+
+            localStorage.setItem('gemini_api_key', apiKey);
+
+            document.getElementById('empty-state').classList.add('hidden');
+            const loadingState = document.getElementById('loading-state');
+            const loadingTitle = document.getElementById('loading-title');
+            const loadingDesc = document.getElementById('loading-desc');
+            loadingState.classList.remove('hidden');
+
+            try {
+                loadingTitle.innerText = "Membaca Halaman PDF";
+                loadingDesc.innerText = "Mengonversi seluruh lembar PDF menjadi format citra digital tinggi...";
+                
+                const pageImages = await convertPdfToImages(selectedPdfFile);
+
+                loadingTitle.innerText = "Menganalisis dengan Gemini AI";
+                loadingDesc.innerText = "Membaca visual teks, gambar ilustrasi, kosakata, serta struktur soal...";
+
+                const resultJson = await callGeminiVision(apiKey, pageImages);
+
+                renderInteractiveWorksheet(resultJson);
+                showStatus("PDF berhasil didigitalkan! Siswa sekarang dapat menjawab lembar kerja ini langsung di komputer/HP.", "success");
+
+            } catch (error) {
+                console.error(error);
+                showStatus(`Gagal mendigitalkan PDF: ${error.message}`, "error");
+                document.getElementById('empty-state').classList.remove('hidden');
+            } finally {
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        async function callGeminiVision(apiKey, base64Images) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+            const imageParts = base64Images.map(img => ({
+                inlineData: {
+                    mimeType: "image/png",
+                    data: img
+                }
+            }));
+
+            // Menginginkan "answer" dari vision untuk auto-grading instan
+            const textPrompt = `Analisis seluruh halaman lembar kerja anak SD ini dan konversikan ke format JSON terstruktur yang valid.
+            
+            Informasi wajib yang harus diekstrak:
+            1. "title": Judul utama lembar evaluasi (misal: Tema Sawah, Kegiatan Liburan, dll).
+            2. "subject": Mata pelajaran (misal: Bahasa Indonesia, IPA, Matematika).
+            3. "level": Tingkat Kelas (misal: Kelas 4 SD).
+            4. "reading": Teks bacaan utama yang ada di lembar kerja secara utuh. Jika ada beberapa paragraf, pisahkan dengan baris baru (newline '\\n').
+            5. "vocab": Kumpulan kosakata penting yang tercetak di halaman tersebut (jika ada tabel kosakata). Struktur berupa array object dengan kunci "word" (kata) dan "meaning" (arti singkat).
+            6. "questions": Daftar butir soal ujian. Struktur berupa array object dengan kunci:
+               - "num": Nomor soal (angka).
+               - "question": Kalimat soal pertanyaan.
+               - "options": Array berisi opsi pilihan ganda jika ada (contoh: ["A. Apel", "B. Jeruk", ...]). Jika esai, buat array kosong.
+               - "answer": Solusi / Kunci jawaban yang tepat dari soal visual tersebut.
+            
+            Tanggapan wajib berupa string JSON murni yang sesuai dengan schema JSON di atas tanpa markdown pembungkus.`;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: textPrompt },
+                        ...imageParts
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            title: { type: "STRING" },
+                            subject: { type: "STRING" },
+                            level: { type: "STRING" },
+                            reading: { type: "STRING" },
+                            vocab: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        word: { type: "STRING" },
+                                        meaning: { type: "STRING" }
+                                    },
+                                    required: ["word", "meaning"]
+                                }
+                            },
+                            questions: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        num: { type: "INTEGER" },
+                                        question: { type: "STRING" },
+                                        options: {
+                                            type: "ARRAY",
+                                            items: { type: "STRING" }
+                                        },
+                                        answer: { type: "STRING" }
+                                    },
+                                    required: ["num", "question", "answer"]
+                                }
+                            }
+                        },
+                        required: ["title", "reading", "questions"]
+                    }
+                }
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Gemini API Error: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!responseText) {
+                throw new Error("Respons teks kosong dari Gemini API.");
+            }
+
+            return JSON.parse(responseText);
+        }
+
+        function renderInteractiveWorksheet(data) {
+            worksheetData = data; // Simpan data ke variabel global agar bisa diperiksa nanti
+            studentAnswers = {}; // Reset jawaban siswa
+
+            document.getElementById('worksheet-content').classList.remove('hidden');
+            document.getElementById('worksheet-footer').classList.remove('hidden');
+            document.getElementById('preview-controls').classList.remove('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('grading-stamp').classList.add('hidden'); // Sembunyikan stempel lama
+
+            document.getElementById('display-subject').innerText = data.subject || "Latihan Tematik";
+            document.getElementById('display-level').innerText = data.level || "Sekolah Dasar";
+            document.getElementById('worksheet-title').innerText = data.title;
+
+            document.getElementById('field-student-name').innerText = "..........................................";
+            document.getElementById('field-student-number').innerText = "..........................................";
+
+            // PERBAIKAN: Periksa apakah tipe lembar kerja berisi "Pilihan Ganda Saja" untuk menampilkan tombol Koreksi
+            const isAllMultipleChoice = data.questions.every(q => q.options && q.options.length > 0);
+            const btnCheck = document.getElementById('btn-check-score');
+            if (isAllMultipleChoice) {
+                btnCheck.classList.remove('hidden');
+            } else {
+                btnCheck.classList.add('hidden');
+            }
+
+            // Menampilkan gambar pendukung Guru jika dilampirkan dalam paket data link
+            const imgContainer = document.getElementById('worksheet-image-container');
+            const imgEl = document.getElementById('worksheet-img');
+            if (data.localImage) {
+                imgEl.src = data.localImage;
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgEl.src = "";
+                imgContainer.classList.add('hidden');
+            }
+
+            const readingContainer = document.getElementById('worksheet-reading');
+            readingContainer.innerHTML = '';
+            
+            const paragraphs = data.reading.split('\n').filter(p => p.trim() !== '');
+            paragraphs.forEach(p => {
+                const pEl = document.createElement('p');
+                pEl.className = 'text-justify text-slate-700 leading-relaxed mb-2.5 indent-6';
+                pEl.innerText = p.trim();
+                readingContainer.appendChild(pEl);
+            });
+
+            const vocabContainer = document.getElementById('worksheet-vocab-container');
+            const vocabGrid = document.getElementById('worksheet-vocab-grid');
+            
+            if (data.vocab && data.vocab.length > 0) {
+                vocabContainer.classList.remove('hidden');
+                vocabGrid.innerHTML = '';
+                
+                data.vocab.forEach(v => {
+                    const vEl = document.createElement('div');
+                    vEl.className = 'border-b border-slate-200/80 py-0.5 flex gap-1 items-start leading-normal';
+                    vEl.innerHTML = `
+                        <span class="font-bold text-indigo-900 shrink-0">${v.word}</span>
+                        <span class="text-slate-400 font-medium shrink-0">:</span>
+                        <span class="text-slate-600 flex-1 italic">${v.meaning}</span>
+                    `;
+                    vocabGrid.appendChild(vEl);
+                });
+            } else {
+                vocabContainer.classList.add('hidden');
+            }
+
+            const questionsContainer = document.getElementById('worksheet-questions');
+            questionsContainer.innerHTML = '';
+
+            data.questions.forEach((q, idx) => {
+                const questionNum = q.num || (idx + 1);
+                
+                const qBlock = document.createElement('div');
+                qBlock.id = `q-block-${questionNum}`; // Tambahkan ID untuk query elemen saat pemeriksaan skor
+                qBlock.className = 'space-y-1.5 no-break-inside';
+
+                const qText = document.createElement('p');
+                qText.className = 'font-semibold text-slate-900 flex gap-2';
+                qText.innerHTML = `<span class="shrink-0">${questionNum}.</span> <span class="flex-1">${q.question}</span>`;
+                qBlock.appendChild(qText);
+
+                if (q.options && q.options.length > 0) {
+                    const optGrid = document.createElement('div');
+                    optGrid.className = 'pl-6 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-slate-700';
+
+                    q.options.forEach((opt, optIdx) => {
+                        const optEl = document.createElement('div');
+                        optEl.className = 'option-item flex items-center gap-2 border border-slate-200 rounded-lg p-2 cursor-pointer hover:bg-indigo-50/50 transition-all text-xs';
+                        optEl.setAttribute('data-opt-idx', optIdx);
+                        optEl.onclick = function() {
+                            const peers = optGrid.querySelectorAll('.selected-print-green');
+                            peers.forEach(p => {
+                                p.classList.remove('bg-green-50', 'border-green-300', 'text-green-900', 'selected-print-green');
+                                const check = p.querySelector('.check-indicator');
+                                if (check) check.classList.add('hidden');
+                            });
+                            
+                            this.classList.add('bg-green-50', 'border-green-300', 'text-green-900', 'selected-print-green');
+                            const check = this.querySelector('.check-indicator');
+                            if (check) check.classList.remove('hidden');
+
+                            studentAnswers[questionNum] = optIdx; // Catat jawaban siswa
+                        };
+
+                        optEl.innerHTML = `
+                            <span class="check-indicator hidden text-green-600 font-bold mr-1">✓</span>
+                            <span class="flex-1">${opt}</span>
+                        `;
+                        optGrid.appendChild(optEl);
+                    });
+                    qBlock.appendChild(optGrid);
+                } else {
+                    const essayBlock = document.createElement('div');
+                    essayBlock.className = 'pl-6 py-1';
+                    essayBlock.innerHTML = `
+                        <div contenteditable="true" 
+                             class="w-full border border-dashed border-indigo-200 rounded-lg p-2.5 bg-indigo-50/10 text-slate-800 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-indigo-400 text-xs text-slate-500"
+                             onclick="if(this.innerText==='Ketik jawaban Anda di sini...') {this.innerText=''; this.classList.remove('text-slate-500');}">Ketik jawaban Anda di sini...</div>
+                    `;
+                    qBlock.appendChild(essayBlock);
+                }
+
+                questionsContainer.appendChild(qBlock);
+            });
+
+            if (window.innerWidth < 1024) {
+                const panelUpload = document.getElementById('panel-upload');
+                const panelWorksheet = document.getElementById('panel-worksheet');
+                panelUpload.classList.add('hidden');
+                panelWorksheet.classList.remove('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function isAnswerCorrect(selectedIdx, correctAnswerStr, options) {
+            if (selectedIdx === undefined || !correctAnswerStr) return false;
+            const selectedLetter = String.fromCharCode(65 + selectedIdx); // 0->A, 1->B, 2->C, 3->D
+
+            const cleanCorrect = correctAnswerStr.trim().toUpperCase();
+            
+            // Evaluasi berbasis huruf awal kunci jawaban (misal: "A", "A.", atau "A. Apel")
+            const regex = new RegExp(`^[A-D]\\b`);
+            const match = cleanCorrect.match(regex);
+            if (match && match[0] === selectedLetter) {
+                return true;
+            }
+
+            // Alternatif: Bandingkan substring jika kunci jawaban berupa teks utuh tanpa huruf
+            const selectedOptionText = options[selectedIdx].trim().toUpperCase();
+            if (cleanCorrect.includes(selectedOptionText) || selectedOptionText.includes(cleanCorrect)) {
+                return true;
+            }
+
+            // Fallback sederhana jika kunci hanyalah satu huruf kapital tunggal
+            if (cleanCorrect === selectedLetter) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function checkAnswersAndScore() {
+            if (!worksheetData || !worksheetData.questions) return;
+
+            let correctCount = 0;
+            const totalQuestions = worksheetData.questions.length;
+            let answeredCount = 0;
+
+            // Pastikan seluruh nomor sudah terisi jawabannya
+            worksheetData.questions.forEach((q, idx) => {
+                const questionNum = q.num || (idx + 1);
+                if (studentAnswers[questionNum] !== undefined) {
+                    answeredCount++;
+                }
+            });
+
+            if (answeredCount < totalQuestions) {
+                showStatus(`Perhatian: Anda baru menjawab ${answeredCount} dari ${totalQuestions} soal. Selesaikan semua nomor dahulu!`, "error");
+                return;
+            }
+
+            worksheetData.questions.forEach((q, idx) => {
+                const questionNum = q.num || (idx + 1);
+                const selectedIdx = studentAnswers[questionNum];
+                const correctAnswerStr = q.answer;
+                const options = q.options;
+
+                const qBlock = document.getElementById(`q-block-${questionNum}`);
+                if (!qBlock) return;
+
+                const optionItems = qBlock.querySelectorAll('.option-item');
+                const isCorrect = isAnswerCorrect(selectedIdx, correctAnswerStr, options);
+
+                if (isCorrect) {
+                    correctCount++;
+                }
+
+                // Visualisasi evaluasi warna ke lembar jawaban
+                optionItems.forEach((optEl, optIdx) => {
+                    const checkIndicator = optEl.querySelector('.check-indicator');
+                    
+                    // Reset kelas bawaan
+                    optEl.classList.remove('bg-green-50', 'border-green-300', 'text-green-900', 'selected-print-green', 'bg-red-50', 'border-red-300', 'text-red-900', 'border-dashed', 'border-green-400', 'bg-green-50/20');
+                    if (checkIndicator) checkIndicator.classList.add('hidden');
+
+                    const isThisOptionCorrect = isAnswerCorrect(optIdx, correctAnswerStr, options);
+
+                    if (optIdx === selectedIdx) {
+                        if (isCorrect) {
+                            // Benar -> Hijau
+                            optEl.classList.add('bg-green-50', 'border-green-500', 'text-green-900', 'selected-print-green');
+                            if (checkIndicator) {
+                                checkIndicator.innerHTML = '✓';
+                                checkIndicator.className = 'check-indicator text-green-600 font-bold mr-1';
+                                checkIndicator.classList.remove('hidden');
+                            }
+                        } else {
+                            // Salah -> Merah
+                            optEl.classList.add('bg-red-50', 'border-red-500', 'text-red-900');
+                            if (checkIndicator) {
+                                checkIndicator.innerHTML = '✗';
+                                checkIndicator.className = 'check-indicator text-red-600 font-bold mr-1';
+                                checkIndicator.classList.remove('hidden');
+                            }
+                        }
+                    } else if (isThisOptionCorrect) {
+                        // Panduan kunci jawaban asli -> Bergaris putus-putus hijau
+                        optEl.classList.add('border-dashed', 'border-green-400', 'bg-green-50/10');
+                    }
+                });
+            });
+
+            // Perhitungan skor
+            const finalScore = Math.round((correctCount / totalQuestions) * 100);
+
+            // Munculkan stempel nilai merah bundar ala Guru
+            const stamp = document.getElementById('grading-stamp');
+            const scoreEl = document.getElementById('grading-score');
+            const summaryEl = document.getElementById('grading-summary');
+
+            scoreEl.innerText = finalScore;
+            summaryEl.innerText = `${correctCount}/${totalQuestions} BENAR`;
+            stamp.classList.remove('hidden');
+
+            showStatus(`Koreksi otomatis selesai! Skor Anda: ${finalScore}. Hasil siap diunduh ke PDF.`, "success");
+        }
+    </script>
+
+</body>
+</html>

@@ -40,32 +40,13 @@
             position: relative;
         }
 
+        /* Password overlay dihilangkan, sembunyikan secara permanen */
         #passwordOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            max-width: 480px;
-            margin: 0 auto;
-            background: linear-gradient(180deg, var(--teal-hover) 0%, var(--teal-dark) 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: var(--transition-smooth);
+            display: none !important;
         }
-        .lockscreen-card {
-            background: white;
-            padding: 2.5rem 1.75rem;
-            border-radius: 28px;
-            box-shadow: 0 20px 40px rgba(15, 118, 110, 0.3);
-            width: 88%;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+
         #mainContent {
-            display: none;
+            display: block !important; /* langsung tampil */
             padding-bottom: 80px;
         }
         .bg-teal-dark {
@@ -331,26 +312,10 @@
 </head>
 <body>
 
-<!-- 1. LAYAR POPUP PASSWORD -->
-<div id="passwordOverlay">
-    <div class="lockscreen-card">
-        <div class="text-teal mb-3">
-            <i class="bi bi-shield-lock-fill" style="font-size: 3.2rem;"></i>
-        </div>
-        <h4 class="fw-bold text-dark mb-1">Akses Terbatas</h4>
-        <p class="text-muted small mb-4">Silakan masukkan password ruang kelas untuk melanjutkan.</p>
-        
-        <form onsubmit="checkPassword(event)">
-            <div class="mb-3">
-                <input type="password" id="inputPassword" class="form-control text-center rounded-3 border-teal-light" placeholder="Masukkan Password" required>
-                <div id="passwordError" class="text-danger small mt-2 d-none">Password salah, silakan coba lagi!</div>
-            </div>
-            <button type="submit" class="btn btn-teal w-100 py-2.5 fw-bold rounded-3 shadow-sm">Masuk Kelas</button>
-        </form>
-    </div>
-</div>
+<!-- 1. LAYAR POPUP PASSWORD (DIHILANGKAN) -->
+<!-- Dihapus seluruh elemen #passwordOverlay -->
 
-<!-- 2. MAIN CONTENT AREA -->
+<!-- 2. MAIN CONTENT AREA (LANGSUNG DITAMPILKAN) -->
 <div id="mainContent" class="container py-3">
     
     <!-- SUBVIEW: DASHBOARD / TAMPILAN AWAL -->
@@ -1488,17 +1453,6 @@ function navigateTo(viewName) {
     }
 }
 
-function checkPassword(e) {
-    e.preventDefault();
-    const enteredPassword = document.getElementById('inputPassword').value;
-    const correctPassword = "kelas5";
-    if (enteredPassword === correctPassword) {
-        document.getElementById('passwordOverlay').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        navigateTo('dashboard');
-    } else { const errorDiv = document.getElementById('passwordError'); errorDiv.classList.remove('d-none'); document.getElementById('inputPassword').value = ''; }
-}
-
 function promptGuruMenu() {
     const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
     if (password === null) return;
@@ -1523,7 +1477,6 @@ function resetImportedQuiz() {
 }
 
 window.navigateTo = navigateTo;
-window.checkPassword = checkPassword;
 window.promptGuruMenu = promptGuruMenu;
 window.syncAndStartQuiz = syncAndStartQuiz;
 window.downloadTamperProofJPG = downloadTamperProofJPG;

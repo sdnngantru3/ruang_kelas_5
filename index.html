@@ -143,6 +143,10 @@
         .interactive-menu-card.menu-lain {
             border-bottom: 5px solid var(--bs-primary);
         }
+        .interactive-menu-card.disabled-menu {
+            opacity: 0.5;
+            pointer-events: none;
+        }
         .class-banner {
             background: linear-gradient(135deg, var(--teal-dark) 0%, #115e59 100%);
             border-radius: 20px;
@@ -402,6 +406,63 @@
             0% { opacity: 1; }
             100% { opacity: 0.3; }
         }
+
+        /* Cooldown Banner */
+        .cooldown-banner {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            color: white;
+            border: 2px solid #f59e0b;
+        }
+        .cooldown-banner i {
+            font-size: 32px;
+            color: #f59e0b;
+        }
+        .cooldown-banner h6 {
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        .cooldown-banner .cooldown-timer {
+            font-size: 28px;
+            font-weight: 900;
+            color: #f59e0b;
+            font-family: monospace;
+        }
+        .cooldown-banner .small-text {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* Pop-up peringatan curang */
+        .cheat-warning-modal .modal-content {
+            border: 3px solid #dc2626 !important;
+        }
+        .cheat-warning-modal .modal-header {
+            background: #dc2626 !important;
+            color: white !important;
+        }
+        .cheat-warning-modal .btn-danger {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+        .cheat-warning-modal .btn-danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+        .cheat-warning-modal .btn-outline-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        /* Fade animation */
+        .fade-in-view {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -423,10 +484,7 @@
     🔒 MODE AMAN AKTIF - WAKTU KUIS TETAP BERJALAN!
 </div>
 
-<!-- 1. LAYAR POPUP PASSWORD (DIHILANGKAN) -->
-<!-- Dihapus seluruh elemen #passwordOverlay -->
-
-<!-- 2. MAIN CONTENT AREA (LANGSUNG DITAMPILKAN) -->
+<!-- MAIN CONTENT AREA -->
 <div id="mainContent" class="container py-3">
     
     <!-- SUBVIEW: DASHBOARD / TAMPILAN AWAL -->
@@ -460,7 +518,7 @@
                 </div>
                 <div>
                     <span class="d-block fw-bold text-white small lh-1">Aburrizal Hamdani Lubis, S.Pd</span>
-                    <small class="opacity-70 text-white-50" style="font-size: 0.65rem;">Guru Kelas • Online</small>
+                    <small class="opacity-70 text-white-50" style="font-size: 0.65rem;">"Belajar itu berat di awal, namun ringan di akhir dan Ilmu itu harta yang tidak bisa di curi."</small>
                 </div>
             </div>
         </div>
@@ -560,6 +618,15 @@
             <button class="btn btn-outline-teal rounded-pill px-3 py-1.5 fw-semibold btn-sm" onclick="navigateTo('dashboard')">
                 <i class="bi bi-arrow-left me-1"></i> Kembali
             </button>
+        </div>
+
+        <!-- COOLDOWN BANNER -->
+        <div id="cooldownBanner" class="cooldown-banner mb-3 d-none">
+            <i class="bi bi-clock-fill"></i>
+            <h6>⏳ Kuis Terkunci Sementara</h6>
+            <p class="small-text mb-1">Anda telah melanggar aturan. Harap tunggu <strong>2 jam</strong> untuk dapat mengerjakan kembali.</p>
+            <div class="cooldown-timer" id="cooldownTimer">01:59:59</div>
+            <p class="small-text mt-1">Silakan hubungi Pak Rizal jika ingin bertanya.</p>
         </div>
 
         <div id="quizStartPanel" class="card custom-card p-3 mb-3 border-0 bg-teal-light">
@@ -742,6 +809,38 @@
     </div>
 </div>
 
+<!-- MODAL PERINGATAN CURANG -->
+<div class="modal fade cheat-warning-modal" id="cheatWarningModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px; margin: 1.5rem auto;">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-0 py-2.5">
+                <h6 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>⚠️ PERINGATAN CURANG!</h6>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="text-danger mb-3">
+                    <i class="bi bi-shield-slash-fill" style="font-size: 3rem;"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-2" id="cheatWarningTitle">Anda Terdeteksi Mencoba Curang!</h6>
+                <p class="text-muted mb-2 small" id="cheatWarningDesc">
+                    Anda telah mencoba keluar dari halaman kuis. Jika melanjutkan, <strong>kuis akan dihentikan</strong> dan Anda akan mendapatkan <strong>nilai 60</strong>.
+                </p>
+                <div class="alert alert-warning small border-0 bg-warning bg-opacity-10 rounded-4 py-2 px-3">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <strong>Perhatian!</strong> Jika melanggar sekali lagi, Anda <strong>tidak dapat mengerjakan kuis</strong> selama <strong>2 jam</strong>.
+                </div>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 btn-sm fw-semibold" onclick="closeCheatWarning('kembali')">
+                        <i class="bi bi-arrow-return-left me-1"></i> Kembali ke Kuis
+                    </button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4 py-2 btn-sm fw-semibold" onclick="closeCheatWarning('lanjut')">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Tetap Keluar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL UNDUH BUKTI & KIRIM WA -->
 <div class="modal fade" id="quizResultModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -816,7 +915,7 @@
                                         <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 48px; max-width: 120px; object-fit: contain;">
                                     </div>
                                     <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 1.5px solid #334155; font-size: 0.85rem;">
-                                        Aburrizal H. Lubis, S.Pd.
+                                        Aburrizal Hamdani Lubis, S.Pd.
                                     </div>
                                     <small class="text-muted d-block" style="font-size: 0.65rem;">NIP. 199507022020121009</small>
                                 </div>
@@ -870,8 +969,70 @@
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzSAAvjQzxSYSezovc3HUrLFaWaA2b-v_oPh55O6P-Bnsel0_ygBWXf0JRyOTUzuyJSHw/exec";
 const GOOGLE_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1cLIpe2jSpTTLpcMOFE2EVu_vxkVfP8GbaqFU7PY8WSI/edit?usp=sharing";
 const STORAGE_KEY = "sdn3_quiz_current_state";
+const COOLDOWN_KEY = "sdn3_quiz_cooldown_until";
 let isQuizSubmitted = false;
 let isQuizActive = false;
+
+// ============================================================
+// FUNGSI COOLDOWN 2 JAM
+// ============================================================
+function checkCooldown() {
+    const cooldownUntil = localStorage.getItem(COOLDOWN_KEY);
+    if (!cooldownUntil) return false;
+    
+    const now = Date.now();
+    const until = parseInt(cooldownUntil);
+    
+    if (now < until) {
+        const remaining = Math.max(0, (until - now) / 1000);
+        showCooldownBanner(remaining);
+        return true;
+    } else {
+        localStorage.removeItem(COOLDOWN_KEY);
+        document.getElementById('cooldownBanner').classList.add('d-none');
+        return false;
+    }
+}
+
+function startCooldown() {
+    const cooldownHours = 2;
+    const until = Date.now() + (cooldownHours * 60 * 60 * 1000);
+    localStorage.setItem(COOLDOWN_KEY, until.toString());
+    showCooldownBanner(cooldownHours * 60 * 60);
+    showNotification("⏳ Kuis terkunci selama 2 jam karena pelanggaran aturan!");
+}
+
+function showCooldownBanner(remainingSeconds) {
+    const banner = document.getElementById('cooldownBanner');
+    const timer = document.getElementById('cooldownTimer');
+    banner.classList.remove('d-none');
+    
+    if (window.cooldownIntervalId) clearInterval(window.cooldownIntervalId);
+    
+    let seconds = Math.floor(remainingSeconds);
+    updateCooldownDisplay(seconds);
+    
+    window.cooldownIntervalId = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+            clearInterval(window.cooldownIntervalId);
+            localStorage.removeItem(COOLDOWN_KEY);
+            banner.classList.add('d-none');
+            showNotification("✅ Cooldown selesai! Anda dapat mengerjakan kuis kembali.");
+            document.getElementById('quizStartPanel').classList.remove('d-none');
+        } else {
+            updateCooldownDisplay(seconds);
+        }
+    }, 1000);
+}
+
+function updateCooldownDisplay(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    const timer = document.getElementById('cooldownTimer');
+    timer.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
 
 // ============================================================
 // FUNGSI SPREADSHEET REALTIME
@@ -967,7 +1128,6 @@ function loadQuizState() {
         if (state.studentName) document.getElementById('studentNameInput').value = state.studentName;
         if (state.studentAbsen) document.getElementById('studentAbsenInput').value = state.studentAbsen;
         
-        // Hitung ulang sisa waktu berdasarkan timestamp mulai
         if (state.quizStartTimestamp && state.quizDurationMinutes > 0) {
             const elapsedSeconds = Math.floor((Date.now() - state.quizStartTimestamp) / 1000);
             const totalSeconds = state.quizDurationMinutes * 60;
@@ -986,7 +1146,6 @@ function loadQuizState() {
             if (remainingSeconds > 0) {
                 startQuizTimerFromRemaining(remainingSeconds);
             } else {
-                // Waktu habis, auto submit
                 autoSubmitQuizOnTimeout();
                 return true;
             }
@@ -1065,6 +1224,7 @@ let timerIntervalId = null;
 let remainingSeconds = 0;
 let quizConnections = {};
 let activeDragConnection = null;
+let pendingCheatAction = null;
 
 const LOCKED_DRIVE_FOLDER_ID = "1vy-RR8BtBeGtvPRcyFTYP91fPEoG6QgB";
 const SECRET_CRYPT_SALT = "SDN3_NGANTRU_SUPER_SECRET_SALT_2026_MATH5";
@@ -1091,6 +1251,12 @@ function extractFileIdFromFolderHtml(html, fileName = "kuis") {
 }
 
 async function syncQuizFromDrive(isManualClick = false) {
+    if (checkCooldown()) {
+        showNotification("⏳ Kuis terkunci! Tunggu 2 jam atau hubungi Pak Rizal.");
+        document.getElementById('quizStartPanel').classList.remove('d-none');
+        return;
+    }
+    
     const btn = document.getElementById('btnStartQuiz');
     const textSpan = document.getElementById('startText');
     const spinner = document.getElementById('startSpinner');
@@ -1221,14 +1387,13 @@ function startQuizTimer(minutes) {
     if (!minutes || minutes <= 0) { timerCard.classList.add('d-none'); return; }
     timerCard.classList.remove('d-none');
     remainingSeconds = minutes * 60;
-    quizStartTimestamp = Date.now(); // Simpan timestamp mulai
+    quizStartTimestamp = Date.now();
     updateTimerDisplay();
     timerIntervalId = setInterval(() => {
         if (isQuizSubmitted) {
             clearInterval(timerIntervalId);
             return;
         }
-        // Hitung ulang sisa waktu berdasarkan timestamp
         const elapsedSeconds = Math.floor((Date.now() - quizStartTimestamp) / 1000);
         remainingSeconds = Math.max(0, (minutes * 60) - elapsedSeconds);
         updateTimerDisplay();
@@ -1538,6 +1703,11 @@ window.onCloseResultModal = function() {
 };
 
 window.syncAndStartQuiz = async function() {
+    if (checkCooldown()) {
+        showNotification("⏳ Kuis terkunci! Tunggu 2 jam atau hubungi Pak Rizal.");
+        return;
+    }
+    
     if (loadQuizState()) { 
         showNotification("⏳ Melanjutkan kuis yang belum selesai... Waktu tetap berjalan!");
         return; 
@@ -1614,39 +1784,30 @@ function contactTeacherWA() {
 }
 
 // ============================================================
-// FITUR KEAMANAN ANTI-CHEAT (TANPA FULLSCREEN)
+// FITUR KEAMANAN ANTI-CHEAT DENGAN POP-UP KONFIRMASI
 // ============================================================
 
 let cheatAttempts = 0;
 const MAX_CHEAT_ATTEMPTS = 3;
 let securityActive = false;
+let cheatWarningShown = false;
 
 function activateQuizSecurity() {
     if (securityActive) return;
     securityActive = true;
     isQuizActive = true;
     cheatAttempts = 0;
+    cheatWarningShown = false;
     document.getElementById('securityIndicator').classList.add('active');
     
-    // 1. Deteksi perubahan visibility (pindah tab/aplikasi)
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // 2. Blokir klik kanan
     document.addEventListener('contextmenu', handleRightClick);
-    
-    // 3. Blokir shortcut curang
     document.addEventListener('keydown', handleKeyDown);
-    
-    // 4. Blokir copy-paste
     document.addEventListener('copy', handleCopyPaste);
     document.addEventListener('paste', handleCopyPaste);
     document.addEventListener('cut', handleCopyPaste);
-    
-    // 5. Deteksi window blur (keluar dari halaman)
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);
-    
-    // 6. Deteksi sebelum halaman ditutup
     window.addEventListener('beforeunload', handleBeforeUnload);
     
     showNotification("🔒 Mode aman aktif! Waktu kuis tetap berjalan meskipun keluar halaman!");
@@ -1674,17 +1835,16 @@ function handleVisibilityChange() {
     if (!securityActive || isQuizSubmitted) return;
     if (document.hidden) {
         cheatAttempts++;
-        // Waktu tetap berjalan - tidak ada pause!
         if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
-            autoFailQuiz("🚨 Terdeteksi mencurang! Keluar dari halaman kuis.");
+            showCheatWarningModal(true);
         } else {
-            showLockOverlay(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
-            showNotification(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
+            showCheatWarningModal(false);
         }
     } else {
-        if (!isQuizSubmitted && cheatAttempts < MAX_CHEAT_ATTEMPTS) {
+        if (cheatAttempts < MAX_CHEAT_ATTEMPTS) {
             hideLockOverlay();
-            showNotification("⏳ Waktu kuis tetap berjalan! Jangan keluar lagi!");
+            const modal = bootstrap.Modal.getInstance(document.getElementById('cheatWarningModal'));
+            if (modal) modal.hide();
         }
     }
 }
@@ -1692,18 +1852,18 @@ function handleVisibilityChange() {
 function handleWindowBlur() {
     if (!securityActive || isQuizSubmitted) return;
     cheatAttempts++;
-    // Waktu tetap berjalan
     if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
-        autoFailQuiz("🚨 Terdeteksi keluar dari halaman! Kuis dihentikan.");
+        showCheatWarningModal(true);
     } else {
-        showLockOverlay(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
-        showNotification(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
+        showCheatWarningModal(false);
     }
 }
 
 function handleWindowFocus() {
     if (!isQuizSubmitted && cheatAttempts < MAX_CHEAT_ATTEMPTS) {
         hideLockOverlay();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cheatWarningModal'));
+        if (modal) modal.hide();
     }
 }
 
@@ -1728,7 +1888,11 @@ function handleKeyDown(e) {
     if (e.key === 'F12') {
         e.preventDefault();
         cheatAttempts++;
-        if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) autoFailQuiz("🚨 Deteksi akses developer tools!");
+        if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
+            showCheatWarningModal(true);
+        } else {
+            showCheatWarningModal(false);
+        }
         return;
     }
     
@@ -1740,7 +1904,11 @@ function handleKeyDown(e) {
          e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
         cheatAttempts++;
-        if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) autoFailQuiz("🚨 Deteksi usaha mencurang!");
+        if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
+            showCheatWarningModal(true);
+        } else {
+            showCheatWarningModal(false);
+        }
         return;
     }
 }
@@ -1749,6 +1917,64 @@ function handleCopyPaste(e) {
     if (securityActive && !isQuizSubmitted) {
         e.preventDefault();
         showNotification("⚠️ Copy-paste dinonaktifkan selama kuis!");
+    }
+}
+
+function showCheatWarningModal(isFinal = false) {
+    if (cheatWarningShown && !isFinal) return;
+    if (isQuizSubmitted) return;
+    
+    cheatWarningShown = true;
+    const modal = new bootstrap.Modal(document.getElementById('cheatWarningModal'));
+    const title = document.getElementById('cheatWarningTitle');
+    const desc = document.getElementById('cheatWarningDesc');
+    
+    if (isFinal) {
+        title.innerHTML = `<i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>PERINGATAN AKHIR!`;
+        desc.innerHTML = `
+            Anda telah melanggar aturan sebanyak <strong>${cheatAttempts} kali</strong>!<br><br>
+            <strong>KUIS AKAN DIHENTIKAN</strong> dan Anda akan mendapatkan <strong>nilai 60</strong>.<br><br>
+            Anda <strong>TIDAK DAPAT MENGERJAKAN KUIS</strong> selama <strong>2 JAM</strong> ke depan.<br><br>
+            Silakan hubungi <strong>Pak Rizal</strong> jika ingin bertanya.
+        `;
+        document.querySelector('#cheatWarningModal .btn-outline-secondary').textContent = 'Kembali ke Kuis';
+        document.querySelector('#cheatWarningModal .btn-danger').textContent = 'Tetap Keluar (Nilai 60)';
+        pendingCheatAction = 'final';
+    } else {
+        const remaining = MAX_CHEAT_ATTEMPTS - cheatAttempts;
+        title.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>⚠️ PERINGATAN! (${cheatAttempts}/${MAX_CHEAT_ATTEMPTS})`;
+        desc.innerHTML = `
+            Anda terdeteksi mencoba keluar dari halaman kuis.<br><br>
+            <strong>Waktu kuis TETAP BERJALAN!</strong><br><br>
+            Jika melanggar <strong>${remaining} kali lagi</strong>, kuis akan dihentikan dan Anda mendapat <strong>nilai 60</strong>.<br><br>
+            Anda juga akan <strong>dikunci selama 2 jam</strong> dan tidak bisa mengerjakan kuis.
+        `;
+        document.querySelector('#cheatWarningModal .btn-outline-secondary').textContent = 'Kembali ke Kuis';
+        document.querySelector('#cheatWarningModal .btn-danger').textContent = 'Tetap Keluar';
+        pendingCheatAction = 'warning';
+    }
+    
+    modal.show();
+    showLockOverlay('⚠️ PERINGATAN! Anda mencoba keluar dari halaman kuis!');
+}
+
+function closeCheatWarning(action) {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('cheatWarningModal'));
+    cheatWarningShown = false;
+    
+    if (action === 'kembali') {
+        hideLockOverlay();
+        modal.hide();
+        window.focus();
+        showNotification("✅ Kembali ke kuis. Ingat, waktu tetap berjalan!");
+    } else if (action === 'lanjut') {
+        modal.hide();
+        if (pendingCheatAction === 'final' || cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
+            autoFailQuizWithCooldown("🚨 Terdeteksi mencurang! Kuis dihentikan.");
+        } else {
+            showLockOverlay(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
+            showNotification(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
+        }
     }
 }
 
@@ -1769,11 +1995,14 @@ function hideLockOverlay() {
 
 function returnToQuiz() {
     hideLockOverlay();
+    const modal = bootstrap.Modal.getInstance(document.getElementById('cheatWarningModal'));
+    if (modal) modal.hide();
+    cheatWarningShown = false;
     window.focus();
     showNotification("✅ Kembali ke kuis. Ingat, waktu tetap berjalan!");
 }
 
-function autoFailQuiz(reason) {
+function autoFailQuizWithCooldown(reason) {
     if (isQuizSubmitted) return;
     
     stopQuizTimer();
@@ -1785,6 +2014,10 @@ function autoFailQuiz(reason) {
     
     deactivateQuizSecurity();
     hideLockOverlay();
+    const modal = bootstrap.Modal.getInstance(document.getElementById('cheatWarningModal'));
+    if (modal) modal.hide();
+    
+    startCooldown();
     
     const today = new Date();
     const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -1814,27 +2047,20 @@ function autoFailQuiz(reason) {
     document.getElementById('btnSendWA').classList.remove('d-none');
     document.getElementById('btnCloseQuizResult').classList.remove('d-none');
     
-    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>${reason || 'Kuis Dihentikan'}`;
+    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>${reason || 'Kuis Dihentikan Karena Pelanggaran'}`;
     
     const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
     resultModal.show();
-    showNotification("⚠️ Kuis dihentikan karena pelanggaran aturan. Nilai: 60");
+    showNotification("⚠️ Kuis dihentikan karena pelanggaran aturan. Nilai: 60. Kunci 2 jam!");
 }
 
 // ============================================================
-// FUNGSI NAVIGASI
+// FUNGSI NAVIGASI - DIPERBAIKI AGAR SEMUA MENU BISA DIKLIK
 // ============================================================
 function navigateTo(viewName) {
-    // Jika sedang dalam mode keamanan dan bukan ke halaman tugas, tolak
-    if (securityActive && !isQuizSubmitted && viewName !== 'tugas') {
-        showNotification("⚠️ Anda tidak bisa keluar dari halaman kuis!");
-        return;
-    }
-    
-    // Jika sedang dalam kuis dan mencoba pindah, simpan state
-    if (document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none') && !isQuizSubmitted) {
-        saveQuizState();
-        showNotification("Kuis disimpan. Kembali ke Menu Tugas untuk melanjutkan.");
+    // Cek cooldown saat masuk ke halaman tugas
+    if (viewName === 'tugas') {
+        checkCooldown();
     }
     
     const views = { 
@@ -1863,8 +2089,12 @@ function navigateTo(viewName) {
             loadQuizHistory(); 
             stopQuizTimer();
             
+            // Cek cooldown
+            checkCooldown();
+            
+            // Cek apakah ada kuis yang belum selesai
             setTimeout(() => { 
-                if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
+                if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted && !checkCooldown()) {
                     if (confirm("⏳ Ada kuis yang belum selesai. Waktu tetap berjalan! Lanjutkan?")) {
                         loadQuizState();
                     }
@@ -1875,10 +2105,10 @@ function navigateTo(viewName) {
 }
 
 // ============================================================
-// FUNGSI MENU GURU (DIPERBAIKI)
+// FUNGSI MENU GURU
 // ============================================================
 function promptGuruMenu() {
-    // Cek apakah sedang dalam kuis aktif
+    // Hanya cek jika kuis aktif
     if (securityActive && !isQuizSubmitted) {
         showNotification("⚠️ Tidak bisa mengakses Menu Guru saat kuis berlangsung!");
         return;
@@ -1887,7 +2117,6 @@ function promptGuruMenu() {
     const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
     if (password === null) return;
     if (password === "11223344") { 
-        // Matikan keamanan jika aktif
         if (securityActive) deactivateQuizSecurity();
         navigateTo('rekap'); 
         showNotification("✅ Berhasil masuk ke Menu Rekapitulasi Guru."); 
@@ -1896,11 +2125,17 @@ function promptGuruMenu() {
     }
 }
 
+// ============================================================
+// TOAST NOTIFICATION
+// ============================================================
 const toastElement = document.getElementById('actionToast');
 const toast = new bootstrap.Toast(toastElement);
 const toastMsgSpan = document.getElementById('toastMessage');
 function showNotification(message) { toastMsgSpan.innerText = message; toast.show(); }
 
+// ============================================================
+// FUNGSI LAINNYA
+// ============================================================
 function resetImportedQuiz() {
     if (remainingSeconds <= 0 && quizDurationMinutes > 0) { showNotification("Kuis sudah berakhir!"); return; }
     const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]'); radios.forEach(r => r.checked = false);
@@ -1926,11 +2161,13 @@ window.selectMultiOption = selectMultiOption;
 window.openSpreadsheetInNewTab = openSpreadsheetInNewTab;
 window.refreshSpreadsheet = refreshSpreadsheet;
 window.returnToQuiz = returnToQuiz;
+window.closeCheatWarning = closeCheatWarning;
 
 window.onload = function() {
     loadQuizHistory();
+    checkCooldown();
     setTimeout(() => { 
-        if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
+        if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted && !checkCooldown()) {
             if (confirm("⏳ Ada kuis yang belum selesai. Waktu tetap berjalan! Lanjutkan?")) {
                 loadQuizState();
             }

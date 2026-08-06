@@ -332,9 +332,63 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
+
+        /* Overlay gelap saat kuis aktif */
+        .quiz-lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9998;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .quiz-lock-overlay.active {
+            display: flex;
+        }
+        .quiz-lock-overlay .lock-content {
+            background: #1e293b;
+            padding: 30px 20px;
+            border-radius: 20px;
+            max-width: 340px;
+            border: 2px solid #ef4444;
+        }
+        .quiz-lock-overlay .lock-content i {
+            font-size: 48px;
+            color: #ef4444;
+            margin-bottom: 15px;
+        }
+        .quiz-lock-overlay .lock-content h5 {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .quiz-lock-overlay .lock-content p {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
+
+<!-- ELEMEN OVERLAY ANTI-CHEAT -->
+<div class="quiz-lock-overlay" id="quizLockOverlay">
+    <div class="lock-content">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <h5>⚠️ PERINGATAN!</h5>
+        <p>Anda mencoba keluar dari halaman kuis!<br>
+        <strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong></p>
+        <button onclick="returnToQuiz()" class="btn btn-danger mt-3 rounded-pill px-4">
+            <i class="bi bi-arrow-return-left me-1"></i> Kembali ke Kuis
+        </button>
+    </div>
+</div>
 
 <!-- 1. LAYAR POPUP PASSWORD (DIHILANGKAN) -->
 <!-- Dihapus seluruh elemen #passwordOverlay -->
@@ -362,7 +416,7 @@
                     <span class="badge bg-warning text-dark mb-1 px-2.5 py-1 rounded-pill fw-bold" style="font-size: 0.65rem;">
                         <i class="bi bi-bookmark-fill me-1"></i> Kelas V Kreatif
                     </span>
-                    <h4 class="fw-extrabold mb-0" style="font-size: 1.35rem; letter-spacing: -0.5px;">SDN 3 NGANTRU</h4>
+                    <h4 class="fw-extrabold mb-0" style="font-size: 1.35rem; letter-spacing: -0.5px;">SDN 3 Ngantru</h4>
                     <p class="mb-0 opacity-90 small">Kec. Ngantang, Kab. Malang</p>
                 </div>
             </div>
@@ -484,6 +538,10 @@
                 <p class="text-muted small mx-auto mb-3">
                     Isi nama lengkap dan nomor absen untuk mengaktifkan kuis harian ananda.
                 </p>
+                <div class="alert alert-warning small border-0 bg-warning bg-opacity-25 rounded-4 py-2 px-3">
+                    <i class="bi bi-shield-lock-fill me-1"></i>
+                    <strong>Mode Aman:</strong> Selama kuis berlangsung, Anda tidak boleh keluar dari halaman ini.
+                </div>
             </div>
 
             <div class="card p-3 border border-teal-light bg-white rounded-4 shadow-sm mb-3">
@@ -668,7 +726,7 @@
                                 <img src="logo sekolah.png" alt="Logo SD" onerror="this.src='https://placehold.co/120x120/0f766e/ffffff?text=SDN3';" class="img-fluid" style="width: 56px; height: 56px; object-fit: contain;">
                                 <div>
                                     <h4 class="fw-black m-0 text-teal-dark" style="font-weight: 900; font-size: 1.35rem; letter-spacing: 0.5px;">SD NEGERI 3 NGANTRU</h4>
-                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Kecamatan Ngantang, Kabupaten Malang, Jawa Timur 65392</small>
+                                    <small class="text-muted d-block" style="font-size: 0.7rem;">Kecamatan Ngantang, Kabupaten Malang, Jawa Timur 65162</small>
                                 </div>
                             </div>
 
@@ -720,7 +778,7 @@
                                         <img src="ttd guru.png" alt="Ttd Guru" onerror="this.style.visibility='hidden';" style="max-height: 48px; max-width: 120px; object-fit: contain;">
                                     </div>
                                     <div class="py-1 text-teal-dark font-monospace fw-bold" style="border-top: 1.5px solid #334155; font-size: 0.85rem;">
-                                        Aburrizal Hamdani Lubis, S.Pd.
+                                        Aburrizal H. Lubis, S.Pd.
                                     </div>
                                     <small class="text-muted d-block" style="font-size: 0.65rem;">NIP. 199507022020121009</small>
                                 </div>
@@ -775,6 +833,7 @@ const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzSAAvjQz
 const GOOGLE_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1cLIpe2jSpTTLpcMOFE2EVu_vxkVfP8GbaqFU7PY8WSI/edit?usp=sharing";
 const STORAGE_KEY = "sdn3_quiz_current_state";
 let isQuizSubmitted = false;
+let isQuizActive = false;
 
 // ============================================================
 // FUNGSI SPREADSHEET REALTIME (TAMBAHAN)
@@ -898,6 +957,7 @@ function loadQuizState() {
             }, 500);
             document.getElementById('quizStartPanel').classList.add('d-none');
             document.getElementById('quizArea').classList.remove('d-none');
+            activateQuizSecurity();
             return true;
         }
     } catch(e) { console.error(e); }
@@ -1083,6 +1143,7 @@ function processQuizAccess(isManualClick) {
     renderQuiz();
     if (isManualClick) showNotification(`Menyiapkan lembar kuis! Batas pengerjaan: ${quizDurationMinutes > 0 ? quizDurationMinutes + ' menit' : 'Bebas'}.`);
     startQuizTimer(quizDurationMinutes);
+    activateQuizSecurity();
     quizArea.scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -1323,6 +1384,7 @@ async function submitInteractiveQuiz(e) {
     e.preventDefault();
     if (isQuizSubmitted) { showNotification("Kuis sudah disubmit sebelumnya!"); return; }
     stopQuizTimer();
+    deactivateQuizSecurity();
     const nameInput = document.getElementById('studentNameInput').value.trim();
     const absenInput = document.getElementById('studentAbsenInput').value.trim();
     if (!nameInput || !absenInput) { showNotification("Data siswa tidak lengkap!"); return; }
@@ -1394,30 +1456,12 @@ window.onCloseResultModal = function() {
     document.getElementById('quizArea').classList.add('d-none');
     isQuizSubmitted = false;
     localStorage.removeItem(STORAGE_KEY);
-    // Matikan mode keamanan
-    document.getElementById('securityIndicator').classList.remove('active');
-    isFullScreenMode = false;
-    // Hapus event listeners
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    document.removeEventListener('contextmenu', handleRightClick);
-    document.removeEventListener('keydown', handleKeyDown);
-    document.removeEventListener('copy', handleCopyPaste);
-    document.removeEventListener('paste', handleCopyPaste);
-    document.removeEventListener('cut', handleCopyPaste);
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
+    deactivateQuizSecurity();
 };
 
 window.syncAndStartQuiz = async function() {
     if (loadQuizState()) { 
         showNotification("Melanjutkan kuis yang belum selesai...");
-        enterFullScreenQuiz();
         return; 
     }
     const nameInput = document.getElementById('studentNameInput').value.trim();
@@ -1491,160 +1535,116 @@ function contactTeacherWA() {
     window.open(waUrl, '_blank');
 }
 
-function navigateTo(viewName) {
-    if (document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none') && !isQuizSubmitted) { saveQuizState(); showNotification("Kuis disimpan. Kembali ke Menu Tugas untuk melanjutkan."); }
-    const views = { 'dashboard': document.getElementById('view-dashboard'), 'materi': document.getElementById('view-materi'), 'tugas': document.getElementById('view-tugas'), 'rekap': document.getElementById('view-rekap-guru') };
-    Object.keys(views).forEach(key => { if (views[key]) views[key].classList.add('d-none'); });
-    if (viewName === 'rekap') { views['rekap'].classList.remove('d-none'); }
-    else if (views[viewName]) { views[viewName].classList.remove('d-none'); window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (viewName === 'tugas') { document.getElementById('quizStartPanel').classList.remove('d-none'); document.getElementById('quizArea').classList.add('d-none'); document.getElementById('quizLoader').classList.add('d-none'); loadQuizHistory(); stopQuizTimer();
-            setTimeout(() => { if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted && confirm("Ada kuis yang belum selesai. Lanjutkan?")) loadQuizState(); }, 500); }
-    }
-    
-    // Jika keluar dari halaman kuis, hentikan monitoring
-    if (viewName !== 'tugas' && isFullScreenMode) {
-        document.getElementById('securityIndicator').classList.remove('active');
-        isFullScreenMode = false;
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        document.removeEventListener('fullscreenchange', handleFullscreenChange);
-        document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-        document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-        document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-        document.removeEventListener('contextmenu', handleRightClick);
-        document.removeEventListener('keydown', handleKeyDown);
-        document.removeEventListener('copy', handleCopyPaste);
-        document.removeEventListener('paste', handleCopyPaste);
-        document.removeEventListener('cut', handleCopyPaste);
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
-    }
-}
-
-function promptGuruMenu() {
-    const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
-    if (password === null) return;
-    if (password === "11223344") { navigateTo('rekap'); showNotification("Berhasil masuk ke Menu Rekapitulasi Guru."); }
-    else { showNotification("Sandi salah! Akses ditolak."); }
-}
-
-const toastElement = document.getElementById('actionToast');
-const toast = new bootstrap.Toast(toastElement);
-const toastMsgSpan = document.getElementById('toastMessage');
-function showNotification(message) { toastMsgSpan.innerText = message; toast.show(); }
-
-function resetImportedQuiz() {
-    if (remainingSeconds <= 0 && quizDurationMinutes > 0) { showNotification("Kuis sudah berakhir!"); return; }
-    const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]'); radios.forEach(r => r.checked = false);
-    const checkboxes = document.querySelectorAll('#interactiveQuizForm input[type="checkbox"]'); checkboxes.forEach(c => c.checked = false);
-    const textInputs = document.querySelectorAll('#interactiveQuizForm input[type="text"]'); textInputs.forEach(i => i.value = '');
-    quizConnections = {};
-    importedQuestions.forEach(q => { if (q.tipe === 'MENJODOHKAN') drawConnections(q.id); });
-    const selectedOptions = document.querySelectorAll('#interactiveQuizForm .option-container'); selectedOptions.forEach(o => o.classList.remove('selected'));
-    showNotification("Jawaban dibersihkan!");
-}
-
 // ============================================================
-// FITUR KEAMANAN KUIS - FULLSCREEN & ANTI-CURANG
+// FITUR KEAMANAN ANTI-CHEAT (TANPA FULLSCREEN)
 // ============================================================
 
-let isFullScreenMode = false;
 let cheatAttempts = 0;
 const MAX_CHEAT_ATTEMPTS = 3;
-let cheatWarningShown = false;
+let securityActive = false;
 
-// Fungsi untuk memulai mode fullscreen
-function enterFullScreenQuiz() {
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen().then(() => {
-            isFullScreenMode = true;
-            document.getElementById('quizArea').classList.remove('d-none');
-            document.getElementById('quizStartPanel').classList.add('d-none');
-            document.getElementById('securityIndicator').classList.add('active');
-            startSecurityMonitoring();
-            showNotification("🔒 Mode aman aktif! Jangan keluar dari layar penuh.");
-        }).catch(err => {
-            showNotification("⚠️ Mohon izinkan mode layar penuh untuk mengerjakan kuis!");
-            // Tetap izinkan akses meskipun fullscreen gagal
-            document.getElementById('quizArea').classList.remove('d-none');
-            document.getElementById('quizStartPanel').classList.add('d-none');
-            document.getElementById('securityIndicator').classList.add('active');
-            startSecurityMonitoring();
-        });
-    } else {
-        // Fallback untuk browser yang tidak support fullscreen
-        document.getElementById('quizArea').classList.remove('d-none');
-        document.getElementById('quizStartPanel').classList.add('d-none');
-        document.getElementById('securityIndicator').classList.add('active');
-        startSecurityMonitoring();
-    }
-}
-
-// Fungsi keamanan untuk mendeteksi kecurangan
-function startSecurityMonitoring() {
-    // Deteksi perubahan visibility (pindah tab/aplikasi)
+function activateQuizSecurity() {
+    if (securityActive) return;
+    securityActive = true;
+    isQuizActive = true;
+    cheatAttempts = 0;
+    document.getElementById('securityIndicator').classList.add('active');
+    
+    // 1. Deteksi perubahan visibility (pindah tab/aplikasi)
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Deteksi keluar dari fullscreen
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-    
-    // Blokir klik kanan
+    // 2. Blokir klik kanan
     document.addEventListener('contextmenu', handleRightClick);
     
-    // Blokir kombinasi keyboard curang
+    // 3. Blokir shortcut curang
     document.addEventListener('keydown', handleKeyDown);
     
-    // Deteksi copy-paste
+    // 4. Blokir copy-paste
     document.addEventListener('copy', handleCopyPaste);
     document.addEventListener('paste', handleCopyPaste);
     document.addEventListener('cut', handleCopyPaste);
     
-    // Deteksi devtools (basic)
-    detectDevTools();
+    // 5. Deteksi window blur (keluar dari halaman)
+    window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focus', handleWindowFocus);
+    
+    // 6. Deteksi sebelum halaman ditutup
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    showNotification("🔒 Mode aman aktif! Jangan keluar dari halaman kuis.");
 }
 
+function deactivateQuizSecurity() {
+    if (!securityActive) return;
+    securityActive = false;
+    isQuizActive = false;
+    document.getElementById('securityIndicator').classList.remove('active');
+    document.getElementById('quizLockOverlay').classList.remove('active');
+    
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.removeEventListener('contextmenu', handleRightClick);
+    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('copy', handleCopyPaste);
+    document.removeEventListener('paste', handleCopyPaste);
+    document.removeEventListener('cut', handleCopyPaste);
+    window.removeEventListener('blur', handleWindowBlur);
+    window.removeEventListener('focus', handleWindowFocus);
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+}
+
+let isLockOverlayShown = false;
+
 function handleVisibilityChange() {
-    if (document.hidden && isFullScreenMode) {
+    if (!securityActive || isQuizSubmitted) return;
+    if (document.hidden) {
         cheatAttempts++;
         if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
-            autoFailQuiz("🚨 Terdeteksi mencurang! Keluar dari kuis.");
+            autoFailQuiz("🚨 Terdeteksi mencurang! Keluar dari halaman kuis.");
         } else {
+            showLockOverlay(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Jangan keluar dari halaman kuis!`);
             showNotification(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Jangan keluar dari halaman kuis!`);
+        }
+    } else {
+        if (!isQuizSubmitted && cheatAttempts < MAX_CHEAT_ATTEMPTS) {
+            hideLockOverlay();
         }
     }
 }
 
-function handleFullscreenChange() {
-    if (isFullScreenMode && !document.fullscreenElement && !document.webkitFullscreenElement) {
-        cheatAttempts++;
-        if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
-            autoFailQuiz("🚨 Terdeteksi keluar dari mode aman! Kuis dihentikan.");
-        } else {
-            showNotification(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Jangan keluar dari mode layar penuh!`);
-            // Coba masuk fullscreen lagi
-            setTimeout(() => {
-                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                    enterFullScreenQuiz();
-                }
-            }, 500);
-        }
+function handleWindowBlur() {
+    if (!securityActive || isQuizSubmitted) return;
+    cheatAttempts++;
+    if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
+        autoFailQuiz("🚨 Terdeteksi keluar dari halaman! Kuis dihentikan.");
+    } else {
+        showLockOverlay(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Kembali ke halaman kuis!`);
+        showNotification(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Kembali ke halaman kuis!`);
+    }
+}
+
+function handleWindowFocus() {
+    if (!isQuizSubmitted && cheatAttempts < MAX_CHEAT_ATTEMPTS) {
+        hideLockOverlay();
+    }
+}
+
+function handleBeforeUnload(e) {
+    if (securityActive && !isQuizSubmitted) {
+        e.preventDefault();
+        e.returnValue = 'Anda sedang mengerjakan kuis! Jika keluar, nilai 60 akan diberikan secara otomatis.';
+        return e.returnValue;
     }
 }
 
 function handleRightClick(e) {
-    if (isFullScreenMode && document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none')) {
+    if (securityActive && !isQuizSubmitted) {
         e.preventDefault();
         showNotification("⚠️ Klik kanan dinonaktifkan selama kuis!");
     }
 }
 
 function handleKeyDown(e) {
-    if (!isFullScreenMode || document.getElementById('quizArea').classList.contains('d-none')) return;
+    if (!securityActive || isQuizSubmitted) return;
     
     // Blokir F12
     if (e.key === 'F12') {
@@ -1669,43 +1669,32 @@ function handleKeyDown(e) {
 }
 
 function handleCopyPaste(e) {
-    if (isFullScreenMode && document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none')) {
+    if (securityActive && !isQuizSubmitted) {
         e.preventDefault();
         showNotification("⚠️ Copy-paste dinonaktifkan selama kuis!");
     }
 }
 
-function detectDevTools() {
-    // Deteksi devtools dengan check elemen
-    let devtoolsOpen = false;
-    const element = new Image();
-    Object.defineProperty(element, 'id', {
-        get: function() {
-            devtoolsOpen = true;
-            if (!cheatWarningShown) {
-                cheatWarningShown = true;
-                cheatAttempts++;
-                if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
-                    autoFailQuiz("🚨 Deteksi alat pengembang! Kuis dihentikan.");
-                } else {
-                    showNotification(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Tutup developer tools!`);
-                }
-                setTimeout(() => { cheatWarningShown = false; }, 2000);
-            }
-            return '';
-        }
-    });
-    
-    // Cek setiap 2 detik
-    setInterval(() => {
-        if (isFullScreenMode) {
-            console.log(element);
-            console.clear();
-        }
-    }, 2000);
+function showLockOverlay(message) {
+    const overlay = document.getElementById('quizLockOverlay');
+    const lockContent = overlay.querySelector('.lock-content p');
+    lockContent.innerHTML = message || 'Anda mencoba keluar dari halaman kuis!<br><strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong>';
+    overlay.classList.add('active');
+    isLockOverlayShown = true;
 }
 
-// Fungsi otomatis gagal
+function hideLockOverlay() {
+    document.getElementById('quizLockOverlay').classList.remove('active');
+    isLockOverlayShown = false;
+}
+
+function returnToQuiz() {
+    hideLockOverlay();
+    // Fokus kembali ke halaman
+    window.focus();
+    showNotification("✅ Kembali ke kuis. Tetap fokus!");
+}
+
 function autoFailQuiz(reason) {
     if (isQuizSubmitted) return;
     
@@ -1714,15 +1703,10 @@ function autoFailQuiz(reason) {
     
     const nameInput = document.getElementById('studentNameInput').value.trim() || "Siswa Tidak Diketahui";
     const absenInput = document.getElementById('studentAbsenInput').value.trim() || "00";
-    const finalScore = 60; // Nilai tetap 60
+    const finalScore = 60;
     
-    // Matikan mode keamanan
-    document.getElementById('securityIndicator').classList.remove('active');
-    isFullScreenMode = false;
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) document.exitFullscreen();
-        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
+    deactivateQuizSecurity();
+    hideLockOverlay();
     
     const today = new Date();
     const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -1756,9 +1740,20 @@ function autoFailQuiz(reason) {
     
     const resultModal = new bootstrap.Modal(document.getElementById('quizResultModal'));
     resultModal.show();
-    showNotification("⚠️ Kuis dihentikan karena pelanggaran aturan.");
+    showNotification("⚠️ Kuis dihentikan karena pelanggaran aturan. Nilai: 60");
 }
 
+// Override navigateTo untuk keamanan
+const originalNavigateTo = navigateTo;
+navigateTo = function(viewName) {
+    if (securityActive && !isQuizSubmitted && viewName !== 'tugas') {
+        showNotification("⚠️ Anda tidak bisa keluar dari halaman kuis!");
+        return;
+    }
+    originalNavigateTo(viewName);
+};
+
+// Expose functions
 window.navigateTo = navigateTo;
 window.promptGuruMenu = promptGuruMenu;
 window.syncAndStartQuiz = syncAndStartQuiz;
@@ -1771,6 +1766,7 @@ window.selectOption = selectOption;
 window.selectMultiOption = selectMultiOption;
 window.openSpreadsheetInNewTab = openSpreadsheetInNewTab;
 window.refreshSpreadsheet = refreshSpreadsheet;
+window.returnToQuiz = returnToQuiz;
 
 window.onload = function() {
     loadQuizHistory();

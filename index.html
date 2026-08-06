@@ -392,6 +392,16 @@
         .quiz-lock-overlay .lock-content .btn-return:active {
             transform: scale(0.95);
         }
+
+        /* Timer warning */
+        .timer-warning {
+            color: #ef4444 !important;
+            animation: blink-red 0.5s infinite alternate;
+        }
+        @keyframes blink-red {
+            0% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -401,11 +411,16 @@
     <div class="lock-content">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <h5>⚠️ PERINGATAN!</h5>
-        <p id="lockMessage">Anda mencoba keluar dari halaman kuis!<br><strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong></p>
+        <p id="lockMessage">Anda mencoba keluar dari halaman kuis!<br><strong>Waktu kuis TETAP BERJALAN!</strong><br>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</p>
         <button class="btn-return" onclick="returnToQuiz()">
             <i class="bi bi-arrow-return-left me-1"></i> Kembali ke Kuis
         </button>
     </div>
+</div>
+
+<!-- INDICATOR KEAMANAN -->
+<div class="security-indicator" id="securityIndicator">
+    🔒 MODE AMAN AKTIF - WAKTU KUIS TETAP BERJALAN!
 </div>
 
 <!-- 1. LAYAR POPUP PASSWORD (DIHILANGKAN) -->
@@ -445,7 +460,7 @@
                 </div>
                 <div>
                     <span class="d-block fw-bold text-white small lh-1">Aburrizal Hamdani Lubis, S.Pd</span>
-                    <small class="opacity-70 text-white-50" style="font-size: 0.65rem;">Guru Pengampu • Online</small>
+                    <small class="opacity-70 text-white-50" style="font-size: 0.65rem;">Guru Kelas • Online</small>
                 </div>
             </div>
         </div>
@@ -556,9 +571,9 @@
                 <p class="text-muted small mx-auto mb-3">
                     Isi nama lengkap dan nomor absen untuk mengaktifkan kuis harian ananda.
                 </p>
-                <div class="alert alert-warning small border-0 bg-warning bg-opacity-25 rounded-4 py-2 px-3">
+                <div class="alert alert-danger small border-0 bg-danger bg-opacity-10 rounded-4 py-2 px-3">
                     <i class="bi bi-shield-lock-fill me-1"></i>
-                    <strong>Mode Aman:</strong> Selama kuis berlangsung, Anda tidak boleh keluar dari halaman ini.
+                    <strong>PERINGATAN!</strong> Waktu kuis TETAP BERJALAN meskipun Anda keluar dari halaman!
                 </div>
             </div>
 
@@ -613,11 +628,16 @@
                 <div class="d-flex justify-content-between align-items-center px-1">
                     <div class="d-flex align-items-center gap-1.5">
                         <div class="spinner-grow text-danger spinner-grow-sm" role="status" style="width: 10px; height: 10px;"></div>
-                        <span class="fw-bold text-dark" style="font-size: 0.75rem;">KUIS MULAI</span>
+                        <span class="fw-bold text-dark" style="font-size: 0.75rem;">⏱️ WAKTU TERSISA</span>
                     </div>
                     <div class="text-end">
-                        <h5 class="fw-extrabold text-danger mb-0" id="quizTimerText" style="font-size: 1.1rem; line-height: 1;">00:00</h5>
+                        <h5 class="fw-extrabold mb-0" id="quizTimerText" style="font-size: 1.1rem; line-height: 1; color: #0f766e;">00:00</h5>
                     </div>
+                </div>
+                <div class="text-center mt-1">
+                    <small class="text-muted" style="font-size: 0.6rem;">
+                        <i class="bi bi-info-circle"></i> Waktu tetap berjalan meskipun keluar halaman!
+                    </small>
                 </div>
             </div>
 
@@ -845,7 +865,7 @@
 
 <script>
 // ============================================================
-// KONFIGURASI GOOGLE SHEETS API & SPREADSHEET (TAMBAHAN)
+// KONFIGURASI GOOGLE SHEETS API & SPREADSHEET
 // ============================================================
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzSAAvjQzxSYSezovc3HUrLFaWaA2b-v_oPh55O6P-Bnsel0_ygBWXf0JRyOTUzuyJSHw/exec";
 const GOOGLE_SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1cLIpe2jSpTTLpcMOFE2EVu_vxkVfP8GbaqFU7PY8WSI/edit?usp=sharing";
@@ -854,7 +874,7 @@ let isQuizSubmitted = false;
 let isQuizActive = false;
 
 // ============================================================
-// FUNGSI SPREADSHEET REALTIME (TAMBAHAN)
+// FUNGSI SPREADSHEET REALTIME
 // ============================================================
 function openSpreadsheetInNewTab() {
     window.open(GOOGLE_SPREADSHEET_URL, '_blank');
@@ -869,7 +889,7 @@ function refreshSpreadsheet() {
 }
 
 // ============================================================
-// FUNGSI KIRIM KE GOOGLE SHEETS (TAMBAHAN)
+// FUNGSI KIRIM KE GOOGLE SHEETS
 // ============================================================
 async function saveToGoogleSheets(studentData) {
     try {
@@ -898,7 +918,7 @@ async function saveToGoogleSheets(studentData) {
 }
 
 // ============================================================
-// FUNGSI SAVE DAN LOAD STATE KUIS (TAMBAHAN)
+// FUNGSI SAVE DAN LOAD STATE KUIS
 // ============================================================
 function saveQuizState() {
     if (isQuizSubmitted) return;
@@ -929,6 +949,7 @@ function saveQuizState() {
         remainingSeconds: remainingSeconds,
         importedQuestions: importedQuestions,
         quizStartTime: quizStartTime, quizEndTime: quizEndTime, quizDurationMinutes: quizDurationMinutes,
+        quizStartTimestamp: quizStartTimestamp,
         savedAt: new Date().toISOString()
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -945,14 +966,30 @@ function loadQuizState() {
         }
         if (state.studentName) document.getElementById('studentNameInput').value = state.studentName;
         if (state.studentAbsen) document.getElementById('studentAbsenInput').value = state.studentAbsen;
-        remainingSeconds = state.remainingSeconds;
+        
+        // Hitung ulang sisa waktu berdasarkan timestamp mulai
+        if (state.quizStartTimestamp && state.quizDurationMinutes > 0) {
+            const elapsedSeconds = Math.floor((Date.now() - state.quizStartTimestamp) / 1000);
+            const totalSeconds = state.quizDurationMinutes * 60;
+            remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        } else {
+            remainingSeconds = state.remainingSeconds || 0;
+        }
+        
         if (state.importedQuestions && state.importedQuestions.length > 0) {
             importedQuestions = state.importedQuestions;
             quizStartTime = state.quizStartTime ? new Date(state.quizStartTime) : null;
             quizEndTime = state.quizEndTime ? new Date(state.quizEndTime) : null;
             quizDurationMinutes = state.quizDurationMinutes;
+            quizStartTimestamp = state.quizStartTimestamp || Date.now();
             renderQuiz();
-            if (remainingSeconds > 0) startQuizTimerFromRemaining(remainingSeconds);
+            if (remainingSeconds > 0) {
+                startQuizTimerFromRemaining(remainingSeconds);
+            } else {
+                // Waktu habis, auto submit
+                autoSubmitQuizOnTimeout();
+                return true;
+            }
             setTimeout(() => {
                 Object.keys(state.pgAnswers || {}).forEach(name => {
                     const radio = document.querySelector(`input[name="${name}"][value="${state.pgAnswers[name]}"]`);
@@ -982,29 +1019,41 @@ function loadQuizState() {
     return false;
 }
 
+let quizStartTimestamp = null;
+
 function startQuizTimerFromRemaining(seconds) {
     if (timerIntervalId) clearInterval(timerIntervalId);
     const timerCard = document.getElementById('floatingTimerCard');
     const timerText = document.getElementById('quizTimerText');
-    if (!seconds || seconds <= 0) { timerCard.classList.add('d-none'); return; }
+    if (!seconds || seconds <= 0) { 
+        timerCard.classList.add('d-none'); 
+        autoSubmitQuizOnTimeout();
+        return; 
+    }
     timerCard.classList.remove('d-none');
     remainingSeconds = seconds;
     updateTimerDisplay();
     timerIntervalId = setInterval(() => {
-        if (isQuizSubmitted) return;
+        if (isQuizSubmitted) {
+            clearInterval(timerIntervalId);
+            return;
+        }
         remainingSeconds--;
         updateTimerDisplay();
         saveQuizState();
         if (remainingSeconds <= 60) {
             document.getElementById('floatingTimerCard').style.borderColor = '#ef4444';
-            timerText.classList.add('text-danger');
+            timerText.classList.add('timer-warning');
         }
-        if (remainingSeconds <= 0) { stopQuizTimer(); if (!isQuizSubmitted) autoSubmitQuizOnTimeout(); }
+        if (remainingSeconds <= 0) { 
+            stopQuizTimer(); 
+            if (!isQuizSubmitted) autoSubmitQuizOnTimeout(); 
+        }
     }, 1000);
 }
 
 // ============================================================
-// FUNGSI ASLI (TIDAK DIUBAH)
+// FUNGSI ASLI
 // ============================================================
 
 let importedQuestions = [];
@@ -1172,16 +1221,26 @@ function startQuizTimer(minutes) {
     if (!minutes || minutes <= 0) { timerCard.classList.add('d-none'); return; }
     timerCard.classList.remove('d-none');
     remainingSeconds = minutes * 60;
+    quizStartTimestamp = Date.now(); // Simpan timestamp mulai
     updateTimerDisplay();
     timerIntervalId = setInterval(() => {
-        remainingSeconds--;
+        if (isQuizSubmitted) {
+            clearInterval(timerIntervalId);
+            return;
+        }
+        // Hitung ulang sisa waktu berdasarkan timestamp
+        const elapsedSeconds = Math.floor((Date.now() - quizStartTimestamp) / 1000);
+        remainingSeconds = Math.max(0, (minutes * 60) - elapsedSeconds);
         updateTimerDisplay();
         saveQuizState();
         if (remainingSeconds <= 60) {
             document.getElementById('floatingTimerCard').style.borderColor = '#ef4444';
-            timerText.classList.add('text-danger', 'animate-pulse');
+            timerText.classList.add('timer-warning');
         }
-        if (remainingSeconds <= 0) { stopQuizTimer(); autoSubmitQuizOnTimeout(); }
+        if (remainingSeconds <= 0) { 
+            stopQuizTimer(); 
+            if (!isQuizSubmitted) autoSubmitQuizOnTimeout(); 
+        }
     }, 1000);
 }
 
@@ -1198,14 +1257,15 @@ function updateTimerDisplay() {
 }
 
 function autoSubmitQuizOnTimeout() {
-    showNotification("Waktu Habis! Semua jawaban Anda dikunci dan dikirim otomatis.");
+    if (isQuizSubmitted) return;
+    showNotification("⏰ Waktu Habis! Jawaban otomatis dikirim.");
     const inputs = document.querySelectorAll('#interactiveQuizForm input, #interactiveQuizForm button, #interactiveQuizForm select');
     inputs.forEach(element => element.disabled = true);
     let nameInput = document.getElementById('studentNameInput').value.trim();
     let absenInput = document.getElementById('studentAbsenInput').value.trim();
     if (!nameInput) nameInput = "Siswa Tanpa Identitas";
     if (!absenInput) absenInput = "99";
-    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>Waktu Habis! Jawaban Terkirim Otomatis`;
+    document.getElementById('quizResultTitle').innerHTML = `<i class="bi bi-hourglass-bottom text-danger me-2"></i>⏰ Waktu Habis! Jawaban Terkirim Otomatis`;
     const fakeEvent = { preventDefault: () => {} };
     submitInteractiveQuiz(fakeEvent);
 }
@@ -1479,7 +1539,7 @@ window.onCloseResultModal = function() {
 
 window.syncAndStartQuiz = async function() {
     if (loadQuizState()) { 
-        showNotification("Melanjutkan kuis yang belum selesai...");
+        showNotification("⏳ Melanjutkan kuis yang belum selesai... Waktu tetap berjalan!");
         return; 
     }
     const nameInput = document.getElementById('studentNameInput').value.trim();
@@ -1589,7 +1649,7 @@ function activateQuizSecurity() {
     // 6. Deteksi sebelum halaman ditutup
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    showNotification("🔒 Mode aman aktif! Jangan keluar dari halaman kuis.");
+    showNotification("🔒 Mode aman aktif! Waktu kuis tetap berjalan meskipun keluar halaman!");
 }
 
 function deactivateQuizSecurity() {
@@ -1614,15 +1674,17 @@ function handleVisibilityChange() {
     if (!securityActive || isQuizSubmitted) return;
     if (document.hidden) {
         cheatAttempts++;
+        // Waktu tetap berjalan - tidak ada pause!
         if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
             autoFailQuiz("🚨 Terdeteksi mencurang! Keluar dari halaman kuis.");
         } else {
-            showLockOverlay(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Jangan keluar dari halaman kuis!`);
-            showNotification(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Jangan keluar dari halaman kuis!`);
+            showLockOverlay(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
+            showNotification(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
         }
     } else {
         if (!isQuizSubmitted && cheatAttempts < MAX_CHEAT_ATTEMPTS) {
             hideLockOverlay();
+            showNotification("⏳ Waktu kuis tetap berjalan! Jangan keluar lagi!");
         }
     }
 }
@@ -1630,11 +1692,12 @@ function handleVisibilityChange() {
 function handleWindowBlur() {
     if (!securityActive || isQuizSubmitted) return;
     cheatAttempts++;
+    // Waktu tetap berjalan
     if (cheatAttempts >= MAX_CHEAT_ATTEMPTS) {
         autoFailQuiz("🚨 Terdeteksi keluar dari halaman! Kuis dihentikan.");
     } else {
-        showLockOverlay(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Kembali ke halaman kuis!`);
-        showNotification(`⚠️ Peringatan ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: Kembali ke halaman kuis!`);
+        showLockOverlay(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
+        showNotification(`⚠️ PERINGATAN ${cheatAttempts}/${MAX_CHEAT_ATTEMPTS}: WAKTU KUIS TETAP BERJALAN!`);
     }
 }
 
@@ -1647,7 +1710,7 @@ function handleWindowFocus() {
 function handleBeforeUnload(e) {
     if (securityActive && !isQuizSubmitted) {
         e.preventDefault();
-        e.returnValue = 'Anda sedang mengerjakan kuis! Jika keluar, nilai 60 akan diberikan secara otomatis.';
+        e.returnValue = '⚠️ PERINGATAN: Waktu kuis tetap berjalan meskipun Anda keluar! Nilai 60 akan diberikan jika keluar.';
         return e.returnValue;
     }
 }
@@ -1662,7 +1725,6 @@ function handleRightClick(e) {
 function handleKeyDown(e) {
     if (!securityActive || isQuizSubmitted) return;
     
-    // Blokir F12
     if (e.key === 'F12') {
         e.preventDefault();
         cheatAttempts++;
@@ -1670,7 +1732,6 @@ function handleKeyDown(e) {
         return;
     }
     
-    // Blokir Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+S, Ctrl+C
     if ((e.ctrlKey || e.metaKey) && 
         (e.key === 'i' || e.key === 'I' || 
          e.key === 'j' || e.key === 'J' || 
@@ -1695,7 +1756,9 @@ function showLockOverlay(message) {
     const overlay = document.getElementById('quizLockOverlay');
     const lockContent = document.getElementById('lockMessage');
     if (lockContent) {
-        lockContent.innerHTML = message || 'Anda mencoba keluar dari halaman kuis!<br><strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong>';
+        lockContent.innerHTML = (message || 'Anda mencoba keluar dari halaman kuis!') + 
+            '<br><strong>⏰ WAKTU KUIS TETAP BERJALAN!</strong><br>' +
+            'Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.';
     }
     overlay.classList.add('active');
 }
@@ -1707,7 +1770,7 @@ function hideLockOverlay() {
 function returnToQuiz() {
     hideLockOverlay();
     window.focus();
-    showNotification("✅ Kembali ke kuis. Tetap fokus!");
+    showNotification("✅ Kembali ke kuis. Ingat, waktu tetap berjalan!");
 }
 
 function autoFailQuiz(reason) {
@@ -1759,7 +1822,7 @@ function autoFailQuiz(reason) {
 }
 
 // ============================================================
-// FUNGSI NAVIGASI (DIPERBAIKI)
+// FUNGSI NAVIGASI
 // ============================================================
 function navigateTo(viewName) {
     // Jika sedang dalam mode keamanan dan bukan ke halaman tugas, tolak
@@ -1800,16 +1863,53 @@ function navigateTo(viewName) {
             loadQuizHistory(); 
             stopQuizTimer();
             
-            // Cek apakah ada kuis yang belum selesai
             setTimeout(() => { 
                 if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
-                    if (confirm("Ada kuis yang belum selesai. Lanjutkan?")) {
+                    if (confirm("⏳ Ada kuis yang belum selesai. Waktu tetap berjalan! Lanjutkan?")) {
                         loadQuizState();
                     }
                 }
             }, 500); 
         }
     }
+}
+
+// ============================================================
+// FUNGSI MENU GURU (DIPERBAIKI)
+// ============================================================
+function promptGuruMenu() {
+    // Cek apakah sedang dalam kuis aktif
+    if (securityActive && !isQuizSubmitted) {
+        showNotification("⚠️ Tidak bisa mengakses Menu Guru saat kuis berlangsung!");
+        return;
+    }
+    
+    const password = prompt("Masukkan Sandi Keamanan Menu Guru:");
+    if (password === null) return;
+    if (password === "11223344") { 
+        // Matikan keamanan jika aktif
+        if (securityActive) deactivateQuizSecurity();
+        navigateTo('rekap'); 
+        showNotification("✅ Berhasil masuk ke Menu Rekapitulasi Guru."); 
+    } else { 
+        showNotification("❌ Sandi salah! Akses ditolak."); 
+    }
+}
+
+const toastElement = document.getElementById('actionToast');
+const toast = new bootstrap.Toast(toastElement);
+const toastMsgSpan = document.getElementById('toastMessage');
+function showNotification(message) { toastMsgSpan.innerText = message; toast.show(); }
+
+function resetImportedQuiz() {
+    if (remainingSeconds <= 0 && quizDurationMinutes > 0) { showNotification("Kuis sudah berakhir!"); return; }
+    const radios = document.querySelectorAll('#interactiveQuizForm input[type="radio"]'); radios.forEach(r => r.checked = false);
+    const checkboxes = document.querySelectorAll('#interactiveQuizForm input[type="checkbox"]'); checkboxes.forEach(c => c.checked = false);
+    const textInputs = document.querySelectorAll('#interactiveQuizForm input[type="text"]'); textInputs.forEach(i => i.value = '');
+    quizConnections = {};
+    importedQuestions.forEach(q => { if (q.tipe === 'MENJODOHKAN') drawConnections(q.id); });
+    const selectedOptions = document.querySelectorAll('#interactiveQuizForm .option-container'); selectedOptions.forEach(o => o.classList.remove('selected'));
+    showNotification("Jawaban dibersihkan!");
 }
 
 // Expose functions
@@ -1831,7 +1931,7 @@ window.onload = function() {
     loadQuizHistory();
     setTimeout(() => { 
         if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
-            if (confirm("Ada kuis yang belum selesai. Lanjutkan?")) {
+            if (confirm("⏳ Ada kuis yang belum selesai. Waktu tetap berjalan! Lanjutkan?")) {
                 loadQuizState();
             }
         }

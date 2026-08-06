@@ -340,7 +340,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.85);
             z-index: 9998;
             display: none;
             justify-content: center;
@@ -370,8 +370,27 @@
         }
         .quiz-lock-overlay .lock-content p {
             font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 0;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .quiz-lock-overlay .lock-content .btn-return {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .quiz-lock-overlay .lock-content .btn-return:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+        .quiz-lock-overlay .lock-content .btn-return:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -382,9 +401,8 @@
     <div class="lock-content">
         <i class="bi bi-exclamation-triangle-fill"></i>
         <h5>⚠️ PERINGATAN!</h5>
-        <p>Anda mencoba keluar dari halaman kuis!<br>
-        <strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong></p>
-        <button onclick="returnToQuiz()" class="btn btn-danger mt-3 rounded-pill px-4">
+        <p id="lockMessage">Anda mencoba keluar dari halaman kuis!<br><strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong></p>
+        <button class="btn-return" onclick="returnToQuiz()">
             <i class="bi bi-arrow-return-left me-1"></i> Kembali ke Kuis
         </button>
     </div>
@@ -1592,8 +1610,6 @@ function deactivateQuizSecurity() {
     window.removeEventListener('beforeunload', handleBeforeUnload);
 }
 
-let isLockOverlayShown = false;
-
 function handleVisibilityChange() {
     if (!securityActive || isQuizSubmitted) return;
     if (document.hidden) {
@@ -1677,20 +1693,19 @@ function handleCopyPaste(e) {
 
 function showLockOverlay(message) {
     const overlay = document.getElementById('quizLockOverlay');
-    const lockContent = overlay.querySelector('.lock-content p');
-    lockContent.innerHTML = message || 'Anda mencoba keluar dari halaman kuis!<br><strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong>';
+    const lockContent = document.getElementById('lockMessage');
+    if (lockContent) {
+        lockContent.innerHTML = message || 'Anda mencoba keluar dari halaman kuis!<br><strong>Jika melanjutkan, kuis akan dihentikan dan nilai 60 akan diberikan secara otomatis.</strong>';
+    }
     overlay.classList.add('active');
-    isLockOverlayShown = true;
 }
 
 function hideLockOverlay() {
     document.getElementById('quizLockOverlay').classList.remove('active');
-    isLockOverlayShown = false;
 }
 
 function returnToQuiz() {
     hideLockOverlay();
-    // Fokus kembali ke halaman
     window.focus();
     showNotification("✅ Kembali ke kuis. Tetap fokus!");
 }
@@ -1743,15 +1758,59 @@ function autoFailQuiz(reason) {
     showNotification("⚠️ Kuis dihentikan karena pelanggaran aturan. Nilai: 60");
 }
 
-// Override navigateTo untuk keamanan
-const originalNavigateTo = navigateTo;
-navigateTo = function(viewName) {
+// ============================================================
+// FUNGSI NAVIGASI (DIPERBAIKI)
+// ============================================================
+function navigateTo(viewName) {
+    // Jika sedang dalam mode keamanan dan bukan ke halaman tugas, tolak
     if (securityActive && !isQuizSubmitted && viewName !== 'tugas') {
         showNotification("⚠️ Anda tidak bisa keluar dari halaman kuis!");
         return;
     }
-    originalNavigateTo(viewName);
-};
+    
+    // Jika sedang dalam kuis dan mencoba pindah, simpan state
+    if (document.getElementById('quizArea') && !document.getElementById('quizArea').classList.contains('d-none') && !isQuizSubmitted) {
+        saveQuizState();
+        showNotification("Kuis disimpan. Kembali ke Menu Tugas untuk melanjutkan.");
+    }
+    
+    const views = { 
+        'dashboard': document.getElementById('view-dashboard'), 
+        'materi': document.getElementById('view-materi'), 
+        'tugas': document.getElementById('view-tugas'), 
+        'rekap': document.getElementById('view-rekap-guru') 
+    };
+    
+    // Sembunyikan semua view
+    Object.keys(views).forEach(key => { 
+        if (views[key]) views[key].classList.add('d-none'); 
+    });
+    
+    // Tampilkan view yang dipilih
+    if (viewName === 'rekap') { 
+        views['rekap'].classList.remove('d-none'); 
+    } else if (views[viewName]) { 
+        views[viewName].classList.remove('d-none'); 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        if (viewName === 'tugas') { 
+            document.getElementById('quizStartPanel').classList.remove('d-none'); 
+            document.getElementById('quizArea').classList.add('d-none'); 
+            document.getElementById('quizLoader').classList.add('d-none'); 
+            loadQuizHistory(); 
+            stopQuizTimer();
+            
+            // Cek apakah ada kuis yang belum selesai
+            setTimeout(() => { 
+                if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
+                    if (confirm("Ada kuis yang belum selesai. Lanjutkan?")) {
+                        loadQuizState();
+                    }
+                }
+            }, 500); 
+        }
+    }
+}
 
 // Expose functions
 window.navigateTo = navigateTo;
@@ -1770,7 +1829,13 @@ window.returnToQuiz = returnToQuiz;
 
 window.onload = function() {
     loadQuizHistory();
-    setTimeout(() => { if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted && confirm("Ada kuis yang belum selesai. Lanjutkan?")) loadQuizState(); }, 500);
+    setTimeout(() => { 
+        if (localStorage.getItem(STORAGE_KEY) && !isQuizSubmitted) {
+            if (confirm("Ada kuis yang belum selesai. Lanjutkan?")) {
+                loadQuizState();
+            }
+        }
+    }, 500);
 };
 </script>
 </body>

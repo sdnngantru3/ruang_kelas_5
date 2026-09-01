@@ -163,6 +163,9 @@
                     <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-user-plus"></i> Tambah Siswa
                     </button>
+                    <button onclick="downloadExcelTemplate()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition" title="Unduh format template Excel untuk impor">
+                        <i class="fa-solid fa-file-arrow-down"></i> Template Excel
+                    </button>
                     <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)" class="hidden">
                     <button onclick="document.getElementById('excel-file-input').click()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-1.5 transition" title="Impor daftar siswa dari file Excel">
                         <i class="fa-solid fa-file-import"></i> Impor Excel
@@ -175,6 +178,9 @@
                     </button>
                     <button onclick="resetAllScores()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs transition" title="Reset Seluruh Nilai ke 0">
                         <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button onclick="clearAllStudents()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs transition" title="Kosongkan Seluruh Daftar Siswa">
+                        <i class="fa-solid fa-user-xmark"></i>
                     </button>
                 </div>
             </div>
@@ -1252,6 +1258,38 @@
                 renderStudentTable();
                 showToast("Nilai Direset", "Seluruh nilai siswa berhasil diatur ke 0.");
             });
+        }
+
+        function clearAllStudents() {
+            showConfirmDialog("Kosongkan Seluruh Daftar Siswa", "Apakah Anda yakin ingin menghapus SEMUA siswa dari tabel?", () => {
+                students = [];
+                saveToStorage();
+                renderStudentTable();
+                showToast("Daftar Siswa Kosong", "Seluruh data siswa telah dihapus.");
+            });
+        }
+
+        function downloadExcelTemplate() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library Excel belum siap. Coba periksa koneksi internet.", true);
+                return;
+            }
+
+            const templateData = [
+                ["No", "Nama Lengkap", "Nama Panggilan"],
+                [1, "Budi Santoso", "budi"],
+                [2, "Siti Rahmawati", "siti"],
+                [3, "Alzicho Eka Fije", "fije"]
+            ];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(templateData);
+            worksheet['!cols'] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Template Siswa");
+
+            XLSX.writeFile(workbook, "Template_Impor_Siswa_VoiceGrade.xlsx");
+            showToast("Template Diunduh", "File template Excel berhasil diunduh. Silakan isi dan impor.");
         }
 
         function handleExcelImport(event) {

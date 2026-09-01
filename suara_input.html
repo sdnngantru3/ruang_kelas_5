@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceGrade Pro - Input Nilai Suara</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS XLSX Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .row-highlight-success {
+            animation: highlightPulse 1.8s ease-out;
+        }
+        @keyframes highlightPulse {
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: transparent; }
+        }
+        .mic-active-pulse {
+            animation: pulseGlow 1.5s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(225, 29, 72, 0.4); transform: scale(1); }
+            100% { box-shadow: 0 0 30px rgba(225, 29, 72, 0.8); transform: scale(1.04); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-microphone-lines text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg text-white leading-tight flex items-center gap-2">
+                        VoiceGrade Pro
+                        <span class="text-[10px] bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">v2.7</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Aplikasi Input Nilai Suara Guru & Pengajar</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAudioFeedback()" id="btn-audio-feedback" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 hover:bg-emerald-500/30 transition">
+                    <i class="fa-solid fa-volume-high"></i> <span class="hidden sm:inline">Suara:</span> Aktif
+                </button>
+                <button onclick="openManageColumnsModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-sliders text-blue-400"></i> Kelola Kolom Mapel
+                </button>
+                <button onclick="toggleSettingsModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition" title="Pengaturan">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full space-y-6">
+
+        <!-- Info Mata Pelajaran & Kelas Manual Input -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl border border-slate-800/80">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fa-solid fa-book-bookmark text-blue-400 text-sm"></i>
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Informasi Mata Pelajaran & Kelas (Untuk Header Ekspor)</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Mata Pelajaran (Mapel):</label>
+                    <input type="text" id="input-subject-name" oninput="saveMetadata()" placeholder="Contoh: Matematika / IPAS" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kelas / Rombel:</label>
+                    <input type="text" id="input-class-name" oninput="saveMetadata()" placeholder="Contoh: Kelas 5A" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Guru / Pengajar:</label>
+                    <input type="text" id="input-teacher-name" oninput="saveMetadata()" placeholder="Contoh: Bpk. Ahmad, S.Pd." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Controller & Stats Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <!-- Voice Control Central -->
+            <div class="lg:col-span-2 glass-panel rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span id="speech-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                        <span id="speech-status-text" class="text-xs font-semibold text-slate-300">Mikrofon Siap</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="active-column-select" class="text-xs text-slate-400 font-medium hidden sm:block">Target Suara:</label>
+                        <select id="active-column-select" onchange="changeActiveColumn()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-blue-400 font-bold focus:outline-none focus:border-blue-500">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Microphone Button & Live Transcript -->
+                <div class="flex flex-col sm:flex-row items-center gap-6 my-2">
+                    <button id="btn-toggle-mic" onclick="toggleVoiceRecognition()" class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-2xl flex items-center justify-center shadow-lg shadow-blue-600/40 hover:scale-105 active:scale-95 transition-all duration-300 shrink-0">
+                        <i id="mic-icon" class="fa-solid fa-microphone"></i>
+                    </button>
+                    <div class="space-y-1 text-center sm:text-left flex-1">
+                        <p id="mic-instruction" class="text-sm font-semibold text-slate-200">Klik Mikrofon Lalu Ucapkan Perintah</p>
+                        <p class="text-xs text-slate-400">Contoh ucapan: <span class="text-blue-300 font-medium">"190"</span> (Absen 1 = 90), <span class="text-blue-300 font-medium">"1585"</span> (Absen 15 = 85), atau <span class="text-blue-300 font-medium">"fije 85"</span></p>
+                        <div class="pt-2">
+                            <div id="live-transcript-box" class="bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-300 min-h-[36px] flex items-center">
+                                <span class="text-slate-500 mr-2"><i class="fa-solid fa-quote-left"></i></span>
+                                <span id="live-transcript" class="italic text-slate-400">Transkrip suara akan muncul di sini...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-3 mt-4">
+                    <span>Akurasi Pengenalan: <strong id="speech-confidence" class="text-slate-200">-</strong></span>
+                    <span>Total Perintah Suara: <strong id="voice-count-stat" class="text-blue-400">0</strong></span>
+                </div>
+            </div>
+
+            <!-- Voice Activity History Log -->
+            <div class="glass-panel rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <h3 class="font-bold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Riwayat Input Suara
+                    </h3>
+                    <button onclick="clearVoiceLog()" class="text-[11px] text-slate-400 hover:text-slate-200">Bersihkan</button>
+                </div>
+                <div id="voice-log-container" class="space-y-2 overflow-y-auto max-h-40 flex-1 pr-1">
+                    <div class="text-slate-500 text-[11px] italic text-center py-6">Riwayat pemrosesan suara akan muncul di sini...</div>
+                </div>
+                <div class="border-t border-slate-800 pt-2.5 mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Tingkat Sukses Match:</span>
+                    <strong id="match-rate-stat" class="text-emerald-400 font-bold">100%</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-5 shadow-xl space-y-4">
+            <!-- Toolbar Actions -->
+            <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                <div class="flex items-center gap-2 flex-1 max-w-md">
+                    <div class="relative w-full">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" id="search-input" oninput="filterStudents()" placeholder="Cari nama atau panggilan..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-wrap justify-end">
+                    <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-user-plus"></i> Tambah Siswa
+                    </button>
+                    <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)" class="hidden">
+                    <button onclick="document.getElementById('excel-file-input').click()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-1.5 transition" title="Impor daftar siswa dari file Excel">
+                        <i class="fa-solid fa-file-import"></i> Impor Excel
+                    </button>
+                    <button onclick="exportToExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs shadow-lg shadow-emerald-700/30 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-file-excel"></i> Ekspor Excel
+                    </button>
+                    <button onclick="copyToClipboardTable()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-copy"></i> Salin ke Sheets
+                    </button>
+                    <button onclick="resetAllScores()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs transition" title="Reset Seluruh Nilai ke 0">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr id="table-header-row" class="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800">
+                            <!-- Table headers generated dynamically via JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="student-table-body" class="divide-y divide-slate-800/60">
+                        <!-- Student rows generated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-400 pt-2">
+                <span>Total Siswa: <strong id="student-count" class="text-white">0</strong> orang</span>
+                <span class="text-[11px] text-slate-500">* Klik tombol koreksi atau sel nilai untuk mengubah secara manual</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Koreksi / Edit Nilai Custom -->
+    <div id="modal-score" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl space-y-4 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                    <span>Koreksi / Edit Nilai</span>
+                </h3>
+                <button onclick="closeScoreModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveScoreFromModal(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="score-modal-student-id">
+                <input type="hidden" id="score-modal-col-id">
+                <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl space-y-1">
+                    <p class="text-slate-400">Siswa: <strong id="score-modal-student-name" class="text-white"></strong></p>
+                    <p class="text-slate-400">Kolom Target: <strong id="score-modal-col-name" class="text-blue-400"></strong></p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Nilai Baru (0 - 100):</label>
+                    <input type="number" id="score-modal-input" min="0" max="100" placeholder="Masukkan angka nilai..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 text-sm focus:outline-none focus:border-amber-500 font-mono">
+                </div>
+                <div class="flex justify-between items-center pt-3 border-t border-slate-800">
+                    <button type="button" onclick="clearScoreFromModal()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs">Kosongkan Nilai</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeScoreModal()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs">Batal</button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs shadow-lg shadow-amber-600/30">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Nama Kolom Custom -->
+    <div id="modal-edit-col-label" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl space-y-4 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-pen text-blue-400"></i> Ubah Nama Kolom
+                </h3>
+                <button onclick="closeEditColModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveColumnLabelFromModal(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="edit-col-id-input">
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Nama Kolom / Mapel Baru:</label>
+                    <input type="text" id="edit-col-label-input" required placeholder="Contoh: Tugas 1, IPAS, UTS..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeEditColModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-600/30">Simpan Nama</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Tambah/Edit Siswa -->
+    <div id="modal-student" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl space-y-4 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base" id="modal-title">Tambah Siswa Baru</h3>
+                <button onclick="closeStudentModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveStudent(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="student-id">
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Nama Lengkap Siswa:</label>
+                    <input type="text" id="input-fullname" required placeholder="Contoh: Alzicho Eka Fije" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Nama Panggilan (Kunci Suara):</label>
+                    <input type="text" id="input-nickname" required placeholder="Contoh: fije" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                    <p class="text-[10px] text-slate-500 mt-1">* Digunakan sebagai nama pemicu saat menyebutkan nilai suara.</p>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeStudentModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-600/30">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Pengaturan Voice -->
+    <div id="modal-settings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base">Pengaturan Pengenalan Suara</h3>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-300 mb-1">Bahasa Pengenalan Suara:</label>
+                    <select id="setting-lang" onchange="updateSpeechLanguage()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                        <option value="id-ID" selected>Bahasa Indonesia (id-ID)</option>
+                        <option value="en-US">English (en-US)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-300 mb-1">Sensitivitas Pencocokan Nama (<span id="sensitivity-val">0.4</span>):</label>
+                    <input type="range" id="setting-sensitivity" min="0.1" max="0.9" step="0.05" value="0.4" class="w-full accent-blue-500">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button onclick="toggleSettingsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Kelola Kolom / Mata Pelajaran -->
+    <div id="modal-columns" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl space-y-4 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-blue-400"></i> Kelola Kolom Mapel / Penilaian
+                </h3>
+                <button onclick="closeColumnsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <form onsubmit="addNewColumn(event)" class="flex gap-2">
+                    <input type="text" id="new-col-name" required placeholder="Tambah baru (misal: Tugas 1, UTS, PH1...)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Tambah
+                    </button>
+                </form>
+
+                <div class="border-t border-slate-800 pt-3">
+                    <p class="text-xs font-semibold text-slate-400 mb-2">Daftar Kolom Penilaian Saat Ini:</p>
+                    <div id="columns-list-container" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        <!-- Columns list rendered via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button onclick="closeColumnsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Custom -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl space-y-4 shadow-2xl text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-white text-base" id="confirm-title">Konfirmasi Hapus</h4>
+                <p class="text-xs text-slate-300 mt-1" id="confirm-message">Apakah Anda yakin?</p>
+            </div>
+            <div class="flex justify-center gap-3 pt-2">
+                <button id="btn-confirm-cancel" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs">Batal</button>
+                <button id="btn-confirm-action" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs shadow-lg shadow-rose-600/30">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Box -->
+    <div id="toast-notification" class="fixed bottom-5 right-5 z-50 hidden max-w-xs p-3.5 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl flex items-center gap-3 transition-all duration-300">
+        <div id="toast-icon" class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="text-xs">
+            <p id="toast-title" class="font-bold text-white">Sukses</p>
+            <p id="toast-msg" class="text-slate-300 text-[11px]">Nilai berhasil diperbarui</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        VoiceGrade Pro • Dikembangkan untuk Kemudahan Input Nilai Pengajar & Guru
+    </footer>
+
+    <script>
+        // Initial Dynamic Columns & Roster State
+        const INITIAL_COLUMNS = [
+            { id: 'tugas1', label: 'Tugas 1' },
+            { id: 'tugas2', label: 'Tugas 2' },
+            { id: 'uts', label: 'UTS' },
+            { id: 'uas', label: 'UAS' }
+        ];
+
+        const INITIAL_STUDENTS = [
+            { id: '1', fullName: 'Alzicho Eka Fije', nickname: 'fije', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
+            { id: '2', fullName: 'Budi Santoso', nickname: 'budi', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
+            { id: '3', fullName: 'Siti Rahmawati', nickname: 'siti', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
+            { id: '4', fullName: 'Deni Pratama', nickname: 'deni', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
+            { id: '5', fullName: 'Eka Nurhaliza', nickname: 'eka', tugas1: 0, tugas2: 0, uts: 0, uas: 0 }
+        ];
+
+        // Global State Variables
+        let columns = JSON.parse(localStorage.getItem('vg_columns')) || [...INITIAL_COLUMNS];
+        let students = JSON.parse(localStorage.getItem('vg_students')) || [...INITIAL_STUDENTS];
+
+        students.forEach(student => {
+            columns.forEach(col => {
+                if (student[col.id] === undefined || student[col.id] === null) {
+                    student[col.id] = 0;
+                }
+            });
+        });
+
+        let subjectName = localStorage.getItem('vg_subject') || 'Matematika';
+        let className = localStorage.getItem('vg_class') || 'Kelas 5A';
+        let teacherName = localStorage.getItem('vg_teacher') || '';
+        
+        let activeColumn = columns[0]?.id || 'tugas1';
+        let isListening = false;
+        let speechRecognition = null;
+        let audioFeedbackEnabled = true;
+        let voiceCommandCount = 0;
+        let successfulMatches = 0;
+
+        // Indonesian Word to Number Dictionary
+        const INDO_NUMBER_MAP = {
+            'nol': 0, 'kosong': 0, 'satu': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5,
+            'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10,
+            'sebelas': 11, 'dua belas': 12, 'tiga belas': 13, 'empat belas': 14, 'lima belas': 15,
+            'enam belas': 16, 'tujuh belas': 17, 'delapan belas': 18, 'sembilan belas': 19,
+            'dua puluh': 20, 'tiga puluh': 30, 'empat puluh': 40, 'lima puluh': 50,
+            'enam puluh': 60, 'tujuh puluh': 70, 'delapan puluh': 80, 'sembilan puluh': 90,
+            'seratus': 100
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!columns.some(c => c.id === activeColumn) && columns.length > 0) {
+                activeColumn = columns[0].id;
+            }
+
+            // Restore Metadata Inputs
+            document.getElementById('input-subject-name').value = subjectName;
+            document.getElementById('input-class-name').value = className;
+            document.getElementById('input-teacher-name').value = teacherName;
+
+            renderColumnSelectOptions();
+            renderTableHeaders();
+            renderStudentTable();
+            initSpeechRecognition();
+            
+            // Slider binding
+            document.getElementById('setting-sensitivity')?.addEventListener('input', (e) => {
+                const valSpan = document.getElementById('sensitivity-val');
+                if (valSpan) valSpan.innerText = e.target.value;
+            });
+        });
+
+        function saveMetadata() {
+            subjectName = document.getElementById('input-subject-name').value;
+            className = document.getElementById('input-class-name').value;
+            teacherName = document.getElementById('input-teacher-name').value;
+
+            localStorage.setItem('vg_subject', subjectName);
+            localStorage.setItem('vg_class', className);
+            localStorage.setItem('vg_teacher', teacherName);
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('vg_students', JSON.stringify(students));
+        }
+
+        function saveColumnsToStorage() {
+            localStorage.setItem('vg_columns', JSON.stringify(columns));
+        }
+
+        function renderColumnSelectOptions() {
+            const select = document.getElementById('active-column-select');
+            if (!select) return;
+            select.innerHTML = '';
+
+            columns.forEach(col => {
+                const option = document.createElement('option');
+                option.value = col.id;
+                option.innerText = col.label;
+                if (col.id === activeColumn) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        function getColumnLabel(colId) {
+            const col = columns.find(c => c.id === colId);
+            return col ? col.label : colId;
+        }
+
+        function changeActiveColumn() {
+            const select = document.getElementById('active-column-select');
+            if (select) {
+                activeColumn = select.value;
+                renderTableHeaders();
+                renderStudentTable();
+                renderColumnsManagerList();
+            }
+        }
+
+        function setActiveColumn(colId) {
+            activeColumn = colId;
+            renderColumnSelectOptions();
+            renderTableHeaders();
+            renderStudentTable();
+            renderColumnsManagerList();
+        }
+
+        function highlightRow(studentId) {
+            const row = document.getElementById(`student-row-${studentId}`);
+            if (row) {
+                row.classList.remove('row-highlight-success');
+                void row.offsetWidth; // trigger reflow
+                row.classList.add('row-highlight-success');
+            }
+        }
+
+        function renderTableHeaders() {
+            const tr = document.getElementById('table-header-row');
+            if (!tr) return;
+
+            let html = `
+                <th class="py-3 px-4 w-12 text-center">No</th>
+                <th class="py-3 px-4">Nama Lengkap</th>
+                <th class="py-3 px-4">Panggilan</th>
+            `;
+
+            columns.forEach(col => {
+                const isActive = activeColumn === col.id;
+                html += `
+                    <th class="py-3 px-4 text-center cursor-pointer ${isActive ? 'text-blue-400 font-bold bg-blue-950/30' : 'text-slate-300'}" onclick="setActiveColumn('${col.id}')" title="Klik untuk tetapkan target input suara">
+                        ${col.label} ${isActive ? '<i class="fa-solid fa-microphone text-[10px] ml-1"></i>' : ''}
+                    </th>
+                `;
+            });
+
+            html += `
+                <th class="py-3 px-4 text-center font-bold text-amber-400">
+                    <i class="fa-solid fa-pen-to-square text-xs mr-1"></i>Koreksi (${getColumnLabel(activeColumn)})
+                </th>
+                <th class="py-3 px-4 text-center w-20">Aksi</th>
+            `;
+
+            tr.innerHTML = html;
+        }
+
+        function renderStudentTable() {
+            const tbody = document.getElementById('student-table-body');
+            if (!tbody) return;
+            
+            const query = (document.getElementById('search-input')?.value || '').toLowerCase();
+            tbody.innerHTML = '';
+
+            const filtered = students.filter(s => 
+                s.fullName.toLowerCase().includes(query) || 
+                (s.nickname || '').toLowerCase().includes(query)
+            );
+
+            const countEl = document.getElementById('student-count');
+            if (countEl) countEl.innerText = filtered.length;
+
+            filtered.forEach((student, index) => {
+                const tr = document.createElement('tr');
+                tr.id = `student-row-${student.id}`;
+                tr.className = "hover:bg-slate-800/50 transition border-b border-slate-800/40";
+
+                let colCells = '';
+                columns.forEach(col => {
+                    const val = (student[col.id] !== undefined && student[col.id] !== null) ? student[col.id] : 0;
+                    const isActive = activeColumn === col.id;
+                    colCells += `
+                        <td class="py-3 px-4 text-center cursor-pointer hover:bg-slate-800 rounded font-mono ${isActive ? 'text-blue-400 font-bold bg-blue-950/20' : 'text-slate-200'}" onclick="openScoreModal('${student.id}', '${col.id}')">
+                            ${val}
+                        </td>
+                    `;
+                });
+
+                const currentScore = (student[activeColumn] !== undefined && student[activeColumn] !== null) ? student[activeColumn] : 0;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center text-slate-500 font-mono">${index + 1}</td>
+                    <td class="py-3 px-4 text-white font-semibold">
+                        ${student.fullName}
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="bg-slate-800 text-blue-400 border border-slate-700 px-2 py-0.5 rounded-md font-mono text-[11px]">
+                            ${student.nickname || '-'}
+                        </span>
+                    </td>
+                    ${colCells}
+                    <td class="py-3 px-4 text-center font-bold font-mono">
+                        <button type="button" onclick="correctStudentScore('${student.id}')" class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition text-xs flex items-center justify-center gap-1.5 mx-auto shadow-sm" title="Klik untuk koreksi nilai ${getColumnLabel(activeColumn)}">
+                            <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                            <span>${currentScore}</span>
+                        </button>
+                    </td>
+                    <td class="py-3 px-4 text-center space-x-1">
+                        <button type="button" onclick="openEditStudentModal('${student.id}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Edit Siswa">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" onclick="deleteStudent('${student.id}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/50 text-rose-400 transition" title="Hapus Siswa">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Custom Score Modal Handlers (Replacing Prompt)
+        function openScoreModal(studentId, colId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            document.getElementById('score-modal-student-id').value = studentId;
+            document.getElementById('score-modal-col-id').value = colId;
+            document.getElementById('score-modal-student-name').innerText = student.fullName;
+            document.getElementById('score-modal-col-name').innerText = getColumnLabel(colId);
+            
+            const currentVal = student[colId] !== null && student[colId] !== undefined ? student[colId] : '';
+            document.getElementById('score-modal-input').value = currentVal;
+
+            document.getElementById('modal-score')?.classList.remove('hidden');
+            setTimeout(() => document.getElementById('score-modal-input')?.focus(), 100);
+        }
+
+        function closeScoreModal() {
+            document.getElementById('modal-score')?.classList.add('hidden');
+        }
+
+        function saveScoreFromModal(event) {
+            event.preventDefault();
+            const studentId = document.getElementById('score-modal-student-id').value;
+            const colId = document.getElementById('score-modal-col-id').value;
+            const inputVal = document.getElementById('score-modal-input').value.trim();
+
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+
+            if (inputVal === '') {
+                student[colId] = 0;
+                showToast("Nilai Set 0", `Nilai ${getColumnLabel(colId)} untuk ${student.fullName} diatur ke 0.`);
+            } else {
+                const num = parseInt(inputVal, 10);
+                if (!isNaN(num) && num >= 0 && num <= 100) {
+                    const oldVal = student[colId] ?? 0;
+                    student[colId] = num;
+                    showToast("Nilai Disimpan", `Nilai ${student.fullName} (${getColumnLabel(colId)}) diubah dari ${oldVal} menjadi ${num}`);
+                    highlightRow(student.id);
+                } else {
+                    showToast("Kesalahan Nilai", "Masukkan angka antara 0 - 100", true);
+                    return;
+                }
+            }
+
+            saveToStorage();
+            renderStudentTable();
+            closeScoreModal();
+        }
+
+        function clearScoreFromModal() {
+            document.getElementById('score-modal-input').value = '0';
+        }
+
+        function correctStudentScore(studentId) {
+            openScoreModal(studentId, activeColumn);
+        }
+
+        function editCellScore(studentId, colKey) {
+            openScoreModal(studentId, colKey);
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                const statusText = document.getElementById('speech-status-text');
+                if (statusText) statusText.innerText = "Browser Tidak Mendukung Voice API";
+                showToast("Perhatian", "Browser Anda tidak mendukung Web Speech API. Gunakan Chrome/Edge.", true);
+                return;
+            }
+
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.continuous = true;
+            speechRecognition.interimResults = true;
+            speechRecognition.lang = document.getElementById('setting-lang')?.value || 'id-ID';
+
+            speechRecognition.onstart = () => {
+                isListening = true;
+                updateMicUI(true);
+            };
+
+            speechRecognition.onend = () => {
+                isListening = false;
+                updateMicUI(false);
+            };
+
+            speechRecognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error !== 'no-speech') {
+                    showToast("Kesalahan Suara", `Error: ${event.error}`, true);
+                }
+            };
+
+            speechRecognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                const liveText = finalTranscript || interimTranscript;
+                const transcriptEl = document.getElementById('live-transcript');
+                if (transcriptEl && liveText) {
+                    transcriptEl.innerText = liveText;
+                    transcriptEl.classList.remove('italic', 'text-slate-400');
+                    transcriptEl.classList.add('text-blue-300', 'font-medium');
+                }
+
+                if (finalTranscript) {
+                    const confidence = event.results[event.results.length - 1][0].confidence;
+                    const confidenceEl = document.getElementById('speech-confidence');
+                    if (confidenceEl) {
+                        confidenceEl.innerText = `${Math.round((confidence || 0.85) * 100)}%`;
+                    }
+                    processVoiceCommand(finalTranscript);
+                }
+            };
+        }
+
+        function toggleVoiceRecognition() {
+            if (!speechRecognition) {
+                initSpeechRecognition();
+                if (!speechRecognition) return;
+            }
+
+            if (isListening) {
+                speechRecognition.stop();
+            } else {
+                try {
+                    speechRecognition.start();
+                } catch (e) {
+                    speechRecognition.stop();
+                    setTimeout(() => speechRecognition.start(), 200);
+                }
+            }
+        }
+
+        function updateMicUI(listening) {
+            const btn = document.getElementById('btn-toggle-mic');
+            const icon = document.getElementById('mic-icon');
+            const instruction = document.getElementById('mic-instruction');
+            const statusDot = document.getElementById('speech-status-dot');
+            const statusText = document.getElementById('speech-status-text');
+
+            if (listening) {
+                if (btn) btn.className = "w-20 h-20 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 text-white text-2xl flex items-center justify-center shadow-lg shadow-rose-600/50 mic-active-pulse transition-all duration-300";
+                if (icon) icon.className = "fa-solid fa-microphone-slash animate-bounce";
+                if (instruction) {
+                    instruction.innerText = "Mendengarkan... Ucapkan [Nama] [Nilai]";
+                    instruction.className = "text-sm font-bold text-rose-400";
+                }
+                if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
+                if (statusText) statusText.innerText = "Mendengarkan (Mendukung Voice)";
+            } else {
+                if (btn) btn.className = "w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-2xl flex items-center justify-center shadow-lg shadow-blue-600/40 hover:scale-105 active:scale-95 transition-all duration-300";
+                if (icon) icon.className = "fa-solid fa-microphone";
+                if (instruction) {
+                    instruction.innerText = "Klik Mikrofon Lalu Ucapkan Perintah";
+                    instruction.className = "text-sm font-semibold text-slate-200";
+                }
+                if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+                if (statusText) statusText.innerText = "Mikrofon Siap";
+            }
+        }
+
+        function processVoiceCommand(rawTranscript) {
+            if (!rawTranscript) return;
+
+            voiceCommandCount++;
+            const countStat = document.getElementById('voice-count-stat');
+            if (countStat) countStat.innerText = voiceCommandCount;
+
+            const cleanText = rawTranscript.toLowerCase().trim();
+
+            // Percobaan parsing format cepat: Nomor Absen + Nilai (contoh "190" -> Absen 1, Nilai 90)
+            const shorthandResult = parseRollAndScoreCommand(cleanText);
+
+            if (shorthandResult) {
+                const targetStudent = students[shorthandResult.roll - 1];
+                if (targetStudent) {
+                    successfulMatches++;
+                    targetStudent[activeColumn] = shorthandResult.score;
+                    saveToStorage();
+                    renderStudentTable();
+                    highlightRow(targetStudent.id);
+
+                    const colLabel = getColumnLabel(activeColumn);
+                    const msg = `Absen ${shorthandResult.roll} (${targetStudent.fullName}) [${colLabel}]: ${shorthandResult.score}`;
+                    logVoiceActivity(rawTranscript, `Sukses: ${msg}`, true);
+                    showToast("Nilai Diperbarui", msg);
+
+                    speakFeedback(`Absen ${shorthandResult.roll} ${targetStudent.nickname || targetStudent.fullName} ${shorthandResult.score}`);
+
+                    const rate = Math.round((successfulMatches / voiceCommandCount) * 100);
+                    const rateStat = document.getElementById('match-rate-stat');
+                    if (rateStat) rateStat.innerText = `${rate}%`;
+                    return;
+                }
+            }
+
+            // Fallback ke pencocokan nama / panggilan
+            const extractedScore = parseScoreFromText(cleanText);
+
+            if (extractedScore === null || isNaN(extractedScore)) {
+                logVoiceActivity(rawTranscript, "Gagal: Angka nilai tidak terdeteksi", false);
+                speakFeedback("Angka nilai tidak terdeteksi");
+                return;
+            }
+
+            const targetStudent = findBestMatchingStudent(cleanText);
+
+            if (targetStudent) {
+                successfulMatches++;
+                targetStudent[activeColumn] = extractedScore;
+                saveToStorage();
+                renderStudentTable();
+                highlightRow(targetStudent.id);
+
+                const colLabel = getColumnLabel(activeColumn);
+                const msg = `${targetStudent.fullName} (${colLabel}): ${extractedScore}`;
+                logVoiceActivity(rawTranscript, `Sukses: ${msg}`, true);
+                showToast("Nilai Diperbarui", msg);
+
+                speakFeedback(`Nilai ${targetStudent.nickname || targetStudent.fullName} ${extractedScore}`);
+            } else {
+                logVoiceActivity(rawTranscript, "Gagal: Nama atau nomor absen tidak cocok", false);
+                speakFeedback("Siswa tidak ditemukan");
+            }
+
+            const rate = Math.round((successfulMatches / voiceCommandCount) * 100);
+            const rateStat = document.getElementById('match-rate-stat');
+            if (rateStat) rateStat.innerText = `${rate}%`;
+        }
+
+        function parseRollAndScoreCommand(cleanText) {
+            // Ekstrak urutan angka
+            const numberMatches = cleanText.match(/\d+/g);
+
+            // Kasus 1: Angka terpisah seperti "1 90", "absen 1 nilai 90"
+            if (numberMatches && numberMatches.length >= 2) {
+                const candidateRoll = parseInt(numberMatches[0], 10);
+                const candidateScore = parseInt(numberMatches[1], 10);
+                if (candidateRoll >= 1 && candidateRoll <= students.length && candidateScore >= 0 && candidateScore <= 100) {
+                    return { roll: candidateRoll, score: candidateScore };
+                }
+            }
+
+            // Kasus 2: Angka gabungan seperti "190" (Absen 1, Nilai 90), "1585" (Absen 15, Nilai 85), "5100" (Absen 5, Nilai 100)
+            if (numberMatches && numberMatches.length === 1) {
+                const numStr = numberMatches[0];
+
+                // Uji panjang digit nilai: 3 digit (100), 2 digit (10-99), 1 digit (0-9)
+                const candidateScoreLens = [3, 2, 1];
+                for (let scoreLen of candidateScoreLens) {
+                    if (numStr.length > scoreLen) {
+                        const rollPart = numStr.slice(0, numStr.length - scoreLen);
+                        const scorePart = numStr.slice(numStr.length - scoreLen);
+
+                        const r = parseInt(rollPart, 10);
+                        const s = parseInt(scorePart, 10);
+
+                        if (r >= 1 && r <= students.length && s >= 0 && s <= 100) {
+                            return { roll: r, score: s };
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function parseScoreFromText(text) {
+            const digitsMatch = text.match(/\b(100|[1-9]?\d)\b/);
+            if (digitsMatch) {
+                return parseInt(digitsMatch[0], 10);
+            }
+
+            const words = text.split(/\s+/);
+            for (let i = 0; i < words.length; i++) {
+                const w = words[i];
+                if (w === 'seratus') return 100;
+
+                if (INDO_NUMBER_MAP[w] !== undefined && words[i+1] === 'puluh') {
+                    let tens = INDO_NUMBER_MAP[w] * 10;
+                    let ones = 0;
+                    if (i + 2 < words.length && INDO_NUMBER_MAP[words[i+2]] !== undefined) {
+                        ones = INDO_NUMBER_MAP[words[i+2]];
+                    }
+                    return tens + ones;
+                }
+
+                if (INDO_NUMBER_MAP[w] !== undefined && words[i+1] === 'belas') {
+                    return 10 + INDO_NUMBER_MAP[w];
+                }
+            }
+
+            return null;
+        }
+
+        function findBestMatchingStudent(transcript) {
+            const cleaned = transcript.toLowerCase()
+                .replace(/\b(nilai|dapat|kasih|diberi|skor|poin|absen|nomor|no)\b/g, '')
+                .replace(/\b(100|[1-9]?\d)\b/g, '')
+                .replace(/delapan|tujuh|sembilan|puluh|lima|belas|satu|dua|tiga|empat|enam|seratus/g, '')
+                .trim();
+
+            if (!cleaned) return null;
+
+            let bestMatch = null;
+            let highestScore = 0;
+
+            const sensitivity = parseFloat(document.getElementById('setting-sensitivity')?.value || '0.4');
+
+            students.forEach((student, index) => {
+                let matchScore = 0;
+                const nickname = (student.nickname || '').toLowerCase().trim();
+                const fullName = (student.fullName || '').toLowerCase().trim();
+                const rollNo = (index + 1).toString();
+
+                if (nickname && cleaned.includes(nickname)) {
+                    matchScore += 0.9;
+                }
+
+                const nameTokens = fullName.split(/\s+/);
+                nameTokens.forEach(token => {
+                    if (token && cleaned.includes(token)) {
+                        matchScore += 0.6;
+                    }
+                });
+
+                if (cleaned.includes(`nomor ${rollNo}`) || cleaned.includes(`absen ${rollNo}`) || cleaned === rollNo) {
+                    matchScore += 0.95;
+                }
+
+                const subRatio = getSimilarityRatio(cleaned, nickname || fullName);
+                if (subRatio > matchScore) {
+                    matchScore = subRatio;
+                }
+
+                if (matchScore > highestScore && matchScore >= sensitivity) {
+                    highestScore = matchScore;
+                    bestMatch = student;
+                }
+            });
+
+            return bestMatch;
+        }
+
+        function getSimilarityRatio(str1, str2) {
+            if (!str1 || !str2) return 0;
+            if (str1 === str2) return 1.0;
+            if (str1.length > 2 && str2.includes(str1)) return 0.8;
+            if (str2.length > 2 && str1.includes(str2)) return 0.8;
+            return 0;
+        }
+
+        function openManageColumnsModal() {
+            renderColumnsManagerList();
+            document.getElementById('modal-columns')?.classList.remove('hidden');
+        }
+
+        function closeColumnsModal() {
+            document.getElementById('modal-columns')?.classList.add('hidden');
+        }
+
+        function renderColumnsManagerList() {
+            const container = document.getElementById('columns-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (columns.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 text-xs text-center py-2 italic">Belum ada kolom. Tambahkan di atas.</div>`;
+                return;
+            }
+
+            columns.forEach(col => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-2.5 bg-slate-900 rounded-xl border border-slate-800 text-xs";
+                div.innerHTML = `
+                    <span class="font-medium text-slate-200 flex items-center gap-2 truncate pr-2">
+                        <i class="fa-solid fa-pen-nib text-blue-400"></i> ${col.label} 
+                        ${col.id === activeColumn ? '<span class="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30 font-semibold shrink-0">Target Suara</span>' : ''}
+                    </span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" onclick="openEditColModal('${col.id}')" class="text-slate-300 hover:text-white px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition text-[11px] font-medium" title="Ubah Nama">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </button>
+                        <button type="button" onclick="deleteColumn('${col.id}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-500/30 transition text-[11px] font-medium" title="Hapus Kolom">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function openEditColModal(colId) {
+            const col = columns.find(c => c.id === colId);
+            if (!col) return;
+            document.getElementById('edit-col-id-input').value = colId;
+            document.getElementById('edit-col-label-input').value = col.label;
+            document.getElementById('modal-edit-col-label')?.classList.remove('hidden');
+        }
+
+        function closeEditColModal() {
+            document.getElementById('modal-edit-col-label')?.classList.add('hidden');
+        }
+
+        function saveColumnLabelFromModal(event) {
+            event.preventDefault();
+            const colId = document.getElementById('edit-col-id-input').value;
+            const newLabel = document.getElementById('edit-col-label-input').value.trim();
+
+            const col = columns.find(c => c.id === colId);
+            if (col && newLabel) {
+                col.label = newLabel;
+                saveColumnsToStorage();
+                renderColumnsManagerList();
+                renderColumnSelectOptions();
+                renderTableHeaders();
+                renderStudentTable();
+                closeEditColModal();
+                showToast("Kolom Diperbarui", `Nama kolom diubah menjadi: ${col.label}`);
+            }
+        }
+
+        function addNewColumn(event) {
+            event.preventDefault();
+            const input = document.getElementById('new-col-name');
+            if (!input) return;
+            const label = input.value.trim();
+            if (!label) return;
+
+            const id = 'col_' + Date.now().toString().slice(-6);
+            columns.push({ id, label });
+
+            // Initialize new column with default 0 for existing students
+            students.forEach(s => {
+                s[id] = 0;
+            });
+
+            saveColumnsToStorage();
+            saveToStorage();
+
+            input.value = '';
+            renderColumnsManagerList();
+            renderColumnSelectOptions();
+            renderTableHeaders();
+            renderStudentTable();
+
+            if (columns.length === 1) {
+                setActiveColumn(id);
+            }
+            showToast("Kolom Ditambahkan", `Kolom "${label}" berhasil dibuat dengan nilai default 0.`);
+        }
+
+        function deleteColumn(colId) {
+            const col = columns.find(c => c.id === colId);
+            if (!col) return;
+
+            if (columns.length <= 1) {
+                showToast("Gagal Hapus", "Minimal harus ada 1 kolom nilai.", true);
+                return;
+            }
+
+            showConfirmDialog("Hapus Kolom Mapel", `Hapus kolom "${col.label}"? Seluruh nilai siswa di kolom ini akan terhapus.`, () => {
+                columns = columns.filter(c => c.id !== colId);
+                saveColumnsToStorage();
+
+                if (activeColumn === colId) {
+                    activeColumn = columns[0].id;
+                }
+
+                renderColumnsManagerList();
+                renderColumnSelectOptions();
+                renderTableHeaders();
+                renderStudentTable();
+                showToast("Kolom Dihapus", `Kolom "${col.label}" telah dihapus.`);
+            });
+        }
+
+        function showConfirmDialog(title, message, onConfirm) {
+            const modal = document.getElementById('modal-confirm');
+            if (!modal) return;
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-message').innerText = message;
+            
+            const btnAction = document.getElementById('btn-confirm-action');
+            const btnCancel = document.getElementById('btn-confirm-cancel');
+            
+            modal.classList.remove('hidden');
+            
+            const closeDialog = () => {
+                modal.classList.add('hidden');
+                if (btnAction) btnAction.onclick = null;
+                if (btnCancel) btnCancel.onclick = null;
+            };
+            
+            if (btnCancel) btnCancel.onclick = closeDialog;
+            if (btnAction) {
+                btnAction.onclick = () => {
+                    closeDialog();
+                    onConfirm();
+                };
+            }
+        }
+
+        function logVoiceActivity(commandText, statusMsg, isSuccess) {
+            const container = document.getElementById('voice-log-container');
+            if (!container) return;
+
+            if (container.children.length === 1 && container.children[0].innerText.includes('Riwayat')) {
+                container.innerHTML = '';
+            }
+
+            const item = document.createElement('div');
+            item.className = `p-2 rounded-lg border text-[11px] flex items-center justify-between gap-2 ${
+                isSuccess 
+                ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300' 
+                : 'bg-rose-950/40 border-rose-500/30 text-rose-300'
+            }`;
+
+            item.innerHTML = `
+                <div class="truncate">
+                    <span class="font-bold">"${commandText}"</span>
+                    <p class="text-[10px] opacity-80">${statusMsg}</p>
+                </div>
+                <i class="fa-solid ${isSuccess ? 'fa-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}"></i>
+            `;
+
+            container.prepend(item);
+        }
+
+        function clearVoiceLog() {
+            const container = document.getElementById('voice-log-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-slate-500 text-[11px] italic text-center py-6">Riwayat pemrosesan suara akan muncul di sini...</div>
+                `;
+            }
+        }
+
+        function speakFeedback(text) {
+            if (!audioFeedbackEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleAudioFeedback() {
+            audioFeedbackEnabled = !audioFeedbackEnabled;
+            const btn = document.getElementById('btn-audio-feedback');
+            if (!btn) return;
+            if (audioFeedbackEnabled) {
+                btn.className = "px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 hover:bg-emerald-500/30 transition";
+                btn.innerHTML = `<i class="fa-solid fa-volume-high"></i> <span class="hidden sm:inline">Suara:</span> Aktif`;
+            } else {
+                btn.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-700 transition";
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i> <span class="hidden sm:inline">Suara:</span> Mute`;
+            }
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('modal-title').innerText = "Tambah Siswa Baru";
+            document.getElementById('student-id').value = "";
+            document.getElementById('input-fullname').value = "";
+            document.getElementById('input-nickname').value = "";
+            document.getElementById('modal-student')?.classList.remove('hidden');
+        }
+
+        function openEditStudentModal(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            document.getElementById('modal-title').innerText = "Edit Data Siswa";
+            document.getElementById('student-id').value = student.id;
+            document.getElementById('input-fullname').value = student.fullName;
+            document.getElementById('input-nickname').value = student.nickname || '';
+            document.getElementById('modal-student')?.classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('modal-student')?.classList.add('hidden');
+        }
+
+        function saveStudent(event) {
+            event.preventDefault();
+            const id = document.getElementById('student-id').value;
+            const fullName = document.getElementById('input-fullname').value.trim();
+            const nickname = document.getElementById('input-nickname').value.trim().toLowerCase();
+
+            if (!fullName || !nickname) return;
+
+            if (id) {
+                const student = students.find(s => s.id === id);
+                if (student) {
+                    student.fullName = fullName;
+                    student.nickname = nickname;
+                }
+            } else {
+                const newStudent = {
+                    id: Date.now().toString(),
+                    fullName,
+                    nickname
+                };
+                columns.forEach(col => {
+                    newStudent[col.id] = 0;
+                });
+                students.push(newStudent);
+            }
+
+            saveToStorage();
+            renderStudentTable();
+            closeStudentModal();
+            showToast("Siswa Disimpan", `Data ${fullName} berhasil diperbarui.`);
+        }
+
+        function deleteStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            showConfirmDialog("Hapus Siswa", `Apakah Anda yakin ingin menghapus siswa "${student.fullName}"?`, () => {
+                students = students.filter(s => s.id !== id);
+                saveToStorage();
+                renderStudentTable();
+                showToast("Siswa Dihapus", `${student.fullName} telah dihapus.`);
+            });
+        }
+
+        function resetAllScores() {
+            showConfirmDialog("Reset Seluruh Nilai", "Apakah Anda yakin ingin mengatur nilai semua siswa ke 0?", () => {
+                students.forEach(s => {
+                    columns.forEach(col => {
+                        s[col.id] = 0;
+                    });
+                });
+                saveToStorage();
+                renderStudentTable();
+                showToast("Nilai Direset", "Seluruh nilai siswa berhasil diatur ke 0.");
+            });
+        }
+
+        function handleExcelImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library XLSX belum dimuat. Periksa koneksi internet.", true);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    if (!jsonRows || jsonRows.length === 0) {
+                        showToast("File Kosong", "File Excel tidak berisi data.", true);
+                        return;
+                    }
+
+                    let addedCount = 0;
+                    let headerIndex = -1;
+                    let nameColIdx = -1;
+                    let nickColIdx = -1;
+
+                    // Search for header row containing 'nama' or 'siswa'
+                    for (let r = 0; r < Math.min(jsonRows.length, 10); r++) {
+                        const row = jsonRows[r];
+                        if (!Array.isArray(row)) continue;
+                        
+                        row.forEach((cell, cIdx) => {
+                            const str = String(cell || '').toLowerCase().trim();
+                            if (str.includes('nama') || str.includes('name') || str.includes('siswa')) {
+                                if (!str.includes('panggilan') && !str.includes('nick')) {
+                                    nameColIdx = cIdx;
+                                    headerIndex = r;
+                                }
+                            }
+                            if (str.includes('panggilan') || str.includes('nickname') || str.includes('nick')) {
+                                nickColIdx = cIdx;
+                            }
+                        });
+                        if (nameColIdx !== -1) break;
+                    }
+
+                    // Fallback: column A (0) is Name, column B (1) is Nickname
+                    const startRow = headerIndex !== -1 ? headerIndex + 1 : 0;
+                    if (nameColIdx === -1) nameColIdx = 0;
+                    if (nickColIdx === -1 && jsonRows[0] && jsonRows[0].length > 1) nickColIdx = 1;
+
+                    for (let i = startRow; i < jsonRows.length; i++) {
+                        const row = jsonRows[i];
+                        if (!row || !row[nameColIdx]) continue;
+
+                        const rawName = String(row[nameColIdx]).trim();
+                        if (!rawName || rawName.toLowerCase() === 'nama' || rawName.toLowerCase() === 'nama lengkap') continue;
+
+                        let rawNick = nickColIdx !== -1 && row[nickColIdx] ? String(row[nickColIdx]).trim().toLowerCase() : '';
+                        
+                        // Auto-generate nickname if empty (take first word)
+                        if (!rawNick) {
+                            rawNick = rawName.split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                        }
+
+                        // Prevent duplicate student names
+                        const existing = students.find(s => s.fullName.toLowerCase() === rawName.toLowerCase());
+                        if (!existing) {
+                            const newStudent = {
+                                id: Date.now().toString() + Math.random().toString().slice(2, 6),
+                                fullName: rawName,
+                                nickname: rawNick
+                            };
+
+                            // Set default grade 0 for all active columns
+                            columns.forEach(col => {
+                                newStudent[col.id] = 0;
+                            });
+
+                            students.push(newStudent);
+                            addedCount++;
+                        }
+                    }
+
+                    if (addedCount > 0) {
+                        saveToStorage();
+                        renderStudentTable();
+                        showToast("Impor Berhasil", `${addedCount} siswa baru berhasil diimpor dengan nilai default 0.`);
+                    } else {
+                        showToast("Informasi", "Tidak ada siswa baru yang ditambahkan (mungkin data sudah ada).");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Gagal Impor", "Terjadi kesalahan saat membaca file Excel.", true);
+                } finally {
+                    event.target.value = ''; // Reset file input
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function filterStudents() {
+            renderStudentTable();
+        }
+
+        function copyToClipboardTable() {
+            const currentSubj = subjectName || 'Mata Pelajaran';
+            const currentClass = className || '-';
+            const currentTeacher = teacherName || '-';
+
+            let content = `DAFTAR NILAI SISWA\n`;
+            content += `Mata Pelajaran\t: ${currentSubj}\n`;
+            content += `Kelas / Rombel\t: ${currentClass}\n`;
+            if (currentTeacher) content += `Guru / Pengajar\t: ${currentTeacher}\n`;
+            content += `Tanggal Ekspor\t: ${new Date().toLocaleDateString('id-ID')}\n\n`;
+
+            let headers = ["No", "Nama Lengkap", "Panggilan", ...columns.map(c => c.label), "Koreksi"];
+            content += headers.join("\t") + "\n";
+            
+            students.forEach((s, idx) => {
+                let rowVals = [
+                    idx + 1,
+                    s.fullName,
+                    s.nickname || '',
+                    ...columns.map(c => s[c.id] ?? ''),
+                    s[activeColumn] ?? '-'
+                ];
+                content += rowVals.join("\t") + "\n";
+            });
+
+            const textarea = document.createElement('textarea');
+            textarea.value = content;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast("Tersalin!", "Data dan Header Mapel disalin! Tempelkan langsung (Ctrl+V) ke Google Sheets / Excel.");
+        }
+
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library Excel belum siap. Coba periksa koneksi internet.", true);
+                return;
+            }
+
+            const currentSubj = subjectName || 'Mata Pelajaran';
+            const currentClass = className || '-';
+            const currentTeacher = teacherName || '-';
+
+            // Building Array of Arrays (AOA) with Subject Header at the top
+            const aoaData = [
+                ["DAFTAR NILAI SISWA"],
+                ["Mata Pelajaran:", currentSubj],
+                ["Kelas / Rombel:", currentClass],
+                ["Nama Guru:", currentTeacher],
+                ["Tanggal Unduh:", new Date().toLocaleDateString('id-ID')],
+                [], // Empty row separator
+                ["No", "Nama Lengkap", "Panggilan", ...columns.map(c => c.label), "Koreksi"]
+            ];
+
+            students.forEach((s, idx) => {
+                aoaData.push([
+                    idx + 1,
+                    s.fullName,
+                    s.nickname || '',
+                    ...columns.map(col => s[col.id] ?? ''),
+                    s[activeColumn] ?? '-'
+                ]);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(aoaData);
+
+            // Set column widths
+            const colsConfig = [
+                { wch: 6 },
+                { wch: 28 },
+                { wch: 15 }
+            ];
+            columns.forEach(() => colsConfig.push({ wch: 14 }));
+            colsConfig.push({ wch: 12 });
+
+            worksheet['!cols'] = colsConfig;
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Nilai Siswa");
+
+            const safeSubjName = currentSubj.replace(/[^a-zA-Z0-9]/g, '_');
+            const fileName = `Nilai_${safeSubjName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+
+            showToast("Ekspor Excel", `File "${fileName}" berhasil diunduh.`);
+        }
+
+        function toggleSettingsModal() {
+            const modal = document.getElementById('modal-settings');
+            if (modal) modal.classList.toggle('hidden');
+        }
+
+        function updateSpeechLanguage() {
+            if (speechRecognition) {
+                const selectedLang = document.getElementById('setting-lang')?.value || 'id-ID';
+                speechRecognition.lang = selectedLang;
+                showToast("Pengaturan Bahasa", `Bahasa pengenalan suara diubah ke ${selectedLang}`);
+            }
+        }
+
+        function showToast(title, message, isError = false) {
+            const toast = document.getElementById('toast-notification');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-msg');
+
+            if (!toast) return;
+
+            if (toastTitle) toastTitle.innerText = title;
+            if (toastMsg) toastMsg.innerText = message;
+
+            if (toastIcon) {
+                if (isError) {
+                    toastIcon.className = "w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-sm";
+                    toastIcon.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+                } else {
+                    toastIcon.className = "w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm";
+                    toastIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                }
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

@@ -202,15 +202,16 @@
                 </div>
             </a>
 
-            <!-- 4 MENU SEGERA HADIR (COMING SOON) -->
+            <!-- 4 MENU: Media Pembelajaran (Voice Input) + 3 COMING SOON -->
             <div class="grid grid-cols-2 gap-2 mt-2">
-                <a href="#" class="coming-soon block bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl p-3 shadow-md border border-slate-500/30 cursor-not-allowed">
+                <!-- Media Pembelajaran - VOICE INPUT (AKTIF) -->
+                <a href="suara_input.html" class="block bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl p-3 shadow-md active:scale-95 transition-all border border-sky-400/30">
                     <div class="flex flex-col items-center text-center">
-                        <div class="bg-white/10 p-2 rounded-2xl mb-1.5">
-                            <i class="bi bi-clock-history text-xl"></i>
+                        <div class="bg-white/15 p-2 rounded-2xl mb-1.5">
+                            <i class="bi bi-mic-fill text-xl"></i>
                         </div>
                         <span class="font-bold text-xs">Media Pembelajaran</span>
-                        <span class="badge-coming text-[7px] font-black px-2 py-0.5 rounded-full mt-0.5">Segera Hadir</span>
+                        <span class="text-[7px] text-sky-100 font-medium">Voice Input Nilai</span>
                     </div>
                 </a>
                 
@@ -597,7 +598,7 @@
         let spaceLevelKills = 0;
         let spaceKillsTarget = 10; // Jumlah musuh yang harus dihancurkan sebelum Bos muncul
 
-        let spacePlayer = { x: 20, y: 100, size: 14, speed: 4.5, shield: 100 };
+        let spacePlayer = { x: 20, y: 100, size: 14, shield: 100 };
         let spaceBullets = [];
         let spaceEnemies = [];
         let spaceParticles = [];

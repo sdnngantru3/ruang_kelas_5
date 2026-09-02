@@ -34,12 +34,18 @@
             0% { box-shadow: 0 0 15px rgba(225, 29, 72, 0.4); transform: scale(1); }
             100% { box-shadow: 0 0 30px rgba(225, 29, 72, 0.8); transform: scale(1.04); }
         }
+        .subject-tab-active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.6);
+            color: #60a5fa;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
 
     <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-microphone-lines text-lg"></i>
@@ -47,18 +53,21 @@
                 <div>
                     <h1 class="font-bold text-base sm:text-lg text-white leading-tight flex items-center gap-2">
                         VoiceGrade Pro
-                        <span class="text-[10px] bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">v2.7</span>
+                        <span class="text-[10px] bg-blue-500/20 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/30">v3.0 Multi-Mapel</span>
                     </h1>
-                    <p class="text-xs text-slate-400 hidden sm:block">Aplikasi Input Nilai Suara Guru & Pengajar</p>
+                    <p class="text-xs text-slate-400 hidden sm:block">Input Nilai Suara & Rekap Rapor Multi Mata Pelajaran</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
+                <button onclick="openRekapModal()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-500/30 transition shadow-sm">
+                    <i class="fa-solid fa-chart-pie"></i> <span class="hidden sm:inline">Rekap Nilai Mapel</span>
+                </button>
                 <button onclick="toggleAudioFeedback()" id="btn-audio-feedback" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 hover:bg-emerald-500/30 transition">
                     <i class="fa-solid fa-volume-high"></i> <span class="hidden sm:inline">Suara:</span> Aktif
                 </button>
                 <button onclick="openManageColumnsModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-sliders text-blue-400"></i> Kelola Kolom Mapel
+                    <i class="fa-solid fa-sliders text-blue-400"></i> Kelola Tugas Mapel
                 </button>
                 <button onclick="toggleSettingsModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition" title="Pengaturan">
                     <i class="fa-solid fa-gear text-sm"></i>
@@ -67,18 +76,40 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full space-y-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full space-y-5">
 
-        <!-- Info Mata Pelajaran & Kelas Manual Input -->
-        <div class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl border border-slate-800/80">
-            <div class="flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-book-bookmark text-blue-400 text-sm"></i>
-                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Informasi Mata Pelajaran & Kelas (Untuk Header Ekspor)</h2>
+        <!-- Subject Selection Dropdown Bar -->
+        <div class="glass-panel rounded-2xl p-4 shadow-xl border border-slate-800/80">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-book-open text-sm"></i>
+                    </div>
+                    <div>
+                        <label for="subject-select-dropdown" class="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                            Pilih Mata Pelajaran:
+                        </label>
+                        <p class="text-[11px] text-slate-400">Pilih mapel dari dropdown untuk menginput nilai</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <select id="subject-select-dropdown" onchange="selectSubject(this.value)" class="w-full sm:w-64 bg-slate-900 border border-slate-700 hover:border-blue-500 focus:border-blue-500 text-slate-100 font-bold text-xs rounded-xl px-3.5 py-2.5 outline-none transition cursor-pointer shadow-inner">
+                        <!-- Dropdown Options Generated Dynamically via JS -->
+                    </select>
+                    <span id="current-subject-badge" class="text-xs font-semibold px-3 py-2 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0 hidden md:inline-block">
+                        IPAS
+                    </span>
+                </div>
             </div>
+        </div>
+
+        <!-- Info Kelas & Guru Header -->
+        <div class="glass-panel rounded-2xl p-4 shadow-xl border border-slate-800/80">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Mata Pelajaran (Mapel):</label>
-                    <input type="text" id="input-subject-name" oninput="saveMetadata()" placeholder="Contoh: Matematika / IPAS" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Mata Pelajaran Aktif:</label>
+                    <input type="text" id="input-subject-name" oninput="updateCurrentSubjectName()" placeholder="Nama Mapel" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kelas / Rombel:</label>
@@ -101,7 +132,7 @@
                         <span id="speech-status-text" class="text-xs font-semibold text-slate-300">Mikrofon Siap</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <label for="active-column-select" class="text-xs text-slate-400 font-medium hidden sm:block">Target Suara:</label>
+                        <label for="active-column-select" class="text-xs text-slate-400 font-medium hidden sm:block">Target Tugas/Kolom:</label>
                         <select id="active-column-select" onchange="changeActiveColumn()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-blue-400 font-bold focus:outline-none focus:border-blue-500">
                             <!-- Populated via JS -->
                         </select>
@@ -115,7 +146,7 @@
                     </button>
                     <div class="space-y-1 text-center sm:text-left flex-1">
                         <p id="mic-instruction" class="text-sm font-semibold text-slate-200">Klik Mikrofon Lalu Ucapkan Perintah</p>
-                        <p class="text-xs text-slate-400">Contoh ucapan: <span class="text-blue-300 font-medium">"190"</span> (Absen 1 = 90), <span class="text-blue-300 font-medium">"1585"</span> (Absen 15 = 85), atau <span class="text-blue-300 font-medium">"fije 85"</span></p>
+                        <p class="text-xs text-slate-400">Contoh: <span class="text-blue-300 font-medium">"190"</span> (Absen 1 = 90), <span class="text-blue-300 font-medium">"1585"</span> (Absen 15 = 85), atau <span class="text-blue-300 font-medium">"fije 85"</span></p>
                         <div class="pt-2">
                             <div id="live-transcript-box" class="bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-300 min-h-[36px] flex items-center">
                                 <span class="text-slate-500 mr-2"><i class="fa-solid fa-quote-left"></i></span>
@@ -163,24 +194,24 @@
                     <button onclick="openAddStudentModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-user-plus"></i> Tambah Siswa
                     </button>
+                    <button onclick="openManageColumnsModal()" class="px-3 py-2 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center gap-1.5" title="Tambah Tugas Khusus Mapel Ini">
+                        <i class="fa-solid fa-plus-circle"></i> Tambah Tugas Mapel
+                    </button>
                     <button onclick="downloadExcelTemplate()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition" title="Unduh format template Excel untuk impor">
-                        <i class="fa-solid fa-file-arrow-down"></i> Template Excel
+                        <i class="fa-solid fa-file-arrow-down"></i> Template
                     </button>
                     <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelImport(event)" class="hidden">
-                    <button onclick="document.getElementById('excel-file-input').click()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-1.5 transition" title="Impor daftar siswa dari file Excel">
-                        <i class="fa-solid fa-file-import"></i> Impor Excel
+                    <button onclick="document.getElementById('excel-file-input').click()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-file-import"></i> Impor Siswa
                     </button>
                     <button onclick="exportToExcel()" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs shadow-lg shadow-emerald-700/30 flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-file-excel"></i> Ekspor Excel
+                        <i class="fa-solid fa-file-excel"></i> Ekspor Mapel
                     </button>
                     <button onclick="copyToClipboardTable()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-copy"></i> Salin ke Sheets
+                        <i class="fa-solid fa-copy"></i> Salin Sheets
                     </button>
-                    <button onclick="resetAllScores()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs transition" title="Reset Seluruh Nilai ke 0">
+                    <button onclick="resetAllScoresForActiveSubject()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs transition" title="Reset Nilai Mapel Aktif ke 0">
                         <i class="fa-solid fa-rotate-right"></i>
-                    </button>
-                    <button onclick="clearAllStudents()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs transition" title="Kosongkan Seluruh Daftar Siswa">
-                        <i class="fa-solid fa-user-xmark"></i>
                     </button>
                 </div>
             </div>
@@ -201,11 +232,52 @@
 
             <div class="flex items-center justify-between text-xs text-slate-400 pt-2">
                 <span>Total Siswa: <strong id="student-count" class="text-white">0</strong> orang</span>
-                <span class="text-[11px] text-slate-500">* Klik tombol koreksi atau sel nilai untuk mengubah secara manual</span>
+                <span class="text-[11px] text-slate-500">* Nilai tersimpan secara otomatis per mapel di LocalStorage browser</span>
             </div>
         </div>
 
     </main>
+
+    <!-- Modal: Rekap Nilai Per Mapel & Rapor Gabungan -->
+    <div id="modal-rekap" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+        <div class="glass-panel w-full max-w-5xl max-h-[90vh] p-5 sm:p-6 rounded-2xl space-y-4 shadow-2xl flex flex-col relative border border-slate-700/80">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-base">Rekap Nilai Rata-Rata Per Mata Pelajaran</h3>
+                        <p class="text-xs text-slate-400">Ringkasan Nilai Akhir Siswa untuk 9 Mata Pelajaran</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportRekapToExcel()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-file-excel"></i> Ekspor Rekap Excel
+                    </button>
+                    <button onclick="closeRekapModal()" class="text-slate-400 hover:text-white p-1.5"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto overflow-y-auto flex-1 rounded-xl border border-slate-800 pr-1">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="sticky top-0 bg-slate-900 border-b border-slate-800 z-10">
+                        <tr id="rekap-table-header" class="text-slate-300 font-semibold">
+                            <!-- Dynamic Rekap Headers -->
+                        </tr>
+                    </thead>
+                    <tbody id="rekap-table-body" class="divide-y divide-slate-800/60 font-mono text-slate-200">
+                        <!-- Dynamic Rekap Data -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800 shrink-0">
+                <span>* Angka merupakan rata-rata dari seluruh tugas/penilaian pada mapel tersebut.</span>
+                <button onclick="closeRekapModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold">Tutup</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Koreksi / Edit Nilai Custom -->
     <div id="modal-score" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -222,6 +294,7 @@
                 <input type="hidden" id="score-modal-col-id">
                 <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl space-y-1">
                     <p class="text-slate-400">Siswa: <strong id="score-modal-student-name" class="text-white"></strong></p>
+                    <p class="text-slate-400">Mapel: <strong id="score-modal-subj-name" class="text-emerald-400"></strong></p>
                     <p class="text-slate-400">Kolom Target: <strong id="score-modal-col-name" class="text-blue-400"></strong></p>
                 </div>
                 <div>
@@ -229,7 +302,7 @@
                     <input type="number" id="score-modal-input" min="0" max="100" placeholder="Masukkan angka nilai..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 text-sm focus:outline-none focus:border-amber-500 font-mono">
                 </div>
                 <div class="flex justify-between items-center pt-3 border-t border-slate-800">
-                    <button type="button" onclick="clearScoreFromModal()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs">Kosongkan Nilai</button>
+                    <button type="button" onclick="clearScoreFromModal()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/40 font-semibold text-xs">Set 0</button>
                     <div class="flex gap-2">
                         <button type="button" onclick="closeScoreModal()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs">Batal</button>
                         <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs shadow-lg shadow-amber-600/30">Simpan</button>
@@ -244,15 +317,15 @@
         <div class="glass-panel w-full max-w-sm p-6 rounded-2xl space-y-4 shadow-2xl relative">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-pen text-blue-400"></i> Ubah Nama Kolom
+                    <i class="fa-solid fa-pen text-blue-400"></i> Ubah Nama Tugas / Kolom
                 </h3>
                 <button onclick="closeEditColModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form onsubmit="saveColumnLabelFromModal(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="edit-col-id-input">
                 <div>
-                    <label class="block font-semibold text-slate-300 mb-1">Nama Kolom / Mapel Baru:</label>
-                    <input type="text" id="edit-col-label-input" required placeholder="Contoh: Tugas 1, IPAS, UTS..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                    <label class="block font-semibold text-slate-300 mb-1">Nama Tugas Baru:</label>
+                    <input type="text" id="edit-col-label-input" required placeholder="Contoh: Tugas 1, PH1, Practicum..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
                     <button type="button" onclick="closeEditColModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">Batal</button>
@@ -314,26 +387,26 @@
         </div>
     </div>
 
-    <!-- Modal: Kelola Kolom / Mata Pelajaran -->
+    <!-- Modal: Kelola Kolom / Tugas Per Mapel -->
     <div id="modal-columns" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md p-6 rounded-2xl space-y-4 shadow-2xl relative">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-blue-400"></i> Kelola Kolom Mapel / Penilaian
+                    <i class="fa-solid fa-list-check text-blue-400"></i> Kelola Tugas: <span id="modal-col-subj-name" class="text-emerald-400 font-bold">IPAS</span>
                 </h3>
                 <button onclick="closeColumnsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
             <div class="space-y-4 text-xs">
                 <form onsubmit="addNewColumn(event)" class="flex gap-2">
-                    <input type="text" id="new-col-name" required placeholder="Tambah baru (misal: Tugas 1, UTS, PH1...)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition flex items-center gap-1.5">
+                    <input type="text" id="new-col-name" required placeholder="Tambah tugas baru (Tugas 3, PH1, Praktik...)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-blue-500">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition flex items-center gap-1.5 shrink-0">
                         <i class="fa-solid fa-plus"></i> Tambah
                     </button>
                 </form>
 
                 <div class="border-t border-slate-800 pt-3">
-                    <p class="text-xs font-semibold text-slate-400 mb-2">Daftar Kolom Penilaian Saat Ini:</p>
+                    <p class="text-xs font-semibold text-slate-400 mb-2">Tugas / Penilaian Saat Ini:</p>
                     <div id="columns-list-container" class="space-y-2 max-h-56 overflow-y-auto pr-1">
                         <!-- Columns list rendered via JS -->
                     </div>
@@ -376,43 +449,87 @@
 
     <!-- Footer -->
     <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-        VoiceGrade Pro • Dikembangkan untuk Kemudahan Input Nilai Pengajar & Guru
+        VoiceGrade Pro v3.0 • Sistem Input Suara & Rekap Rapor 9 Mata Pelajaran
     </footer>
 
     <script>
-        // Initial Dynamic Columns & Roster State
-        const INITIAL_COLUMNS = [
+        // 9 Default Subjects Array
+        const DEFAULT_SUBJECTS = [
+            { id: 'ipas', name: 'IPAS', icon: 'fa-flask' },
+            { id: 'bindo', name: 'Bahasa Indonesia', icon: 'fa-book' },
+            { id: 'mat', name: 'Matematika', icon: 'fa-calculator' },
+            { id: 'pkn', name: 'Pendidikan Pancasila', icon: 'fa-scale-balanced' },
+            { id: 'sbdp', name: 'Seni Budaya', icon: 'fa-palette' },
+            { id: 'pjok', name: 'PJOK', icon: 'fa-person-running' },
+            { id: 'bing', name: 'Bahasa Inggris', icon: 'fa-language' },
+            { id: 'pai', name: 'Agama & Budi Pekerti', icon: 'fa-hands-praying' },
+            { id: 'mulok', name: 'Bahasa Daerah / Mulok', icon: 'fa-map-location-dot' }
+        ];
+
+        // Default Columns per subject
+        const DEFAULT_COLUMNS = [
             { id: 'tugas1', label: 'Tugas 1' },
             { id: 'tugas2', label: 'Tugas 2' },
             { id: 'uts', label: 'UTS' },
             { id: 'uas', label: 'UAS' }
         ];
 
-        const INITIAL_STUDENTS = [
-            { id: '1', fullName: 'Alzicho Eka Fije', nickname: 'fije', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
-            { id: '2', fullName: 'Budi Santoso', nickname: 'budi', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
-            { id: '3', fullName: 'Siti Rahmawati', nickname: 'siti', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
-            { id: '4', fullName: 'Deni Pratama', nickname: 'deni', tugas1: 0, tugas2: 0, uts: 0, uas: 0 },
-            { id: '5', fullName: 'Eka Nurhaliza', nickname: 'eka', tugas1: 0, tugas2: 0, uts: 0, uas: 0 }
+        // Default Initial Roster
+        const INITIAL_STUDENTS_LIST = [
+            { id: '1', fullName: 'Alzicho Eka Fije', nickname: 'fije' },
+            { id: '2', fullName: 'Budi Santoso', nickname: 'budi' },
+            { id: '3', fullName: 'Siti Rahmawati', nickname: 'siti' },
+            { id: '4', fullName: 'Deni Pratama', nickname: 'deni' },
+            { id: '5', fullName: 'Eka Nurhaliza', nickname: 'eka' }
         ];
 
-        // Global State Variables
-        let columns = JSON.parse(localStorage.getItem('vg_columns')) || [...INITIAL_COLUMNS];
-        let students = JSON.parse(localStorage.getItem('vg_students')) || [...INITIAL_STUDENTS];
-
-        students.forEach(student => {
-            columns.forEach(col => {
-                if (student[col.id] === undefined || student[col.id] === null) {
-                    student[col.id] = 0;
-                }
-            });
+        // Load or initialize subjects and columns
+        let subjects = JSON.parse(localStorage.getItem('vg_v3_subjects')) || DEFAULT_SUBJECTS;
+        let subjectColumns = JSON.parse(localStorage.getItem('vg_v3_subject_columns')) || {};
+        
+        // Ensure every subject has initial columns
+        subjects.forEach(subj => {
+            if (!subjectColumns[subj.id] || subjectColumns[subj.id].length === 0) {
+                subjectColumns[subj.id] = JSON.parse(JSON.stringify(DEFAULT_COLUMNS));
+            }
         });
 
-        let subjectName = localStorage.getItem('vg_subject') || 'Matematika';
-        let className = localStorage.getItem('vg_class') || 'Kelas 5A';
-        let teacherName = localStorage.getItem('vg_teacher') || '';
+        // Load or initialize students and their scores per subject/column
+        let students = JSON.parse(localStorage.getItem('vg_v3_students')) || [];
+
+        if (students.length === 0) {
+            students = INITIAL_STUDENTS_LIST.map(st => {
+                const sObj = { ...st, scores: {} };
+                subjects.forEach(subj => {
+                    sObj.scores[subj.id] = {};
+                    subjectColumns[subj.id].forEach(col => {
+                        sObj.scores[subj.id][col.id] = 0;
+                    });
+                });
+                return sObj;
+            });
+        } else {
+            // Ensure nested scores objects exist for all subjects & columns
+            students.forEach(st => {
+                if (!st.scores) st.scores = {};
+                subjects.forEach(subj => {
+                    if (!st.scores[subj.id]) st.scores[subj.id] = {};
+                    subjectColumns[subj.id].forEach(col => {
+                        if (st.scores[subj.id][col.id] === undefined) {
+                            st.scores[subj.id][col.id] = 0;
+                        }
+                    });
+                });
+            });
+        }
+
+        // Active State
+        let activeSubjectId = localStorage.getItem('vg_v3_active_subject') || 'ipas';
+        let activeColumn = subjectColumns[activeSubjectId]?.[0]?.id || 'tugas1';
         
-        let activeColumn = columns[0]?.id || 'tugas1';
+        let className = localStorage.getItem('vg_v3_class') || 'Kelas 5A';
+        let teacherName = localStorage.getItem('vg_v3_teacher') || '';
+
         let isListening = false;
         let speechRecognition = null;
         let audioFeedbackEnabled = true;
@@ -431,43 +548,78 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (!columns.some(c => c.id === activeColumn) && columns.length > 0) {
-                activeColumn = columns[0].id;
-            }
-
             // Restore Metadata Inputs
-            document.getElementById('input-subject-name').value = subjectName;
             document.getElementById('input-class-name').value = className;
             document.getElementById('input-teacher-name').value = teacherName;
 
-            renderColumnSelectOptions();
-            renderTableHeaders();
-            renderStudentTable();
+            renderSubjectDropdown();
+            syncActiveSubjectUI();
             initSpeechRecognition();
             
-            // Slider binding
             document.getElementById('setting-sensitivity')?.addEventListener('input', (e) => {
                 const valSpan = document.getElementById('sensitivity-val');
                 if (valSpan) valSpan.innerText = e.target.value;
             });
         });
 
-        function saveMetadata() {
-            subjectName = document.getElementById('input-subject-name').value;
-            className = document.getElementById('input-class-name').value;
-            teacherName = document.getElementById('input-teacher-name').value;
+        function renderSubjectDropdown() {
+            const select = document.getElementById('subject-select-dropdown');
+            if (!select) return;
+            select.innerHTML = '';
 
-            localStorage.setItem('vg_subject', subjectName);
-            localStorage.setItem('vg_class', className);
-            localStorage.setItem('vg_teacher', teacherName);
+            subjects.forEach(subj => {
+                const option = document.createElement('option');
+                option.value = subj.id;
+                option.textContent = subj.name;
+                if (subj.id === activeSubjectId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
         }
 
-        function saveToStorage() {
-            localStorage.setItem('vg_students', JSON.stringify(students));
+        function selectSubject(subjId) {
+            activeSubjectId = subjId;
+            const currentSubj = subjects.find(s => s.id === activeSubjectId);
+            const cols = subjectColumns[activeSubjectId] || [];
+            if (!cols.some(c => c.id === activeColumn)) {
+                activeColumn = cols[0]?.id || 'tugas1';
+            }
+            
+            renderSubjectDropdown();
+            syncActiveSubjectUI();
+            saveAllToStorage();
+            showToast("Ganti Mapel", `Mapel aktif: ${currentSubj ? currentSubj.name : subjId}`);
         }
 
-        function saveColumnsToStorage() {
-            localStorage.setItem('vg_columns', JSON.stringify(columns));
+        function syncActiveSubjectUI() {
+            const currentSubj = subjects.find(s => s.id === activeSubjectId);
+            const subjName = currentSubj ? currentSubj.name : activeSubjectId;
+
+            document.getElementById('input-subject-name').value = subjName;
+            document.getElementById('current-subject-badge').innerText = subjName;
+
+            const dropdown = document.getElementById('subject-select-dropdown');
+            if (dropdown && dropdown.value !== activeSubjectId) {
+                dropdown.value = activeSubjectId;
+            }
+
+            renderColumnSelectOptions();
+            renderTableHeaders();
+            renderStudentTable();
+        }
+
+        function updateCurrentSubjectName() {
+            const newName = document.getElementById('input-subject-name').value.trim();
+            if (!newName) return;
+
+            const currentSubj = subjects.find(s => s.id === activeSubjectId);
+            if (currentSubj) {
+                currentSubj.name = newName;
+                document.getElementById('current-subject-badge').innerText = newName;
+                renderSubjectDropdown();
+                saveAllToStorage();
+            }
         }
 
         function renderColumnSelectOptions() {
@@ -475,7 +627,8 @@
             if (!select) return;
             select.innerHTML = '';
 
-            columns.forEach(col => {
+            const cols = subjectColumns[activeSubjectId] || [];
+            cols.forEach(col => {
                 const option = document.createElement('option');
                 option.value = col.id;
                 option.innerText = col.label;
@@ -485,7 +638,8 @@
         }
 
         function getColumnLabel(colId) {
-            const col = columns.find(c => c.id === colId);
+            const cols = subjectColumns[activeSubjectId] || [];
+            const col = cols.find(c => c.id === colId);
             return col ? col.label : colId;
         }
 
@@ -495,7 +649,6 @@
                 activeColumn = select.value;
                 renderTableHeaders();
                 renderStudentTable();
-                renderColumnsManagerList();
             }
         }
 
@@ -504,21 +657,13 @@
             renderColumnSelectOptions();
             renderTableHeaders();
             renderStudentTable();
-            renderColumnsManagerList();
-        }
-
-        function highlightRow(studentId) {
-            const row = document.getElementById(`student-row-${studentId}`);
-            if (row) {
-                row.classList.remove('row-highlight-success');
-                void row.offsetWidth; // trigger reflow
-                row.classList.add('row-highlight-success');
-            }
         }
 
         function renderTableHeaders() {
             const tr = document.getElementById('table-header-row');
             if (!tr) return;
+
+            const cols = subjectColumns[activeSubjectId] || [];
 
             let html = `
                 <th class="py-3 px-4 w-12 text-center">No</th>
@@ -526,7 +671,7 @@
                 <th class="py-3 px-4">Panggilan</th>
             `;
 
-            columns.forEach(col => {
+            cols.forEach(col => {
                 const isActive = activeColumn === col.id;
                 html += `
                     <th class="py-3 px-4 text-center cursor-pointer ${isActive ? 'text-blue-400 font-bold bg-blue-950/30' : 'text-slate-300'}" onclick="setActiveColumn('${col.id}')" title="Klik untuk tetapkan target input suara">
@@ -536,6 +681,7 @@
             });
 
             html += `
+                <th class="py-3 px-4 text-center font-bold text-emerald-400">Rata Mapel</th>
                 <th class="py-3 px-4 text-center font-bold text-amber-400">
                     <i class="fa-solid fa-pen-to-square text-xs mr-1"></i>Koreksi (${getColumnLabel(activeColumn)})
                 </th>
@@ -543,6 +689,28 @@
             `;
 
             tr.innerHTML = html;
+        }
+
+        function getStudentScore(student, subjId, colId) {
+            if (!student.scores) student.scores = {};
+            if (!student.scores[subjId]) student.scores[subjId] = {};
+            return student.scores[subjId][colId] !== undefined ? student.scores[subjId][colId] : 0;
+        }
+
+        function setStudentScore(student, subjId, colId, val) {
+            if (!student.scores) student.scores = {};
+            if (!student.scores[subjId]) student.scores[subjId] = {};
+            student.scores[subjId][colId] = val;
+        }
+
+        function calculateStudentSubjectAvg(student, subjId) {
+            const cols = subjectColumns[subjId] || [];
+            if (cols.length === 0) return 0;
+            let sum = 0;
+            cols.forEach(col => {
+                sum += getStudentScore(student, subjId, col.id);
+            });
+            return Math.round((sum / cols.length) * 10) / 10;
         }
 
         function renderStudentTable() {
@@ -560,14 +728,16 @@
             const countEl = document.getElementById('student-count');
             if (countEl) countEl.innerText = filtered.length;
 
+            const cols = subjectColumns[activeSubjectId] || [];
+
             filtered.forEach((student, index) => {
                 const tr = document.createElement('tr');
                 tr.id = `student-row-${student.id}`;
                 tr.className = "hover:bg-slate-800/50 transition border-b border-slate-800/40";
 
                 let colCells = '';
-                columns.forEach(col => {
-                    const val = (student[col.id] !== undefined && student[col.id] !== null) ? student[col.id] : 0;
+                cols.forEach(col => {
+                    const val = getStudentScore(student, activeSubjectId, col.id);
                     const isActive = activeColumn === col.id;
                     colCells += `
                         <td class="py-3 px-4 text-center cursor-pointer hover:bg-slate-800 rounded font-mono ${isActive ? 'text-blue-400 font-bold bg-blue-950/20' : 'text-slate-200'}" onclick="openScoreModal('${student.id}', '${col.id}')">
@@ -576,7 +746,8 @@
                     `;
                 });
 
-                const currentScore = (student[activeColumn] !== undefined && student[activeColumn] !== null) ? student[activeColumn] : 0;
+                const currentScore = getStudentScore(student, activeSubjectId, activeColumn);
+                const subjAvg = calculateStudentSubjectAvg(student, activeSubjectId);
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 text-center text-slate-500 font-mono">${index + 1}</td>
@@ -589,6 +760,9 @@
                         </span>
                     </td>
                     ${colCells}
+                    <td class="py-3 px-4 text-center font-bold font-mono text-emerald-400 bg-emerald-950/10">
+                        ${subjAvg}
+                    </td>
                     <td class="py-3 px-4 text-center font-bold font-mono">
                         <button type="button" onclick="correctStudentScore('${student.id}')" class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition text-xs flex items-center justify-center gap-1.5 mx-auto shadow-sm" title="Klik untuk koreksi nilai ${getColumnLabel(activeColumn)}">
                             <i class="fa-solid fa-pen-to-square text-[11px]"></i>
@@ -609,17 +783,118 @@
             });
         }
 
-        // Custom Score Modal Handlers (Replacing Prompt)
+        function openRekapModal() {
+            renderRekapTable();
+            document.getElementById('modal-rekap')?.classList.remove('hidden');
+        }
+
+        function closeRekapModal() {
+            document.getElementById('modal-rekap')?.classList.add('hidden');
+        }
+
+        function renderRekapTable() {
+            const thead = document.getElementById('rekap-table-header');
+            const tbody = document.getElementById('rekap-table-body');
+            if (!thead || !tbody) return;
+
+            // Header row
+            let headerHtml = `
+                <th class="py-3 px-4 w-12 text-center bg-slate-900">No</th>
+                <th class="py-3 px-4 bg-slate-900">Nama Lengkap</th>
+            `;
+
+            subjects.forEach(subj => {
+                headerHtml += `<th class="py-3 px-3 text-center bg-slate-900 font-semibold text-blue-300">${subj.name}</th>`;
+            });
+
+            headerHtml += `<th class="py-3 px-4 text-center bg-slate-900 font-bold text-amber-400">Rata-Rata Akhir</th>`;
+            thead.innerHTML = headerHtml;
+
+            // Body rows
+            tbody.innerHTML = '';
+            students.forEach((st, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 border-b border-slate-800/40";
+
+                let subjAvgsHtml = '';
+                let totalAvgSum = 0;
+
+                subjects.forEach(subj => {
+                    const avg = calculateStudentSubjectAvg(st, subj.id);
+                    totalAvgSum += avg;
+                    subjAvgsHtml += `<td class="py-2.5 px-3 text-center">${avg}</td>`;
+                });
+
+                const grandAvg = Math.round((totalAvgSum / subjects.length) * 10) / 10;
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-4 text-center text-slate-500">${idx + 1}</td>
+                    <td class="py-2.5 px-4 font-sans text-white font-semibold">${st.fullName}</td>
+                    ${subjAvgsHtml}
+                    <td class="py-2.5 px-4 text-center font-bold text-amber-300 bg-amber-950/20">${grandAvg}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportRekapToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library XLSX belum dimuat. Periksa koneksi internet.", true);
+                return;
+            }
+
+            const currentClass = className || 'Kelas';
+            const currentTeacher = teacherName || '-';
+
+            const aoaData = [
+                ["REKAPITULASI NILAI RATA-RATA RAPOR SISWA"],
+                ["Kelas / Rombel:", currentClass],
+                ["Nama Guru:", currentTeacher],
+                ["Tanggal Unduh:", new Date().toLocaleDateString('id-ID')],
+                [],
+                ["No", "Nama Lengkap", ...subjects.map(s => s.name), "Rata-Rata Akhir"]
+            ];
+
+            students.forEach((st, idx) => {
+                let totalAvgSum = 0;
+                const row = [idx + 1, st.fullName];
+                subjects.forEach(subj => {
+                    const avg = calculateStudentSubjectAvg(st, subj.id);
+                    totalAvgSum += avg;
+                    row.push(avg);
+                });
+                const grandAvg = Math.round((totalAvgSum / subjects.length) * 10) / 10;
+                row.push(grandAvg);
+                aoaData.push(row);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(aoaData);
+            const colsConfig = [{ wch: 6 }, { wch: 28 }];
+            subjects.forEach(() => colsConfig.push({ wch: 18 }));
+            colsConfig.push({ wch: 18 });
+            worksheet['!cols'] = colsConfig;
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap 9 Mapel");
+
+            const fileName = `Rekap_Nilai_9Mapel_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+            showToast("Rekap Diunduh", `File "${fileName}" berhasil diekspor.`);
+        }
+
         function openScoreModal(studentId, colId) {
             const student = students.find(s => s.id === studentId);
             if (!student) return;
 
+            const currentSubj = subjects.find(s => s.id === activeSubjectId);
+
             document.getElementById('score-modal-student-id').value = studentId;
             document.getElementById('score-modal-col-id').value = colId;
             document.getElementById('score-modal-student-name').innerText = student.fullName;
+            document.getElementById('score-modal-subj-name').innerText = currentSubj ? currentSubj.name : activeSubjectId;
             document.getElementById('score-modal-col-name').innerText = getColumnLabel(colId);
             
-            const currentVal = student[colId] !== null && student[colId] !== undefined ? student[colId] : '';
+            const currentVal = getStudentScore(student, activeSubjectId, colId);
             document.getElementById('score-modal-input').value = currentVal;
 
             document.getElementById('modal-score')?.classList.remove('hidden');
@@ -640,14 +915,13 @@
             if (!student) return;
 
             if (inputVal === '') {
-                student[colId] = 0;
+                setStudentScore(student, activeSubjectId, colId, 0);
                 showToast("Nilai Set 0", `Nilai ${getColumnLabel(colId)} untuk ${student.fullName} diatur ke 0.`);
             } else {
                 const num = parseInt(inputVal, 10);
                 if (!isNaN(num) && num >= 0 && num <= 100) {
-                    const oldVal = student[colId] ?? 0;
-                    student[colId] = num;
-                    showToast("Nilai Disimpan", `Nilai ${student.fullName} (${getColumnLabel(colId)}) diubah dari ${oldVal} menjadi ${num}`);
+                    setStudentScore(student, activeSubjectId, colId, num);
+                    showToast("Nilai Disimpan", `Nilai ${student.fullName} (${getColumnLabel(colId)}) diubah menjadi ${num}`);
                     highlightRow(student.id);
                 } else {
                     showToast("Kesalahan Nilai", "Masukkan angka antara 0 - 100", true);
@@ -655,7 +929,7 @@
                 }
             }
 
-            saveToStorage();
+            saveAllToStorage();
             renderStudentTable();
             closeScoreModal();
         }
@@ -668,8 +942,13 @@
             openScoreModal(studentId, activeColumn);
         }
 
-        function editCellScore(studentId, colKey) {
-            openScoreModal(studentId, colKey);
+        function highlightRow(studentId) {
+            const row = document.getElementById(`student-row-${studentId}`);
+            if (row) {
+                row.classList.remove('row-highlight-success');
+                void row.offsetWidth;
+                row.classList.add('row-highlight-success');
+            }
         }
 
         function initSpeechRecognition() {
@@ -764,7 +1043,7 @@
                 if (btn) btn.className = "w-20 h-20 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 text-white text-2xl flex items-center justify-center shadow-lg shadow-rose-600/50 mic-active-pulse transition-all duration-300";
                 if (icon) icon.className = "fa-solid fa-microphone-slash animate-bounce";
                 if (instruction) {
-                    instruction.innerText = "Mendengarkan... Ucapkan [Nama] [Nilai]";
+                    instruction.innerText = "Mendengarkan... Ucapkan [Nama/Absen] [Nilai]";
                     instruction.className = "text-sm font-bold text-rose-400";
                 }
                 if (statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
@@ -789,16 +1068,14 @@
             if (countStat) countStat.innerText = voiceCommandCount;
 
             const cleanText = rawTranscript.toLowerCase().trim();
-
-            // Percobaan parsing format cepat: Nomor Absen + Nilai (contoh "190" -> Absen 1, Nilai 90)
             const shorthandResult = parseRollAndScoreCommand(cleanText);
 
             if (shorthandResult) {
                 const targetStudent = students[shorthandResult.roll - 1];
                 if (targetStudent) {
                     successfulMatches++;
-                    targetStudent[activeColumn] = shorthandResult.score;
-                    saveToStorage();
+                    setStudentScore(targetStudent, activeSubjectId, activeColumn, shorthandResult.score);
+                    saveAllToStorage();
                     renderStudentTable();
                     highlightRow(targetStudent.id);
 
@@ -816,7 +1093,6 @@
                 }
             }
 
-            // Fallback ke pencocokan nama / panggilan
             const extractedScore = parseScoreFromText(cleanText);
 
             if (extractedScore === null || isNaN(extractedScore)) {
@@ -829,8 +1105,8 @@
 
             if (targetStudent) {
                 successfulMatches++;
-                targetStudent[activeColumn] = extractedScore;
-                saveToStorage();
+                setStudentScore(targetStudent, activeSubjectId, activeColumn, extractedScore);
+                saveAllToStorage();
                 renderStudentTable();
                 highlightRow(targetStudent.id);
 
@@ -851,10 +1127,8 @@
         }
 
         function parseRollAndScoreCommand(cleanText) {
-            // Ekstrak urutan angka
             const numberMatches = cleanText.match(/\d+/g);
 
-            // Kasus 1: Angka terpisah seperti "1 90", "absen 1 nilai 90"
             if (numberMatches && numberMatches.length >= 2) {
                 const candidateRoll = parseInt(numberMatches[0], 10);
                 const candidateScore = parseInt(numberMatches[1], 10);
@@ -863,11 +1137,8 @@
                 }
             }
 
-            // Kasus 2: Angka gabungan seperti "190" (Absen 1, Nilai 90), "1585" (Absen 15, Nilai 85), "5100" (Absen 5, Nilai 100)
             if (numberMatches && numberMatches.length === 1) {
                 const numStr = numberMatches[0];
-
-                // Uji panjang digit nilai: 3 digit (100), 2 digit (10-99), 1 digit (0-9)
                 const candidateScoreLens = [3, 2, 1];
                 for (let scoreLen of candidateScoreLens) {
                     if (numStr.length > scoreLen) {
@@ -926,7 +1197,6 @@
 
             let bestMatch = null;
             let highestScore = 0;
-
             const sensitivity = parseFloat(document.getElementById('setting-sensitivity')?.value || '0.4');
 
             students.forEach((student, index) => {
@@ -973,6 +1243,10 @@
         }
 
         function openManageColumnsModal() {
+            const currentSubj = subjects.find(s => s.id === activeSubjectId);
+            const badge = document.getElementById('modal-col-subj-name');
+            if (badge) badge.innerText = currentSubj ? currentSubj.name : activeSubjectId;
+
             renderColumnsManagerList();
             document.getElementById('modal-columns')?.classList.remove('hidden');
         }
@@ -986,12 +1260,14 @@
             if (!container) return;
             container.innerHTML = '';
 
-            if (columns.length === 0) {
-                container.innerHTML = `<div class="text-slate-500 text-xs text-center py-2 italic">Belum ada kolom. Tambahkan di atas.</div>`;
+            const cols = subjectColumns[activeSubjectId] || [];
+
+            if (cols.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 text-xs text-center py-2 italic">Belum ada tugas. Tambahkan di atas.</div>`;
                 return;
             }
 
-            columns.forEach(col => {
+            cols.forEach(col => {
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-2.5 bg-slate-900 rounded-xl border border-slate-800 text-xs";
                 div.innerHTML = `
@@ -1003,7 +1279,7 @@
                         <button type="button" onclick="openEditColModal('${col.id}')" class="text-slate-300 hover:text-white px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition text-[11px] font-medium" title="Ubah Nama">
                             <i class="fa-solid fa-pen"></i> Edit
                         </button>
-                        <button type="button" onclick="deleteColumn('${col.id}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-500/30 transition text-[11px] font-medium" title="Hapus Kolom">
+                        <button type="button" onclick="deleteColumn('${col.id}')" class="text-rose-400 hover:text-rose-300 px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-950/40 border border-slate-700 hover:border-rose-500/30 transition text-[11px] font-medium" title="Hapus Tugas">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
@@ -1013,7 +1289,8 @@
         }
 
         function openEditColModal(colId) {
-            const col = columns.find(c => c.id === colId);
+            const cols = subjectColumns[activeSubjectId] || [];
+            const col = cols.find(c => c.id === colId);
             if (!col) return;
             document.getElementById('edit-col-id-input').value = colId;
             document.getElementById('edit-col-label-input').value = col.label;
@@ -1029,16 +1306,17 @@
             const colId = document.getElementById('edit-col-id-input').value;
             const newLabel = document.getElementById('edit-col-label-input').value.trim();
 
-            const col = columns.find(c => c.id === colId);
+            const cols = subjectColumns[activeSubjectId] || [];
+            const col = cols.find(c => c.id === colId);
             if (col && newLabel) {
                 col.label = newLabel;
-                saveColumnsToStorage();
+                saveAllToStorage();
                 renderColumnsManagerList();
                 renderColumnSelectOptions();
                 renderTableHeaders();
                 renderStudentTable();
                 closeEditColModal();
-                showToast("Kolom Diperbarui", `Nama kolom diubah menjadi: ${col.label}`);
+                showToast("Tugas Diperbarui", `Nama tugas diubah menjadi: ${col.label}`);
             }
         }
 
@@ -1050,15 +1328,15 @@
             if (!label) return;
 
             const id = 'col_' + Date.now().toString().slice(-6);
-            columns.push({ id, label });
+            if (!subjectColumns[activeSubjectId]) subjectColumns[activeSubjectId] = [];
+            subjectColumns[activeSubjectId].push({ id, label });
 
-            // Initialize new column with default 0 for existing students
+            // Initialize new column for all students in active subject
             students.forEach(s => {
-                s[id] = 0;
+                setStudentScore(s, activeSubjectId, id, 0);
             });
 
-            saveColumnsToStorage();
-            saveToStorage();
+            saveAllToStorage();
 
             input.value = '';
             renderColumnsManagerList();
@@ -1066,35 +1344,325 @@
             renderTableHeaders();
             renderStudentTable();
 
-            if (columns.length === 1) {
+            if (subjectColumns[activeSubjectId].length === 1) {
                 setActiveColumn(id);
             }
-            showToast("Kolom Ditambahkan", `Kolom "${label}" berhasil dibuat dengan nilai default 0.`);
+            showToast("Tugas Ditambahkan", `Tugas "${label}" dibuat pada mapel ini.`);
         }
 
         function deleteColumn(colId) {
-            const col = columns.find(c => c.id === colId);
+            const cols = subjectColumns[activeSubjectId] || [];
+            const col = cols.find(c => c.id === colId);
             if (!col) return;
 
-            if (columns.length <= 1) {
-                showToast("Gagal Hapus", "Minimal harus ada 1 kolom nilai.", true);
+            if (cols.length <= 1) {
+                showToast("Gagal Hapus", "Minimal harus ada 1 tugas per mapel.", true);
                 return;
             }
 
-            showConfirmDialog("Hapus Kolom Mapel", `Hapus kolom "${col.label}"? Seluruh nilai siswa di kolom ini akan terhapus.`, () => {
-                columns = columns.filter(c => c.id !== colId);
-                saveColumnsToStorage();
+            showConfirmDialog("Hapus Tugas Mapel", `Hapus tugas "${col.label}"? Nilai siswa pada tugas ini akan terhapus.`, () => {
+                subjectColumns[activeSubjectId] = cols.filter(c => c.id !== colId);
+                saveAllToStorage();
 
                 if (activeColumn === colId) {
-                    activeColumn = columns[0].id;
+                    activeColumn = subjectColumns[activeSubjectId][0].id;
                 }
 
                 renderColumnsManagerList();
                 renderColumnSelectOptions();
                 renderTableHeaders();
                 renderStudentTable();
-                showToast("Kolom Dihapus", `Kolom "${col.label}" telah dihapus.`);
+                showToast("Tugas Dihapus", `Tugas "${col.label}" telah dihapus.`);
             });
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('modal-title').innerText = "Tambah Siswa Baru";
+            document.getElementById('student-id').value = "";
+            document.getElementById('input-fullname').value = "";
+            document.getElementById('input-nickname').value = "";
+            document.getElementById('modal-student')?.classList.remove('hidden');
+        }
+
+        function openEditStudentModal(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            document.getElementById('modal-title').innerText = "Edit Data Siswa";
+            document.getElementById('student-id').value = student.id;
+            document.getElementById('input-fullname').value = student.fullName;
+            document.getElementById('input-nickname').value = student.nickname || '';
+            document.getElementById('modal-student')?.classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('modal-student')?.classList.add('hidden');
+        }
+
+        function saveStudent(event) {
+            event.preventDefault();
+            const id = document.getElementById('student-id').value;
+            const fullName = document.getElementById('input-fullname').value.trim();
+            const nickname = document.getElementById('input-nickname').value.trim().toLowerCase();
+
+            if (!fullName || !nickname) return;
+
+            if (id) {
+                const student = students.find(s => s.id === id);
+                if (student) {
+                    student.fullName = fullName;
+                    student.nickname = nickname;
+                }
+            } else {
+                const newStudent = {
+                    id: Date.now().toString(),
+                    fullName,
+                    nickname,
+                    scores: {}
+                };
+                subjects.forEach(subj => {
+                    newStudent.scores[subj.id] = {};
+                    (subjectColumns[subj.id] || []).forEach(col => {
+                        newStudent.scores[subj.id][col.id] = 0;
+                    });
+                });
+                students.push(newStudent);
+            }
+
+            saveAllToStorage();
+            renderStudentTable();
+            closeStudentModal();
+            showToast("Siswa Disimpan", `Data ${fullName} berhasil diperbarui.`);
+        }
+
+        function deleteStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            showConfirmDialog("Hapus Siswa", `Apakah Anda yakin ingin menghapus siswa "${student.fullName}"?`, () => {
+                students = students.filter(s => s.id !== id);
+                saveAllToStorage();
+                renderStudentTable();
+                showToast("Siswa Dihapus", `${student.fullName} telah dihapus.`);
+            });
+        }
+
+        function resetAllScoresForActiveSubject() {
+            const currentSubj = subjects.find(s => s.id === activeSubjectId);
+            const name = currentSubj ? currentSubj.name : activeSubjectId;
+            showConfirmDialog("Reset Nilai Mapel", `Atur semua nilai pada mapel "${name}" ke 0?`, () => {
+                const cols = subjectColumns[activeSubjectId] || [];
+                students.forEach(s => {
+                    cols.forEach(col => {
+                        setStudentScore(s, activeSubjectId, col.id, 0);
+                    });
+                });
+                saveAllToStorage();
+                renderStudentTable();
+                showToast("Nilai Direset", `Seluruh nilai mapel ${name} diatur ke 0.`);
+            });
+        }
+
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library Excel belum siap. Coba periksa koneksi internet.", true);
+                return;
+            }
+
+            const currentSubj = subjects.find(s => s.id === activeSubjectId)?.name || 'Mata Pelajaran';
+            const currentClass = className || '-';
+            const currentTeacher = teacherName || '-';
+            const cols = subjectColumns[activeSubjectId] || [];
+
+            const aoaData = [
+                ["DAFTAR NILAI SISWA"],
+                ["Mata Pelajaran:", currentSubj],
+                ["Kelas / Rombel:", currentClass],
+                ["Nama Guru:", currentTeacher],
+                ["Tanggal Unduh:", new Date().toLocaleDateString('id-ID')],
+                [],
+                ["No", "Nama Lengkap", "Panggilan", ...cols.map(c => c.label), "Rata-Rata Mapel"]
+            ];
+
+            students.forEach((s, idx) => {
+                const row = [
+                    idx + 1,
+                    s.fullName,
+                    s.nickname || '',
+                    ...cols.map(col => getStudentScore(s, activeSubjectId, col.id)),
+                    calculateStudentSubjectAvg(s, activeSubjectId)
+                ];
+                aoaData.push(row);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(aoaData);
+            const colsConfig = [{ wch: 6 }, { wch: 28 }, { wch: 15 }];
+            cols.forEach(() => colsConfig.push({ wch: 14 }));
+            colsConfig.push({ wch: 16 });
+            worksheet['!cols'] = colsConfig;
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, currentSubj.slice(0, 20));
+
+            const safeName = currentSubj.replace(/[^a-zA-Z0-9]/g, '_');
+            const fileName = `Nilai_${safeName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+
+            showToast("Ekspor Excel", `File "${fileName}" berhasil diunduh.`);
+        }
+
+        function downloadExcelTemplate() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library Excel belum siap.", true);
+                return;
+            }
+            const templateData = [
+                ["No", "Nama Lengkap", "Nama Panggilan"],
+                [1, "Budi Santoso", "budi"],
+                [2, "Siti Rahmawati", "siti"],
+                [3, "Alzicho Eka Fije", "fije"]
+            ];
+            const worksheet = XLSX.utils.aoa_to_sheet(templateData);
+            worksheet['!cols'] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Template Siswa");
+            XLSX.writeFile(workbook, "Template_Impor_Siswa.xlsx");
+            showToast("Template Diunduh", "File template Excel berhasil diunduh.");
+        }
+
+        function handleExcelImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Kesalahan", "Library XLSX belum dimuat.", true);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    if (!jsonRows || jsonRows.length === 0) {
+                        showToast("File Kosong", "File Excel tidak berisi data.", true);
+                        return;
+                    }
+
+                    let addedCount = 0;
+                    let headerIndex = -1;
+                    let nameColIdx = -1;
+                    let nickColIdx = -1;
+
+                    for (let r = 0; r < Math.min(jsonRows.length, 10); r++) {
+                        const row = jsonRows[r];
+                        if (!Array.isArray(row)) continue;
+                        row.forEach((cell, cIdx) => {
+                            const str = String(cell || '').toLowerCase().trim();
+                            if (str.includes('nama') || str.includes('name') || str.includes('siswa')) {
+                                if (!str.includes('panggilan') && !str.includes('nick')) {
+                                    nameColIdx = cIdx;
+                                    headerIndex = r;
+                                }
+                            }
+                            if (str.includes('panggilan') || str.includes('nickname') || str.includes('nick')) {
+                                nickColIdx = cIdx;
+                            }
+                        });
+                        if (nameColIdx !== -1) break;
+                    }
+
+                    const startRow = headerIndex !== -1 ? headerIndex + 1 : 0;
+                    if (nameColIdx === -1) nameColIdx = 0;
+                    if (nickColIdx === -1 && jsonRows[0] && jsonRows[0].length > 1) nickColIdx = 1;
+
+                    for (let i = startRow; i < jsonRows.length; i++) {
+                        const row = jsonRows[i];
+                        if (!row || !row[nameColIdx]) continue;
+
+                        const rawName = String(row[nameColIdx]).trim();
+                        if (!rawName || rawName.toLowerCase() === 'nama' || rawName.toLowerCase() === 'nama lengkap') continue;
+
+                        let rawNick = nickColIdx !== -1 && row[nickColIdx] ? String(row[nickColIdx]).trim().toLowerCase() : '';
+                        if (!rawNick) {
+                            rawNick = rawName.split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                        }
+
+                        const existing = students.find(s => s.fullName.toLowerCase() === rawName.toLowerCase());
+                        if (!existing) {
+                            const newStudent = {
+                                id: Date.now().toString() + Math.random().toString().slice(2, 6),
+                                fullName: rawName,
+                                nickname: rawNick,
+                                scores: {}
+                            };
+                            subjects.forEach(subj => {
+                                newStudent.scores[subj.id] = {};
+                                (subjectColumns[subj.id] || []).forEach(col => {
+                                    newStudent.scores[subj.id][col.id] = 0;
+                                });
+                            });
+
+                            students.push(newStudent);
+                            addedCount++;
+                        }
+                    }
+
+                    if (addedCount > 0) {
+                        saveAllToStorage();
+                        renderStudentTable();
+                        showToast("Impor Berhasil", `${addedCount} siswa baru berhasil diimpor.`);
+                    } else {
+                        showToast("Informasi", "Tidak ada siswa baru yang ditambahkan.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Gagal Impor", "Terjadi kesalahan membaca file Excel.", true);
+                } finally {
+                    event.target.value = '';
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function filterStudents() {
+            renderStudentTable();
+        }
+
+        function copyToClipboardTable() {
+            const currentSubj = subjects.find(s => s.id === activeSubjectId)?.name || 'Mata Pelajaran';
+            const currentClass = className || '-';
+            const cols = subjectColumns[activeSubjectId] || [];
+
+            let content = `DAFTAR NILAI ${currentSubj.toUpperCase()}\n`;
+            content += `Kelas / Rombel\t: ${currentClass}\n\n`;
+
+            let headers = ["No", "Nama Lengkap", "Panggilan", ...cols.map(c => c.label), "Rata-Rata"];
+            content += headers.join("\t") + "\n";
+            
+            students.forEach((s, idx) => {
+                let rowVals = [
+                    idx + 1,
+                    s.fullName,
+                    s.nickname || '',
+                    ...cols.map(c => getStudentScore(s, activeSubjectId, c.id)),
+                    calculateStudentSubjectAvg(s, activeSubjectId)
+                ];
+                content += rowVals.join("\t") + "\n";
+            });
+
+            const textarea = document.createElement('textarea');
+            textarea.value = content;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast("Tersalin!", "Data mapel tersalin ke Clipboard. Siap ditempel ke Google Sheets!");
         }
 
         function showConfirmDialog(title, message, onConfirm) {
@@ -1178,315 +1746,6 @@
                 btn.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-700 transition";
                 btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i> <span class="hidden sm:inline">Suara:</span> Mute`;
             }
-        }
-
-        function openAddStudentModal() {
-            document.getElementById('modal-title').innerText = "Tambah Siswa Baru";
-            document.getElementById('student-id').value = "";
-            document.getElementById('input-fullname').value = "";
-            document.getElementById('input-nickname').value = "";
-            document.getElementById('modal-student')?.classList.remove('hidden');
-        }
-
-        function openEditStudentModal(id) {
-            const student = students.find(s => s.id === id);
-            if (!student) return;
-
-            document.getElementById('modal-title').innerText = "Edit Data Siswa";
-            document.getElementById('student-id').value = student.id;
-            document.getElementById('input-fullname').value = student.fullName;
-            document.getElementById('input-nickname').value = student.nickname || '';
-            document.getElementById('modal-student')?.classList.remove('hidden');
-        }
-
-        function closeStudentModal() {
-            document.getElementById('modal-student')?.classList.add('hidden');
-        }
-
-        function saveStudent(event) {
-            event.preventDefault();
-            const id = document.getElementById('student-id').value;
-            const fullName = document.getElementById('input-fullname').value.trim();
-            const nickname = document.getElementById('input-nickname').value.trim().toLowerCase();
-
-            if (!fullName || !nickname) return;
-
-            if (id) {
-                const student = students.find(s => s.id === id);
-                if (student) {
-                    student.fullName = fullName;
-                    student.nickname = nickname;
-                }
-            } else {
-                const newStudent = {
-                    id: Date.now().toString(),
-                    fullName,
-                    nickname
-                };
-                columns.forEach(col => {
-                    newStudent[col.id] = 0;
-                });
-                students.push(newStudent);
-            }
-
-            saveToStorage();
-            renderStudentTable();
-            closeStudentModal();
-            showToast("Siswa Disimpan", `Data ${fullName} berhasil diperbarui.`);
-        }
-
-        function deleteStudent(id) {
-            const student = students.find(s => s.id === id);
-            if (!student) return;
-
-            showConfirmDialog("Hapus Siswa", `Apakah Anda yakin ingin menghapus siswa "${student.fullName}"?`, () => {
-                students = students.filter(s => s.id !== id);
-                saveToStorage();
-                renderStudentTable();
-                showToast("Siswa Dihapus", `${student.fullName} telah dihapus.`);
-            });
-        }
-
-        function resetAllScores() {
-            showConfirmDialog("Reset Seluruh Nilai", "Apakah Anda yakin ingin mengatur nilai semua siswa ke 0?", () => {
-                students.forEach(s => {
-                    columns.forEach(col => {
-                        s[col.id] = 0;
-                    });
-                });
-                saveToStorage();
-                renderStudentTable();
-                showToast("Nilai Direset", "Seluruh nilai siswa berhasil diatur ke 0.");
-            });
-        }
-
-        function clearAllStudents() {
-            showConfirmDialog("Kosongkan Seluruh Daftar Siswa", "Apakah Anda yakin ingin menghapus SEMUA siswa dari tabel?", () => {
-                students = [];
-                saveToStorage();
-                renderStudentTable();
-                showToast("Daftar Siswa Kosong", "Seluruh data siswa telah dihapus.");
-            });
-        }
-
-        function downloadExcelTemplate() {
-            if (typeof XLSX === 'undefined') {
-                showToast("Kesalahan", "Library Excel belum siap. Coba periksa koneksi internet.", true);
-                return;
-            }
-
-            const templateData = [
-                ["No", "Nama Lengkap", "Nama Panggilan"],
-                [1, "Budi Santoso", "budi"],
-                [2, "Siti Rahmawati", "siti"],
-                [3, "Alzicho Eka Fije", "fije"]
-            ];
-
-            const worksheet = XLSX.utils.aoa_to_sheet(templateData);
-            worksheet['!cols'] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }];
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Template Siswa");
-
-            XLSX.writeFile(workbook, "Template_Impor_Siswa_VoiceGrade.xlsx");
-            showToast("Template Diunduh", "File template Excel berhasil diunduh. Silakan isi dan impor.");
-        }
-
-        function handleExcelImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (typeof XLSX === 'undefined') {
-                showToast("Kesalahan", "Library XLSX belum dimuat. Periksa koneksi internet.", true);
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                    if (!jsonRows || jsonRows.length === 0) {
-                        showToast("File Kosong", "File Excel tidak berisi data.", true);
-                        return;
-                    }
-
-                    let addedCount = 0;
-                    let headerIndex = -1;
-                    let nameColIdx = -1;
-                    let nickColIdx = -1;
-
-                    // Search for header row containing 'nama' or 'siswa'
-                    for (let r = 0; r < Math.min(jsonRows.length, 10); r++) {
-                        const row = jsonRows[r];
-                        if (!Array.isArray(row)) continue;
-                        
-                        row.forEach((cell, cIdx) => {
-                            const str = String(cell || '').toLowerCase().trim();
-                            if (str.includes('nama') || str.includes('name') || str.includes('siswa')) {
-                                if (!str.includes('panggilan') && !str.includes('nick')) {
-                                    nameColIdx = cIdx;
-                                    headerIndex = r;
-                                }
-                            }
-                            if (str.includes('panggilan') || str.includes('nickname') || str.includes('nick')) {
-                                nickColIdx = cIdx;
-                            }
-                        });
-                        if (nameColIdx !== -1) break;
-                    }
-
-                    // Fallback: column A (0) is Name, column B (1) is Nickname
-                    const startRow = headerIndex !== -1 ? headerIndex + 1 : 0;
-                    if (nameColIdx === -1) nameColIdx = 0;
-                    if (nickColIdx === -1 && jsonRows[0] && jsonRows[0].length > 1) nickColIdx = 1;
-
-                    for (let i = startRow; i < jsonRows.length; i++) {
-                        const row = jsonRows[i];
-                        if (!row || !row[nameColIdx]) continue;
-
-                        const rawName = String(row[nameColIdx]).trim();
-                        if (!rawName || rawName.toLowerCase() === 'nama' || rawName.toLowerCase() === 'nama lengkap') continue;
-
-                        let rawNick = nickColIdx !== -1 && row[nickColIdx] ? String(row[nickColIdx]).trim().toLowerCase() : '';
-                        
-                        // Auto-generate nickname if empty (take first word)
-                        if (!rawNick) {
-                            rawNick = rawName.split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-                        }
-
-                        // Prevent duplicate student names
-                        const existing = students.find(s => s.fullName.toLowerCase() === rawName.toLowerCase());
-                        if (!existing) {
-                            const newStudent = {
-                                id: Date.now().toString() + Math.random().toString().slice(2, 6),
-                                fullName: rawName,
-                                nickname: rawNick
-                            };
-
-                            // Set default grade 0 for all active columns
-                            columns.forEach(col => {
-                                newStudent[col.id] = 0;
-                            });
-
-                            students.push(newStudent);
-                            addedCount++;
-                        }
-                    }
-
-                    if (addedCount > 0) {
-                        saveToStorage();
-                        renderStudentTable();
-                        showToast("Impor Berhasil", `${addedCount} siswa baru berhasil diimpor dengan nilai default 0.`);
-                    } else {
-                        showToast("Informasi", "Tidak ada siswa baru yang ditambahkan (mungkin data sudah ada).");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showToast("Gagal Impor", "Terjadi kesalahan saat membaca file Excel.", true);
-                } finally {
-                    event.target.value = ''; // Reset file input
-                }
-            };
-
-            reader.readAsArrayBuffer(file);
-        }
-
-        function filterStudents() {
-            renderStudentTable();
-        }
-
-        function copyToClipboardTable() {
-            const currentSubj = subjectName || 'Mata Pelajaran';
-            const currentClass = className || '-';
-            const currentTeacher = teacherName || '-';
-
-            let content = `DAFTAR NILAI SISWA\n`;
-            content += `Mata Pelajaran\t: ${currentSubj}\n`;
-            content += `Kelas / Rombel\t: ${currentClass}\n`;
-            if (currentTeacher) content += `Guru / Pengajar\t: ${currentTeacher}\n`;
-            content += `Tanggal Ekspor\t: ${new Date().toLocaleDateString('id-ID')}\n\n`;
-
-            let headers = ["No", "Nama Lengkap", "Panggilan", ...columns.map(c => c.label), "Koreksi"];
-            content += headers.join("\t") + "\n";
-            
-            students.forEach((s, idx) => {
-                let rowVals = [
-                    idx + 1,
-                    s.fullName,
-                    s.nickname || '',
-                    ...columns.map(c => s[c.id] ?? ''),
-                    s[activeColumn] ?? '-'
-                ];
-                content += rowVals.join("\t") + "\n";
-            });
-
-            const textarea = document.createElement('textarea');
-            textarea.value = content;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-
-            showToast("Tersalin!", "Data dan Header Mapel disalin! Tempelkan langsung (Ctrl+V) ke Google Sheets / Excel.");
-        }
-
-        function exportToExcel() {
-            if (typeof XLSX === 'undefined') {
-                showToast("Kesalahan", "Library Excel belum siap. Coba periksa koneksi internet.", true);
-                return;
-            }
-
-            const currentSubj = subjectName || 'Mata Pelajaran';
-            const currentClass = className || '-';
-            const currentTeacher = teacherName || '-';
-
-            // Building Array of Arrays (AOA) with Subject Header at the top
-            const aoaData = [
-                ["DAFTAR NILAI SISWA"],
-                ["Mata Pelajaran:", currentSubj],
-                ["Kelas / Rombel:", currentClass],
-                ["Nama Guru:", currentTeacher],
-                ["Tanggal Unduh:", new Date().toLocaleDateString('id-ID')],
-                [], // Empty row separator
-                ["No", "Nama Lengkap", "Panggilan", ...columns.map(c => c.label), "Koreksi"]
-            ];
-
-            students.forEach((s, idx) => {
-                aoaData.push([
-                    idx + 1,
-                    s.fullName,
-                    s.nickname || '',
-                    ...columns.map(col => s[col.id] ?? ''),
-                    s[activeColumn] ?? '-'
-                ]);
-            });
-
-            const worksheet = XLSX.utils.aoa_to_sheet(aoaData);
-
-            // Set column widths
-            const colsConfig = [
-                { wch: 6 },
-                { wch: 28 },
-                { wch: 15 }
-            ];
-            columns.forEach(() => colsConfig.push({ wch: 14 }));
-            colsConfig.push({ wch: 12 });
-
-            worksheet['!cols'] = colsConfig;
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Nilai Siswa");
-
-            const safeSubjName = currentSubj.replace(/[^a-zA-Z0-9]/g, '_');
-            const fileName = `Nilai_${safeSubjName}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            XLSX.writeFile(workbook, fileName);
-
-            showToast("Ekspor Excel", `File "${fileName}" berhasil diunduh.`);
         }
 
         function toggleSettingsModal() {
